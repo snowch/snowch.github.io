@@ -83,6 +83,13 @@ section ul li {
     margin-bottom: 0.5rem;
 }
 
+section ul li .date {
+    display: inline-block;
+    width: 6.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
 section ul li a {
     color: var(--link);
     text-decoration: none;
