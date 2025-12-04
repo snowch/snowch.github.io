@@ -36,13 +36,17 @@ header {
 .header-content {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    margin-bottom: 0.75rem;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
 }
 
 .logo {
-    width: 56px;
-    height: 56px;
+    width: 80px;
+    height: 80px;
     flex-shrink: 0;
 }
 
@@ -56,33 +60,30 @@ h1 {
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.02em;
-}
-
-.tagline {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    padding-left: calc(56px + 1.25rem);
+    margin-bottom: 0.25rem;
 }
 
 .credentials {
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
-    padding-left: calc(56px + 1.25rem);
+}
+
+.tagline {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .location {
     color: var(--text-secondary);
     font-size: 0.9rem;
-    margin-bottom: 1.25rem;
-    padding-left: calc(56px + 1.25rem);
+    margin-bottom: 1rem;
 }
 
 .social-links {
     display: flex;
     gap: 1.25rem;
-    padding-left: calc(56px + 1.25rem);
 }
 
 .social-links a {
@@ -296,11 +297,15 @@ article pre code {
         gap: 1rem;
     }
 
-    .tagline,
-    .credentials,
-    .location,
-    .social-links {
-        padding-left: 0;
+    .header-content {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .logo {
+        width: 60px;
+        height: 60px;
     }
 
     section ul li .date {
