@@ -65,6 +65,13 @@ h1 {
     padding-left: calc(56px + 1.25rem);
 }
 
+.credentials {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    padding-left: calc(56px + 1.25rem);
+}
+
 .location {
     color: var(--text-secondary);
     font-size: 0.9rem;
@@ -290,6 +297,7 @@ article pre code {
     }
 
     .tagline,
+    .credentials,
     .location,
     .social-links {
         padding-left: 0;
