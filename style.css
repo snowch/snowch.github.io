@@ -75,6 +75,11 @@ section p {
     margin-bottom: 0.5rem;
 }
 
+.section-intro {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
 section ul {
     list-style: none;
 }
