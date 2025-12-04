@@ -204,3 +204,12 @@ article pre code {
 .back-link:hover {
     text-decoration: underline;
 }
+
+.notebook-link {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.notebook-link:hover {
+    color: var(--link);
+}
