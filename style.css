@@ -75,7 +75,7 @@ section p {
     margin-bottom: 0.5rem;
 }
 
-.section-intro {
+section p.section-intro {
     font-size: 0.9rem;
     font-style: italic;
     margin-bottom: 0.75rem;
