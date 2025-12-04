@@ -62,20 +62,20 @@ h1 {
     color: var(--text-secondary);
     font-size: 1rem;
     margin-bottom: 0.5rem;
-    padding-left: 71px;
+    padding-left: calc(56px + 1.25rem);
 }
 
 .location {
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin-bottom: 1.25rem;
-    padding-left: 71px;
+    padding-left: calc(56px + 1.25rem);
 }
 
 .social-links {
     display: flex;
     gap: 1.25rem;
-    padding-left: 71px;
+    padding-left: calc(56px + 1.25rem);
 }
 
 .social-links a {
