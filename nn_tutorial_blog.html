@@ -7516,7 +7516,7 @@ a.anchor-link {
     <a href="/nn_tutorial_blog.ipynb" download style="color: #0066cc; text-decoration: none;">Download Notebook (.ipynb)</a>
 </div>
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=518ac659">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=212d45e9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7529,24 +7529,67 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput" id="cell-id=cad9a04d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput" id="cell-id=68d05a7f">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=08e94b63">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b6533fb0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-1:-The-Loss-Function">Part 1: The Loss Function<a class="anchor-link" href="#Part-1:-The-Loss-Function">¶</a></h2><p>The <strong>loss function</strong> measures how wrong the network's predictions are:</p>
-<p>$$L = -\log(p_{\text{correct}})$$</p>
+<h2 id="Part-1:-The-Loss-Function">Part 1: The Loss Function<a class="anchor-link" href="#Part-1:-The-Loss-Function">¶</a></h2><p>When training a neural network for <strong>classification</strong> (e.g., "Is this image a cat, dog, or bird?"), we need a way to measure how wrong the predictions are. This is the <strong>cross-entropy loss</strong>.</p>
+<h3 id="The-Setup">The Setup<a class="anchor-link" href="#The-Setup">¶</a></h3><p>Imagine our network outputs probabilities for 3 classes:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>P(Cat)</th>
+<th>P(Dog)</th>
+<th>P(Bird)</th>
+<th>True Label</th>
+<th>p_correct</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Good prediction</strong></td>
+<td>0.9</td>
+<td>0.05</td>
+<td>0.05</td>
+<td>Cat</td>
+<td>0.9</td>
+</tr>
+<tr>
+<td><strong>Uncertain</strong></td>
+<td>0.4</td>
+<td>0.3</td>
+<td>0.3</td>
+<td>Cat</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td><strong>Wrong prediction</strong></td>
+<td>0.1</td>
+<td>0.8</td>
+<td>0.1</td>
+<td>Cat</td>
+<td>0.1</td>
+</tr>
+</tbody>
+</table>
+<p>In the "wrong" case, the network thinks it's probably a Dog (80%), but it's actually a Cat. So we look at the probability it assigned to Cat (only 10%), and penalize heavily.</p>
+<h3 id="The-Formula">The Formula<a class="anchor-link" href="#The-Formula">¶</a></h3><p>$$L = -\log(p_{\text{correct}})$$</p>
+<p>We take the <strong>negative log of the probability assigned to the correct class</strong> — regardless of what the network thought the answer was.</p>
+<h3 id="Why-This-Works">Why This Works<a class="anchor-link" href="#Why-This-Works">¶</a></h3><p>The chart below shows the loss curve. Notice how:</p>
 <ul>
-<li>Confident and correct → Low loss</li>
-<li>Confident and wrong → Very high loss</li>
+<li>High p_correct (near 1.0) → Low loss ✓</li>
+<li>Low p_correct (near 0.0) → Very high loss ✗</li>
 </ul>
+<p>The <strong>logarithm</strong> is key — it severely punishes cases where the network assigned low probability to the correct answer!</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=293d4347">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=7fae8f34">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7559,18 +7602,33 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7294cd3a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d7dc9dc8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-2:-Softmax">Part 2: Softmax<a class="anchor-link" href="#Part-2:-Softmax">¶</a></h2><p><strong>Softmax</strong> converts raw scores to probabilities:</p>
-<p>$$P(\text{class } j) = \frac{e^{z_j}}{\sum_{k} e^{z_k}}$$</p>
+<h2 id="Part-2:-Softmax-%E2%80%94-Converting-Scores-to-Probabilities">Part 2: Softmax — Converting Scores to Probabilities<a class="anchor-link" href="#Part-2:-Softmax-%E2%80%94-Converting-Scores-to-Probabilities">¶</a></h2><p>Neural networks don't directly output probabilities. They output raw "scores" (also called <strong>logits</strong>) which can be any number — positive, negative, or zero.</p>
+<p><strong>Softmax</strong> converts these scores into proper probabilities that:</p>
+<ol>
+<li>Are all positive</li>
+<li>Sum to 1.0</li>
+</ol>
+<h3 id="The-Formula">The Formula<a class="anchor-link" href="#The-Formula">¶</a></h3><p>$$P(\text{class } j) = \frac{e^{z_j}}{\sum_{k=1}^{n} e^{z_k}}$$</p>
+<h3 id="Step-by-Step">Step by Step<a class="anchor-link" href="#Step-by-Step">¶</a></h3><p>The visualization below shows the 3-step process:</p>
+<ol>
+<li><strong>Raw scores</strong> (e.g., Cat=2.0, Dog=1.0, Bird=0.1) — can be any numbers</li>
+<li><strong>Exponentials</strong> — $e^{z}$ makes everything positive</li>
+<li><strong>Normalize</strong> — divide by sum so they add to 1.0</li>
+</ol>
+<h3 id="The-Summation-Trick">The Summation Trick<a class="anchor-link" href="#The-Summation-Trick">¶</a></h3><p>Notice that in the loss formula $L = -\sum y_l \cdot \log(p_l)$, we sum over all classes. But since $y$ is <strong>one-hot encoded</strong> (1 for correct class, 0 for others), only one term survives!</p>
+<p>For example, if Cat is correct: $y = [1, 0, 0]$</p>
+<p>$$L = -(1 \cdot \log(p_{cat}) + 0 \cdot \log(p_{dog}) + 0 \cdot \log(p_{bird})) = -\log(p_{cat})$$</p>
+<p>The $y$ values act as a <strong>selector</strong> — picking out only the correct class's probability.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=c747adce">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=7fa4a0c4">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7583,18 +7641,36 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bb7d5cac">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76a3ae5e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-3:-Inside-a-Neuron">Part 3: Inside a Neuron<a class="anchor-link" href="#Part-3:-Inside-a-Neuron">¶</a></h2><p>Each neuron computes:</p>
-<p>$$z = \sum_{i} x_i \cdot w_i + b \quad \text{then} \quad h = \max(0, z)$$</p>
+<h2 id="Part-3:-Inside-a-Neuron-%E2%80%94-Weighted-Sum-+-Activation">Part 3: Inside a Neuron — Weighted Sum + Activation<a class="anchor-link" href="#Part-3:-Inside-a-Neuron-%E2%80%94-Weighted-Sum-+-Activation">¶</a></h2><p>Each neuron in a neural network performs a simple 3-step calculation:</p>
+<h3 id="Step-1:-Weighted-Sum">Step 1: Weighted Sum<a class="anchor-link" href="#Step-1:-Weighted-Sum">¶</a></h3><p>$$z = \sum_{i} x_i \cdot w_i + b$$</p>
+<p>Each input $x_i$ is multiplied by a weight $w_i$, summed together, and a bias $b$ is added.</p>
+<ul>
+<li><strong>Weights</strong> determine how much each input matters</li>
+<li><strong>Bias</strong> shifts when the neuron "fires"</li>
+</ul>
+<h3 id="Step-2:-Activation-(ReLU)">Step 2: Activation (ReLU)<a class="anchor-link" href="#Step-2:-Activation-(ReLU)">¶</a></h3><p>$$h = \text{ReLU}(z) = \max(0, z)$$</p>
+<p>The activation function adds <strong>non-linearity</strong>. Without it, stacking layers would be pointless — the whole network would just be one big linear equation!</p>
+<p><strong>ReLU</strong> (Rectified Linear Unit) is the simplest activation:</p>
+<ul>
+<li>If z &gt; 0: output z (pass through)</li>
+<li>If z ≤ 0: output 0 (block it)</li>
+</ul>
+<h3 id="The-Visualization-Below-Shows:">The Visualization Below Shows:<a class="anchor-link" href="#The-Visualization-Below-Shows:">¶</a></h3><p><strong>Left panel:</strong> The ReLU function — negative inputs become 0, positive inputs pass through unchanged.</p>
+<p><strong>Right panel:</strong> A practical example with 4 "feature detectors":</p>
+<ul>
+<li>Inputs with positive weighted sums (green) pass through</li>
+<li>Inputs with negative weighted sums (red) are blocked by ReLU</li>
+</ul>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=8bf6addf">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=39ba0314">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7607,18 +7683,28 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80eee165">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c689b000">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-4:-How-Neurons-Detect-Features">Part 4: How Neurons Detect Features<a class="anchor-link" href="#Part-4:-How-Neurons-Detect-Features">¶</a></h2><p>By learning the right weights, a neuron becomes a pattern detector!</p>
-<p><strong>See also:</strong> <a href="https://snowch.github.io/nn_edge_detector_blog.html">Neural Network Edge Detector</a></p>
+<h2 id="Part-4:-How-Neurons-Become-Feature-Detectors">Part 4: How Neurons Become Feature Detectors<a class="anchor-link" href="#Part-4:-How-Neurons-Become-Feature-Detectors">¶</a></h2><p>This is where it gets exciting! By learning the right weights, a neuron can detect specific <strong>patterns</strong> in its input — like edges, curves, or textures.</p>
+<h3 id="The-Key-Idea">The Key Idea<a class="anchor-link" href="#The-Key-Idea">¶</a></h3><p>Each weight says how much the neuron "cares" about that input:</p>
+<ul>
+<li><strong>Positive weight</strong>: "I want this input to be large"</li>
+<li><strong>Negative weight</strong>: "I want this input to be small"</li>
+<li><strong>Zero weight</strong>: "I don't care about this input"</li>
+</ul>
+<h3 id="Example:-Vertical-Edge-Detector">Example: Vertical Edge Detector<a class="anchor-link" href="#Example:-Vertical-Edge-Detector">¶</a></h3><p>The visualizations below show how a single neuron can detect a vertical edge (a transition from dark to bright):</p>
+<p><strong>Figure 1:</strong> Shows the neuron connected to a 5×5 image. Red connections have negative weights (left side), blue connections have positive weights (right side).</p>
+<p><strong>Figure 2:</strong> Shows the calculation — when dark pixels align with negative weights AND bright pixels align with positive weights, the output is large!</p>
+<p><strong>Figure 3:</strong> Compares 5 different inputs to the same neuron — perfect match, shifted edges, uniform gray, and inverted edge all produce different outputs.</p>
+<p><strong>For a complete implementation, see <a href="https://snowch.github.io/nn_edge_detector_blog.html">Neural Network Edge Detector</a>.</strong></p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=b6b90780">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=5e1636d9">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7660,23 +7746,30 @@ Each neuron detects edges at different positions, orientations, etc.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a5918b50">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e87850dc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-5:-Network-Architecture">Part 5: Network Architecture<a class="anchor-link" href="#Part-5:-Network-Architecture">¶</a></h2><p>Layers build on each other:</p>
+<h2 id="Part-5:-Network-Architecture-%E2%80%94-Stacking-Layers">Part 5: Network Architecture — Stacking Layers<a class="anchor-link" href="#Part-5:-Network-Architecture-%E2%80%94-Stacking-Layers">¶</a></h2><p>A neural network stacks multiple layers, each building on the previous. The diagram below shows:</p>
 <ul>
-<li>Layer 1: Edges</li>
-<li>Layer 2: Shapes</li>
-<li>Layer 3: Parts</li>
-<li>Output: Classification</li>
+<li><strong>Input layer</strong>: Raw data (e.g., pixel values)</li>
+<li><strong>Hidden layers</strong>: Learn increasingly complex features</li>
+<li><strong>Output layer</strong>: Final classification (after softmax)</li>
 </ul>
+<h3 id="The-Hierarchy-of-Features">The Hierarchy of Features<a class="anchor-link" href="#The-Hierarchy-of-Features">¶</a></h3><p>Each layer detects more abstract patterns:</p>
+<ul>
+<li><strong>Layer 1</strong>: Simple patterns (edges, colors)</li>
+<li><strong>Layer 2</strong>: Combinations (curves, corners, textures)</li>
+<li><strong>Layer 3</strong>: Parts (eyes, ears, wheels)</li>
+<li><strong>Output</strong>: Final classification (cat, dog, car)</li>
+</ul>
+<p>This hierarchy — from simple to complex — is why deep learning works so well!</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=665ead3c">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=0f15adda">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7689,18 +7782,34 @@ Each neuron detects edges at different positions, orientations, etc.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2da9f846">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a75bdca2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-6:-Training-with-Backpropagation">Part 6: Training with Backpropagation<a class="anchor-link" href="#Part-6:-Training-with-Backpropagation">¶</a></h2><p><strong>Backpropagation</strong> uses the chain rule to compute gradients. Then <strong>gradient descent</strong> updates weights:</p>
+<h2 id="Part-6:-Training-with-Backpropagation">Part 6: Training with Backpropagation<a class="anchor-link" href="#Part-6:-Training-with-Backpropagation">¶</a></h2><p>Now the crucial question: <strong>how do we find the right weights?</strong></p>
+<h3 id="The-Answer:-Gradient-Descent">The Answer: Gradient Descent<a class="anchor-link" href="#The-Answer:-Gradient-Descent">¶</a></h3><p>We repeatedly:</p>
+<ol>
+<li>Measure how wrong we are (loss)</li>
+<li>Figure out which direction to adjust each weight (gradient)</li>
+<li>Take a small step in that direction</li>
+</ol>
+<h3 id="The-Chain-Rule">The Chain Rule<a class="anchor-link" href="#The-Chain-Rule">¶</a></h3><p>The network is a <strong>chain</strong> of functions — output of one layer feeds into the next. To find how loss changes with respect to a weight deep in the network, we use the <strong>chain rule</strong>:</p>
+<p>$$\frac{\partial L}{\partial W_1} = \frac{\partial L}{\partial z_3} \cdot \frac{\partial z_3}{\partial h_2} \cdot \frac{\partial h_2}{\partial z_2} \cdot \ldots$$</p>
+<h3 id="Backpropagation">Backpropagation<a class="anchor-link" href="#Backpropagation">¶</a></h3><p>The diagram below shows:</p>
+<ul>
+<li><strong>Top</strong>: Forward pass — compute outputs layer by layer (left to right)</li>
+<li><strong>Bottom</strong>: Backward pass — propagate gradients using chain rule (right to left)</li>
+</ul>
+<p>This is called <strong>backpropagation</strong> because we propagate the error signal backwards through the network.</p>
+<h3 id="The-Update-Rule">The Update Rule<a class="anchor-link" href="#The-Update-Rule">¶</a></h3><p>Once we have the gradients, we update each weight:</p>
 <p>$$W \leftarrow W - \alpha \cdot \frac{\partial L}{\partial W}$$</p>
+<p>Where $\alpha$ is the <strong>learning rate</strong> — a small number (like 0.01) that controls how big each step is.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=3a5d7a7f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=624f87bd">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7713,17 +7822,34 @@ Each neuron detects edges at different positions, orientations, etc.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5ca78a46">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7b98d35a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Part-7:-Watching-It-Learn">Part 7: Watching It Learn<a class="anchor-link" href="#Part-7:-Watching-It-Learn">¶</a></h2><p>Let's see loss decrease over 50 training iterations:</p>
+<h2 id="Part-7:-Watching-It-Learn">Part 7: Watching It Learn<a class="anchor-link" href="#Part-7:-Watching-It-Learn">¶</a></h2><p>Let's see training in action! We'll train a tiny network on a single example:</p>
+<ul>
+<li>Input: [0.5, 0.8]</li>
+<li>True label: Cat</li>
+</ul>
+<p>Starting with random weights, we run 50 iterations of:</p>
+<ol>
+<li>Forward pass</li>
+<li>Compute loss</li>
+<li>Backward pass (backpropagation)</li>
+<li>Update weights</li>
+</ol>
+<p>The charts below show:</p>
+<ul>
+<li><strong>Left</strong>: Loss decreasing over iterations (approaching 0)</li>
+<li><strong>Right</strong>: P(Cat) increasing over iterations (approaching 100%)</li>
+</ul>
+<p>After just 50 iterations, the network has learned to correctly classify this example!</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=956c1be1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noInput" id="cell-id=0dce9987">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7742,7 +7868,7 @@ Each neuron detects edges at different positions, orientations, etc.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b2f97b62">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b78b8914">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
