@@ -33,6 +33,28 @@ header {
     border-bottom: 1px solid var(--border);
 }
 
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.logo {
+    flex-shrink: 0;
+}
+
+.logo img {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
 h1 {
     font-size: 2rem;
     font-weight: 700;
@@ -269,6 +291,17 @@ article pre code {
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
+    .header-content {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .logo img {
+        width: 80px;
+        height: 80px;
+    }
+
     section ul li .date {
         display: block;
         margin-bottom: 0.25rem;
