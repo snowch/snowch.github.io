@@ -49,9 +49,9 @@ header {
 }
 
 .logo img {
-    width: 120px;
-    height: 120px;
-    border-radius: 8px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
     object-fit: cover;
 }
 
@@ -298,8 +298,8 @@ article pre code {
     }
 
     .logo img {
-        width: 80px;
-        height: 80px;
+        width: 48px;
+        height: 48px;
     }
 
     section ul li .date {
