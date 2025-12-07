@@ -7511,7 +7511,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7beff01d">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2eb5cee8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7532,9 +7532,9 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=57298f86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=98c29683">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1aa9135a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3166d5f7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7550,7 +7550,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=b1792be1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=3556cc79">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7564,7 +7564,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9b1dad8b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=59b519ec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7582,7 +7582,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=5418965a">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=9d81fd39">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7604,7 +7604,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5f3324a9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=500e1fec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7620,6 +7620,10 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </ul>
 <h3 id="Step-2:-Activation-(ReLU)">Step 2: Activation (ReLU)<a class="anchor-link" href="#Step-2:-Activation-(ReLU)">¶</a></h3><p>$$h = \text{ReLU}(z) = \max(0, z)$$</p>
 <p>The activation function adds <strong>non-linearity</strong>. Without it, stacking layers would be pointless — the whole network would just be one big linear equation!</p>
+<blockquote>
+<p><strong>Why non-linearity matters:</strong> A linear function of a linear function is still just a linear function. If layer 1 computes $z_1 = W_1 x$ and layer 2 computes $z_2 = W_2 z_1$, then together they compute $z_2 = W_2 W_1 x = W_{combined} x$ — equivalent to a single layer! No matter how many layers you stack, you can only learn linear relationships.</p>
+<p>ReLU breaks this by introducing a "kink" at zero. Now the network can combine linear pieces to approximate <em>any</em> function — curves, edges, complex decision boundaries. This is what makes deep learning powerful.</p>
+</blockquote>
 <p><strong>ReLU</strong> (Rectified Linear Unit) is the simplest activation:</p>
 <ul>
 <li>If z &gt; 0: output z (pass through)</li>
@@ -7631,7 +7635,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c3e432d3">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2bdec2c0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7644,7 +7648,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=d7079f6e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=60fcc13f">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7658,7 +7662,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=318cceba">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cda7ede4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7668,7 +7672,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=b9205f1e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=267639f0">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7682,7 +7686,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6934cbee">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=988e8941">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7708,7 +7712,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=d4b53334">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=41341ebc">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7729,7 +7733,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e5892e5b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=46d9a243">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7754,7 +7758,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5e4bed9e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39bae454">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7767,7 +7771,7 @@ The network learns 50 weights (25 inputs × 2 outputs) + 2 biases = 52 parameter
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=8dad6d75">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=a1ade502">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7789,7 +7793,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=437d8553">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c5ed3fef">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7845,7 +7849,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c8790038">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bb3d5a7e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7857,7 +7861,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=8534443d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=41aedf29">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7871,7 +7875,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6ee37535">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=febeecbc">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7889,7 +7893,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0f01c0a9">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ef953c85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7905,7 +7909,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ecf9d5cd">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=51d25f42">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7939,7 +7943,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ac5ee668">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=19dccde5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7952,7 +7956,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=f0ee3d4f">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=76272656">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7976,7 +7980,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0750d89e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d31ed939">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7992,7 +7996,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=5777152b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=700482d7">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8006,7 +8010,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c62c4fd4">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6ea44d93">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8036,7 +8040,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.2) = 0.5 + 0.02 = 0.52$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f4babfd7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e9025394">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8051,7 +8055,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.2) = 0.5 + 0.02 = 0.52$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76830959">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=db70ba2a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8063,7 +8067,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.2) = 0.5 + 0.02 = 0.52$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c1715a75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=796149f6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8091,7 +8095,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.2) = 0.5 + 0.02 = 0.52$$</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=39333403">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=c37cb045">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8115,7 +8119,7 @@ This is exactly the pattern we would expect for an edge detector.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9297e718">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21e36c24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8134,7 +8138,7 @@ This is exactly the pattern we would expect for an edge detector.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fc9c8332">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ad6568e2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8145,7 +8149,7 @@ This is exactly the pattern we would expect for an edge detector.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=7d1977b7">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b7e54e4c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8304,7 +8308,7 @@ The network discovered the edge detection pattern automatically.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f235c7fb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e7ac6f3b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
