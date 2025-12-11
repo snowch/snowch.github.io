@@ -8083,8 +8083,7 @@ The network is 99.9% confident this is an edge.
 <p>$$\text{input} \rightarrow \text{layer 1} \rightarrow \text{layer 2} \rightarrow \text{output} \rightarrow \text{loss}$$</p>
 <p>The gradient for a weight in layer 1 is:</p>
 <p>$$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial z_{output}} \cdot \frac{\partial z_{output}}{\partial \text{layer2}} \cdot \frac{\partial \text{layer2}}{\partial \text{layer1}} \cdot \frac{\partial \text{layer1}}{\partial w_1}$$</p>
-<p>We <strong>multiply</strong> the gradients along the path from loss back to the weight. This is why it's called "back" propagation — we start at the loss and work backwards.</p>
-</div>
+<p>We <strong>multiply</strong> the gradients along the path from loss back to the weight. This is why it's called "back" propagation — we start at the loss and work backwards.</p></div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=a6e7b680">
