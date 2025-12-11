@@ -8079,9 +8079,15 @@ The network is 99.9% confident this is an edge.
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
 <h2 id="Part-6:-Backpropagation---Computing-Gradients-in-a-Network">Part 6: Backpropagation - Computing Gradients in a Network<a class="anchor-link" href="#Part-6:-Backpropagation---Computing-Gradients-in-a-Network">¶</a></h2><p>In Part 5, we saw the update rule requires the gradient $\frac{\partial L}{\partial w}$ for each weight. But our network has <strong>many weights</strong> — how do we compute all these gradients efficiently?</p>
-<p>The answer is <strong>backpropagation</strong>, which uses the <strong>chain rule</strong> from calculus. The gradient for a weight in layer 1 is:</p>
+<p>The answer is <strong>backpropagation</strong>, which uses the <strong>chain rule</strong> from calculus. The gradient for a weight in layer 1 requires the longest chain (since it's furthest from the loss):</p>
 <p>$$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial z_{output}} \cdot \frac{\partial z_{output}}{\partial h_1} \cdot \frac{\partial h_1}{\partial z_1} \cdot \frac{\partial z_1}{\partial w_1}$$</p>
 <p>We <strong>multiply</strong> the gradients along the path from loss back to the weight. This is why it's called "back" propagation — we start at the loss and work backwards.</p>
+<div class="alert alert-info">
+<b>💡 Compare with layer 2:</b> The gradient for $w_2$ has a shorter chain (it's closer to the loss):
+
+<p>$$\frac{\partial L}{\partial w_2} = \frac{\partial L}{\partial z_{output}} \cdot \frac{\partial z_{output}}{\partial w_2} = (p - y) \cdot h_1$$</p>
+<p>Only 2 terms! Notice the first term $(p-y)$ is reused — we compute it once and propagate it backward.</p>
+</div>
 </div>
 </div>
 </div>
