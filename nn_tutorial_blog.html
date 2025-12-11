@@ -8082,7 +8082,7 @@ The network is 99.9% confident this is an edge.
 <p>The answer is <strong>backpropagation</strong>, which uses the <strong>chain rule</strong> from calculus. Since the network is a chain of functions:</p>
 <p>$$\text{input} \rightarrow \text{layer 1} \rightarrow \text{layer 2} \rightarrow \text{output} \rightarrow \text{loss}$$</p>
 <p>The gradient for a weight in layer 1 is:</p>
-<p>$$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial \text{output}} \cdot \frac{\partial \text{output}}{\partial \text{layer2}} \cdot \frac{\partial \text{layer2}}{\partial \text{layer1}} \cdot \frac{\partial \text{layer1}}{\partial w_1}$$</p>
+<p>$$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial z_{output}} \cdot \frac{\partial z_{output}}{\partial \text{layer2}} \cdot \frac{\partial \text{layer2}}{\partial \text{layer1}} \cdot \frac{\partial \text{layer1}}{\partial w_1}$$</p>
 <p>We <strong>multiply</strong> the gradients along the path from loss back to the weight. This is why it's called "back" propagation — we start at the loss and work backwards.</p>
 </div>
 </div>
