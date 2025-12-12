@@ -7511,7 +7511,7 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fec24173">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7ae15792">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7532,9 +7532,9 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=354433cc">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=a4497bb7">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16a73664">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d6366870">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7550,7 +7550,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=c952ea6c">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=e04dc5b7">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7564,7 +7564,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=84fa8580">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7daaa23e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7591,7 +7591,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=84b4d08e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=894b617b">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7605,7 +7605,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90cd361a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7a24675e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7621,7 +7621,7 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=949f910b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9cdd20e4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7753,7 +7753,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ffec2e9f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b2e56f18">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7767,7 +7767,8 @@ p = [0.583, 0.417]
 <li><strong>Weights</strong> determine how much each input matters</li>
 <li><strong>Bias</strong> shifts when the neuron "fires"</li>
 </ul>
-<p>With vectors: if $\mathbf{x}$ is the input vector (25 pixels) and $\mathbf{w}$ is the weight vector (25 weights), then $z = \mathbf{x} \cdot \mathbf{w} + b$ (dot product).</p>
+<p><strong>For one neuron:</strong> $z = \mathbf{x} \cdot \mathbf{w} + b$ where $\mathbf{x}$ is the input vector (25 pixels) and $\mathbf{w}$ is that neuron's weight vector (25 weights).</p>
+<p><strong>For all neurons at once:</strong> $\mathbf{z}_1 = \mathbf{x} \cdot W_1 + \mathbf{b}_1$ where $W_1$ is a matrix (25×8) — each column is one neuron's weights. This computes all 8 hidden neurons in one operation!</p>
 <h3 id="Step-2:-Activation-(ReLU)">Step 2: Activation (ReLU)<a class="anchor-link" href="#Step-2:-Activation-(ReLU)">¶</a></h3><p>$$h = \text{ReLU}(z) = \max(0, z)$$</p>
 <p><strong>ReLU</strong> (Rectified Linear Unit) is the simplest activation:</p>
 <ul>
@@ -7785,14 +7786,14 @@ p = [0.583, 0.417]
 <p>With many neurons, each making its own if/else decision, the network can carve up the input space into regions, handling each region differently. That's how it learns complex, non-linear patterns.</p>
 </blockquote>
 <p><strong>Implementation:</strong></p>
-<div class="highlight"><pre><span></span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>    <span class="c1"># x and w are vectors (length 25), z is a scalar</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>    <span class="c1"># h is a scalar</span>
+<div class="highlight"><pre><span></span><span class="n">z1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">@</span> <span class="n">W1</span> <span class="o">+</span> <span class="n">b1</span>   <span class="c1"># matrix multiply: (1,25) @ (25,8) = (1,8)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">z1</span><span class="p">)</span>  <span class="c1"># ReLU applied element-wise</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af6e98c1">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e13bf740">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7808,7 +7809,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=cb387984">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=403a2017">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7822,7 +7823,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a0bb7390">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bc04c543">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7832,7 +7833,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=3f98ae75">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=5a48f93d">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7846,7 +7847,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35c883e5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4ead35ac">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7873,7 +7874,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=534bfea6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4743144d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7889,7 +7890,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=fcb1a76b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=2500f255">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7910,7 +7911,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=487e5844">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d3e05abf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7937,7 +7938,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a0dbc33e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eb37c461">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7950,7 +7951,7 @@ p = [0.583, 0.417]
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=88941c12">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=7a4a5416">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -7972,7 +7973,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=889cae0b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35af0868">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8034,7 +8035,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b25e7e9c">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=faec8eea">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8046,7 +8047,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=805df685">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=8d70b925">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8060,7 +8061,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=840dae33">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4acf8b1a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8078,7 +8079,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=29b5e0b7">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=870db1ca">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8095,7 +8096,7 @@ The network is 99.9% confident this is an edge.
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=416b75ac">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=076617a3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8132,7 +8133,7 @@ $$\frac{\partial L}{\partial w} = \frac{\partial L}{\partial z} \cdot \frac{\par
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76687d26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8ceedd1f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8186,7 +8187,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.32) = 0.532$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2a5ba917">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=837d456f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8199,7 +8200,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.32) = 0.532$$</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=e7880b50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=b61a0806">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8223,7 +8224,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.32) = 0.532$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7595fdaa">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0afb5370">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8245,7 +8246,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.32) = 0.532$$</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=e34c29f1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=dff0169e">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8259,7 +8260,7 @@ $$w_{new} = 0.5 - 0.1 \times (-0.32) = 0.532$$</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1174674a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ba01ff8e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8288,7 +8289,7 @@ $$\frac{\partial L}{\partial W} = \mathbf{x}^T \cdot \frac{\partial L}{\partial 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d655f7de">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e52c4439">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8306,7 +8307,7 @@ $$\frac{\partial L}{\partial W} = \mathbf{x}^T \cdot \frac{\partial L}{\partial 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e76f6334">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=49c54a8f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8318,7 +8319,7 @@ $$\frac{\partial L}{\partial W} = \mathbf{x}^T \cdot \frac{\partial L}{\partial 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=dd056380">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9b714c40">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8350,7 +8351,7 @@ $$\frac{\partial L}{\partial W} = \mathbf{x}^T \cdot \frac{\partial L}{\partial 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=46c582c8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide-input" id="cell-id=09671b00">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -8374,7 +8375,7 @@ Total parameters: W1(25x8) + b1(8) + W2(8x2) + b2(2) = 226
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7d99e399">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6bddcdf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8391,7 +8392,7 @@ Total parameters: W1(25x8) + b1(8) + W2(8x2) + b2(2) = 226
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3956d144">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9e8b2759">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8403,7 +8404,7 @@ Total parameters: W1(25x8) + b1(8) + W2(8x2) + b2(2) = 226
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=5f089f78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=17a72334">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8590,7 +8591,7 @@ Total parameters: 226 = 226
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f216d076">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5cafe296">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
