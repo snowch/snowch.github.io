@@ -7659,6 +7659,14 @@ a.anchor-link {
 <blockquote>
 <p><strong>What does ∏ mean?</strong> The symbol $\prod$ (capital Greek letter "pi") means "product" — multiply all the terms together. It's like $\sum$ (summation), but for multiplication instead of addition. Here, $\prod_{k=0}^{n-1}$ means "multiply the expression for each value of k from 0 to n-1."</p>
 </blockquote>
+<h3 id="From-Product-to-Factorial">From Product to Factorial<a class="anchor-link" href="#From-Product-to-Factorial">¶</a></h3><p>Here's how to get from product notation to factorial form:</p>
+<p><strong>Step 1:</strong> Separate the numerators and denominators:</p>
+<p>$$\prod_{k=0}^{n-1} \frac{365-k}{365} = \frac{365 \times 364 \times 363 \times \cdots \times (365-n+1)}{365 \times 365 \times \cdots \times 365} = \frac{365 \times 364 \times \cdots \times (365-n+1)}{365^n}$$</p>
+<p><strong>Step 2:</strong> Recognize the numerator as a "falling factorial" — it's $365!$ with the smaller terms cut off:</p>
+<p>$$365 \times 364 \times \cdots \times (365-n+1) = \frac{365!}{(365-n)!}$$</p>
+<p>This works because $365! = 365 \times 364 \times \cdots \times (365-n+1) \times (365-n) \times \cdots \times 1$, and dividing by $(365-n)!$ cancels the tail.</p>
+<p><strong>Step 3:</strong> Combine:</p>
+<p>$$P(\text{no shared birthday}) = \frac{365!}{(365-n)! \cdot 365^n}$$</p>
 <p>Let's see how this grows:</p>
 </div>
 </div>
