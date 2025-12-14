@@ -7654,8 +7654,11 @@ a.anchor-link {
 <hr/>
 <h2 id="The-General-Case:-N-People">The General Case: N People<a class="anchor-link" href="#The-General-Case:-N-People">¶</a></h2><p>For <em>n</em> people, the pattern continues:</p>
 <p>$$P(\text{no shared birthday}) = \frac{365}{365} \times \frac{364}{365} \times \frac{363}{365} \times \cdots \times \frac{365-n+1}{365}$$</p>
-<p>Or more compactly:</p>
+<p>Or more compactly using <strong>product notation</strong>:</p>
 <p>$$P(\text{no shared birthday}) = \prod_{k=0}^{n-1} \frac{365-k}{365} = \frac{365!}{(365-n)! \cdot 365^n}$$</p>
+<blockquote>
+<p><strong>What does ∏ mean?</strong> The symbol $\prod$ (capital Greek letter "pi") means "product" — multiply all the terms together. It's like $\sum$ (summation), but for multiplication instead of addition. Here, $\prod_{k=0}^{n-1}$ means "multiply the expression for each value of k from 0 to n-1."</p>
+</blockquote>
 <p>Let's see how this grows:</p>
 </div>
 </div>
