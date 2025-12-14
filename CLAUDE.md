@@ -11,3 +11,11 @@ jupyter nbconvert --to html notebook.ipynb --TagRemovePreprocessor.remove_input_
 ```
 
 This hides code cells tagged with `hide-input` while still showing their output (plots, tables, etc.).
+
+**Workflow:** When editing a notebook (`.ipynb`) for a blog post, always regenerate and commit the corresponding HTML file:
+
+1. Edit the notebook
+2. Run `jupyter nbconvert --to html <notebook>.ipynb --TagRemovePreprocessor.remove_input_tags='["hide-input"]'`
+3. Commit both the `.ipynb` and `.html` files
+
+If jupyter is not installed, install it first: `pip install jupyter nbconvert`
