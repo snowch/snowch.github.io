@@ -1,0 +1,73 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: snowch-github-io
+  title: Chris Snow - Data & AI Engineering
+  description: Data & AI Engineer with 25+ years in IT. Author of books on embeddings, ML, and data platforms. Creator of open source projects.
+  keywords:
+    - data engineering
+    - machine learning
+    - artificial intelligence
+    - digital electronics
+  authors:
+    - name: Chris Snow
+      email: snowch@gmail.com
+      url: https://snowch.github.io
+      affiliations:
+        - VAST Data
+  github: https://github.com/snowch/snowch.github.io
+  license: CC-BY-4.0
+  toc:
+    - file: index.md
+    - title: Tutorials
+      children:
+        - title: Digital Electronics
+          children:
+            - file: d_flipflop_tutorial.ipynb
+              title: D Flip-Flops
+            - file: timing_diagrams_tutorial.ipynb
+              title: Timing Diagrams
+            - file: fsm_tutorial.ipynb
+              title: Finite State Machines
+        - title: Practical Labs
+          children:
+            - file: d-flip-flop-interactive.md
+              title: Interactive D Flip-Flop
+            - file: quick_ref.ipynb
+              title: Quick Reference
+            - file: sr_latch_lab.ipynb
+              title: "Lab: SR Latch"
+            - file: d_flip_flop_lab.ipynb
+              title: "Lab: D Flip-Flop"
+            - file: moore_fsm_lab.ipynb
+              title: "Lab: Moore FSM"
+        - title: ML, AI & Math
+          children:
+            - file: birthday_tutorial.ipynb
+              title: Birthday Paradox
+            - file: nn_edge_detector_blog.ipynb
+              title: Neural Network Edge Detector
+            - file: nn_tutorial_blog.ipynb
+              title: Understanding Neural Networks
+            - file: nn_flexible_network_blog.ipynb
+              title: Flexible Network Architecture
+    - title: Resources
+      children:
+        - file: books.md
+        - file: talks.md
+        - file: opensource.md
+        - file: external-articles.md
+
+site:
+  template: book-theme
+  title: Chris Snow
+  options:
+    logo_text: Chris Snow
+    static:
+      - d-flip-flop-viz.html
+      - googlea64efe48103f11c2.html
+  nav:
+    - title: GitHub
+      url: https://github.com/snowch
+    - title: LinkedIn
+      url: https://www.linkedin.com/in/csnowuk/
