@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rising Edge Nanosecond View</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #2196F3;
+            color: white;
+            font-weight: 600;
+            margin: 0 10px;
+        }
+        button:hover {
+            background: #0b7dda;
+        }
+        .time-display {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            border: 3px solid #333;
+        }
+        .timing-diagram {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 300px;
+            background: #0a0a0a;
+            border-radius: 4px;
+        }
+        .latch-states {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            gap: 20px;
+        }
+        .latch-box {
+            flex: 1;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .latch-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .latch-enable {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .latch-state {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .transparent {
+            background: #4CAF50;
+            color: white;
+        }
+        .holding {
+            background: #ff9800;
+            color: white;
+        }
+        .closing {
+            background: linear-gradient(90deg, #4CAF50 0%, #ff9800 100%);
+            color: white;
+            animation: pulse 0.5s infinite;
+        }
+        .opening {
+            background: linear-gradient(90deg, #ff9800 0%, #4CAF50 100%);
+            color: white;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .data-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .transfer-happening {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: red;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 20px;
+            z-index: 100;
+            animation: blink 0.5s infinite;
+            box-shadow: 0 0 30px rgba(255,0,0,0.8);
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .explanation {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .phase-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 30px;
+            height: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p style="margin-bottom: 20px;"><a href="/" style="color: #667eea; text-decoration: none;">← Back to Home</a></p>
+        <h1>⚡ D Flip-Flop: Rising Edge Timing</h1>
+        <p class="subtitle">Nanosecond-Level View - How Master-Slave Latches Create Edge Triggering</p>
+        
+        <div class="time-display" id="timeDisplay">t = 0.0 ns</div>
+        
+        <div class="controls">
+            <button onclick="prevStep()">← Previous</button>
+            <button onclick="nextStep()">Next →</button>
+            <button onclick="reset()">Reset</button>
+        </div>
+
+        <div class="timing-diagram">
+            <canvas id="timingCanvas"></canvas>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ff00;"></div>
+                    <span style="color: #00ff00;">Master Enable (NOT CLK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00aaff;"></div>
+                    <span style="color: #00aaff;">Slave Enable (CLK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff0000; height: 2px; border-style: dashed;"></div>
+                    <span style="color: #ff0000;">Threshold (2.5V)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <div class="phase-title" id="phaseTitle"></div>
+            <div id="explanation"></div>
+        </div>
+
+        <div class="latch-states">
+            <div class="latch-box">
+                <div class="latch-title">MASTER LATCH</div>
+                <div class="latch-enable">Enable = NOT CLK</div>
+                <div class="latch-state" id="masterState">TRANSPARENT</div>
+                <div>Value: <span class="data-value">1</span></div>
+                <div style="font-size: 12px; color: #666; margin-top: 10px;" id="masterDetail"></div>
+            </div>
+            
+            <div class="latch-box">
+                <div class="latch-title">SLAVE LATCH</div>
+                <div class="latch-enable">Enable = CLK</div>
+                <div class="latch-state" id="slaveState">HOLDING</div>
+                <div>Value: <span class="data-value" id="slaveValue">0</span></div>
+                <div style="font-size: 12px; color: #666; margin-top: 10px;" id="slaveDetail"></div>
+                <div id="transferIndicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let step = 0;
+        let autoPlayInterval = null;
+        const canvas = document.getElementById('timingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas resolution
+        canvas.width = 1000;
+        canvas.height = 300;
+
+        const steps = [
+            {
+                time: 0.0,
+                clkV: 0,
+                notClkV: 5,
+                masterState: "TRANSPARENT",
+                masterDetail: "Actively following D input",
+                slaveState: "HOLDING",
+                slaveDetail: "Locked, ignoring master",
+                slaveValue: 0,
+                transfer: false,
+                title: "BEFORE Rising Edge",
+                explanation: "Clock is steady at 0V (LOW). Master is transparent, continuously capturing D=1. Slave is locked with old value 0. Everything is stable."
+            },
+            {
+                time: 0.1,
+                clkV: 0.5,
+                notClkV: 5,
+                masterState: "TRANSPARENT",
+                masterDetail: "Still following D input",
+                slaveState: "HOLDING",
+                slaveDetail: "Still locked",
+                slaveValue: 0,
+                transfer: false,
+                title: "Rising Edge Begins (t+0.1ns)",
+                explanation: "Clock starts rising, but it's only at 0.5V - well below the 2.5V threshold. Both latches still in their original states. The inverter hasn't even started responding yet."
+            },
+            {
+                time: 0.25,
+                clkV: 1.8,
+                notClkV: 5,
+                masterState: "TRANSPARENT",
+                masterDetail: "Still following D",
+                slaveState: "HOLDING",
+                slaveDetail: "Still locked",
+                slaveValue: 0,
+                transfer: false,
+                title: "Clock Rising (t+0.25ns)",
+                explanation: "Clock at 1.8V, approaching threshold. Master still transparent because NOT CLK is still HIGH. Slave still holding. Inverter has propagation delay - hasn't responded yet."
+            },
+            {
+                time: 0.35,
+                clkV: 2.6,
+                notClkV: 4.8,
+                masterState: "CLOSING",
+                masterDetail: "⚠️ Crossing threshold! Starting to latch",
+                slaveState: "HOLDING",
+                slaveDetail: "Still locked - slave enable still LOW",
+                slaveValue: 0,
+                transfer: false,
+                title: "Master Closes (t+0.35ns) ⚡",
+                explanation: "⚡ CRITICAL: Clock crosses 2.5V threshold! Master detects its enable going LOW and starts CLOSING. Inverter just starting to respond (propagation delay ~0.1-0.2ns). Slave hasn't seen the change yet!"
+            },
+            {
+                time: 0.45,
+                clkV: 3.5,
+                notClkV: 3.8,
+                masterState: "CLOSING",
+                masterDetail: "Latching value = 1",
+                slaveState: "HOLDING",
+                slaveDetail: "Enable approaching threshold",
+                slaveValue: 0,
+                transfer: false,
+                title: "Transition Window (t+0.45ns)",
+                explanation: "Master is closing/latching with value 1. Inverted clock falling through transition. Slave's enable not quite at threshold yet. Brief moment where master output is stable but slave hasn't opened."
+            },
+            {
+                time: 0.55,
+                clkV: 4.2,
+                notClkV: 2.8,
+                masterState: "HOLDING",
+                masterDetail: "✓ Latched with value 1",
+                slaveState: "OPENING",
+                slaveDetail: "⚠️ Enable crossed threshold!",
+                slaveValue: 0,
+                transfer: true,
+                title: "🔥 DATA TRANSFER! (t+0.55ns) 🔥",
+                explanation: "⚡⚡⚡ THE MAGIC MOMENT! Master is HOLDING (latched with 1). Inverted clock crosses 2.5V threshold going DOWN, so slave's CLK enable crosses threshold going UP. Slave opens and CAPTURES master's stable output of 1!"
+            },
+            {
+                time: 0.7,
+                clkV: 4.8,
+                notClkV: 1.2,
+                masterState: "HOLDING",
+                masterDetail: "Locked with 1",
+                slaveState: "TRANSPARENT",
+                slaveDetail: "Just captured 1 from master",
+                slaveValue: 1,
+                transfer: false,
+                title: "Just After Transfer (t+0.7ns)",
+                explanation: "Transfer complete! Master locked with 1. Slave now transparent and holding the new value 1. Clock still rising but critical transition is done. Data successfully transferred in ~0.2ns window!"
+            },
+            {
+                time: 1.0,
+                clkV: 5.0,
+                notClkV: 0,
+                masterState: "HOLDING",
+                masterDetail: "Locked - ignoring D changes",
+                slaveState: "TRANSPARENT",
+                slaveDetail: "New output stable",
+                slaveValue: 1,
+                transfer: false,
+                title: "AFTER Rising Edge (t+1.0ns)",
+                explanation: "Clock fully HIGH at 5V. Master locked (ignores any D changes now). Slave transparent (but master is stable so output won't change). Rising edge complete! Output Q = 1."
+            }
+        ];
+
+        function drawTimingDiagram() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const margin = 60;
+            const width = canvas.width - 2 * margin;
+            const height = canvas.height - 2 * margin;
+            const signalHeight = height / 3;
+            
+            // Draw grid
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 10; i++) {
+                const x = margin + (i / 10) * width;
+                ctx.beginPath();
+                ctx.moveTo(x, margin);
+                ctx.lineTo(x, margin + height);
+                ctx.stroke();
+            }
+            
+            // Draw time labels
+            ctx.fillStyle = '#888';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 10; i++) {
+                const x = margin + (i / 10) * width;
+                const time = i * 0.1;
+                ctx.fillText(time.toFixed(1) + 'ns', x, canvas.height - 20);
+            }
+            
+            // Draw voltage labels
+            ctx.textAlign = 'right';
+            ctx.fillText('5V', margin - 10, margin + 10);
+            ctx.fillText('2.5V', margin - 10, margin + signalHeight + 5);
+            ctx.fillText('0V', margin - 10, margin + 2 * signalHeight + 10);
+            
+            // Draw threshold line
+            const thresholdY = margin + signalHeight;
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(margin, thresholdY);
+            ctx.lineTo(margin + width, thresholdY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw signals up to current step
+            const currentTime = steps[step].time;
+            
+            // Master Enable (NOT CLK) - Green
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= step; i++) {
+                const s = steps[i];
+                const x = margin + (s.time / 1.0) * width;
+                const y = margin + 2 * signalHeight - (s.notClkV / 5) * (2 * signalHeight);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Slave Enable (CLK) - Blue
+            ctx.strokeStyle = '#00aaff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= step; i++) {
+                const s = steps[i];
+                const x = margin + (s.time / 1.0) * width;
+                const y = margin + 2 * signalHeight - (s.clkV / 5) * (2 * signalHeight);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Draw current time marker
+            const markerX = margin + (currentTime / 1.0) * width;
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(markerX, margin);
+            ctx.lineTo(markerX, margin + height);
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#00ff00';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Master Enable', margin + 10, margin + 20);
+            
+            ctx.fillStyle = '#00aaff';
+            ctx.fillText('Slave Enable', margin + 10, margin + 40);
+        }
+
+        function updateDisplay() {
+            const s = steps[step];
+            
+            document.getElementById('timeDisplay').textContent = `t = ${s.time.toFixed(2)} ns`;
+            
+            // Update latch states
+            const masterStateEl = document.getElementById('masterState');
+            masterStateEl.textContent = s.masterState;
+            masterStateEl.className = 'latch-state ' + s.masterState.toLowerCase();
+            document.getElementById('masterDetail').textContent = s.masterDetail;
+            
+            const slaveStateEl = document.getElementById('slaveState');
+            slaveStateEl.textContent = s.slaveState;
+            slaveStateEl.className = 'latch-state ' + s.slaveState.toLowerCase();
+            document.getElementById('slaveDetail').textContent = s.slaveDetail;
+            document.getElementById('slaveValue').textContent = s.slaveValue;
+            
+            // Transfer indicator
+            const transferEl = document.getElementById('transferIndicator');
+            if (s.transfer) {
+                transferEl.innerHTML = '<div class="transfer-happening">⚡ CAPTURING! ⚡</div>';
+            } else {
+                transferEl.innerHTML = '';
+            }
+            
+            // Explanation
+            document.getElementById('phaseTitle').textContent = s.title;
+            document.getElementById('explanation').textContent = s.explanation;
+            
+            // Draw timing diagram
+            drawTimingDiagram();
+        }
+
+        function nextStep() {
+            if (step < steps.length - 1) {
+                step++;
+                updateDisplay();
+            }
+        }
+
+        function prevStep() {
+            if (step > 0) {
+                step--;
+                updateDisplay();
+            }
+        }
+
+        function reset() {
+            step = 0;
+            stopAutoPlay();
+            updateDisplay();
+        }
+
+        function autoPlay() {
+            if (autoPlayInterval) {
+                stopAutoPlay();
+                return;
+            }
+            autoPlayInterval = setInterval(() => {
+                if (step < steps.length - 1) {
+                    nextStep();
+                } else {
+                    stopAutoPlay();
+                }
+            }, 2000);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>
