@@ -7908,9 +7908,17 @@ a.anchor-link {
 <td>0</td>
 <td>1</td>
 </tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>X</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
 </tbody>
 </table>
-<p>| 1  | 1  | X | -            | -            | - | ← Don't care (unused state)</p>
+<p><em>Note: State Q1=1, Q0=1 is unused (don't care)</em></p>
 <h3 id="Step-2:-Derive-Boolean-Equations">Step 2: Derive Boolean Equations<a class="anchor-link" href="#Step-2:-Derive-Boolean-Equations">¶</a></h3><p>Using Karnaugh maps or inspection:</p>
 <p>$$D_1 = Q_0 \cdot X + Q_1 \cdot X = X \cdot (Q_0 + Q_1)$$</p>
 <p>$$D_0 = \overline{Q_1} \cdot \overline{Q_0} \cdot X$$</p>
