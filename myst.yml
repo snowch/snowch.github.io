@@ -16,38 +16,6 @@ project:
   license: CC-BY-4.0
   toc:
     - file: index.md
-    - title: Tutorials
-      children:
-        - title: Digital Electronics
-          children:
-            - file: d_flipflop_tutorial.ipynb
-              title: D Flip-Flops
-            - file: timing_diagrams_tutorial.ipynb
-              title: Timing Diagrams
-            - file: fsm_tutorial.ipynb
-              title: Finite State Machines
-        - title: Practical Labs
-          children:
-            - file: d-flip-flop-interactive.md
-              title: Interactive D Flip-Flop
-            - file: quick_ref.ipynb
-              title: Quick Reference
-            - file: sr_latch_lab.ipynb
-              title: "Lab: SR Latch"
-            - file: d_flip_flop_lab.ipynb
-              title: "Lab: D Flip-Flop"
-            - file: moore_fsm_lab.ipynb
-              title: "Lab: Moore FSM"
-        - title: ML, AI & Math
-          children:
-            - file: birthday_tutorial.ipynb
-              title: Birthday Paradox
-            - file: nn_edge_detector_blog.ipynb
-              title: Neural Network Edge Detector
-            - file: nn_tutorial_blog.ipynb
-              title: Understanding Neural Networks
-            - file: nn_flexible_network_blog.ipynb
-              title: Flexible Network Architecture
     - file: books.md
       title: Books & Guides
     - file: talks.md
@@ -56,6 +24,37 @@ project:
       title: Open Source
     - file: external-articles.md
       title: External Articles
+    - ---
+    - title: Digital Electronics
+      children:
+        - file: d_flipflop_tutorial.ipynb
+          title: D Flip-Flops
+        - file: timing_diagrams_tutorial.ipynb
+          title: Timing Diagrams
+        - file: fsm_tutorial.ipynb
+          title: Finite State Machines
+    - title: Practical Labs
+      children:
+        - file: d-flip-flop-interactive.md
+          title: Interactive D Flip-Flop
+        - file: quick_ref.ipynb
+          title: Quick Reference
+        - file: sr_latch_lab.ipynb
+          title: "Lab: SR Latch"
+        - file: d_flip_flop_lab.ipynb
+          title: "Lab: D Flip-Flop"
+        - file: moore_fsm_lab.ipynb
+          title: "Lab: Moore FSM"
+    - title: ML, AI & Math
+      children:
+        - file: birthday_tutorial.ipynb
+          title: Birthday Paradox
+        - file: nn_edge_detector_blog.ipynb
+          title: Neural Network Edge Detector
+        - file: nn_tutorial_blog.ipynb
+          title: Understanding Neural Networks
+        - file: nn_flexible_network_blog.ipynb
+          title: Flexible Network Architecture
 
 site:
   template: book-theme
