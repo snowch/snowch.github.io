@@ -33,8 +33,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install jupyter-book mystmd numpy matplotlib wavedrom
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
+      - name: Install Python dependencies
+        run: pip install jupyter-book mystmd numpy matplotlib wavedrom graphviz
 
       - name: Build the book
         run: myst build --html --execute
