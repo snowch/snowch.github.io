@@ -7521,10 +7521,11 @@ a.anchor-link {
 <hr/>
 <h2 id="Prerequisites">Prerequisites<a class="anchor-link" href="#Prerequisites">¶</a></h2><p>This tutorial assumes familiarity with:</p>
 <ul>
-<li><strong>Logic gates</strong> (AND, OR, NOT) and truth tables</li>
-<li><strong>Binary numbers</strong> and logic levels (HIGH/LOW)</li>
-<li><strong>Combinational logic</strong> — circuits where output depends only on current inputs</li>
+<li><strong>Binary numbers</strong> — understanding 0s and 1s, HIGH and LOW voltage levels</li>
+<li><strong>Logic gates</strong> (AND, OR, NOT) — basic combinational building blocks</li>
+<li><strong>Truth tables</strong> — how to read input/output relationships</li>
 </ul>
+<p>No prior knowledge of sequential logic or timing is required — we'll build that understanding here.</p>
 <hr/>
 <h2 id="Why-Do-We-Need-Flip-Flops?">Why Do We Need Flip-Flops?<a class="anchor-link" href="#Why-Do-We-Need-Flip-Flops?">¶</a></h2><p>Combinational circuits have no memory — their outputs depend only on current inputs. But real digital systems need to:</p>
 <ul>
@@ -7645,6 +7646,22 @@ a.anchor-link {
 </tbody>
 </table>
 <p><strong>Key insight:</strong> Q only changes at the rising edge (↑) of CLK. At all other times, Q holds its value regardless of what D does.</p>
+<hr/>
+<h2 id="How-to-Read-a-Timing-Diagram">How to Read a Timing Diagram<a class="anchor-link" href="#How-to-Read-a-Timing-Diagram">¶</a></h2><p>Throughout this tutorial, we'll use <strong>timing diagrams</strong> to visualize flip-flop behavior. Here's how to read them:</p>
+<p><strong>The basics:</strong></p>
+<ul>
+<li><strong>Horizontal axis</strong> = Time (progressing left to right)</li>
+<li><strong>Vertical axis</strong> = Signal value (LOW=0 at bottom, HIGH=1 at top)</li>
+<li><strong>Each row</strong> = One signal (labeled on the left: CLK, D, Q, etc.)</li>
+<li><strong>Vertical dashed lines</strong> = Clock edges (reference points)</li>
+</ul>
+<p><strong>Signal shapes:</strong></p>
+<ul>
+<li><strong>Square wave</strong> (CLK): Alternates HIGH/LOW periodically</li>
+<li><strong>Step changes</strong>: Signal transitions from one level to another</li>
+<li><strong>Flat sections</strong>: Signal holding steady</li>
+</ul>
+<p><strong>Reading tip:</strong> At each clock edge, look at what D is doing, then see how Q responds. This cause-and-effect relationship is what timing diagrams reveal.</p>
 </div>
 </div>
 </div>
