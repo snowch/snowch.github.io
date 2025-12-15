@@ -7625,27 +7625,70 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
 <h2 id="Signal-Types-in-Timing-Diagrams">Signal Types in Timing Diagrams<a class="anchor-link" href="#Signal-Types-in-Timing-Diagrams">¶</a></h2><p>Digital systems use several types of signals, each with distinct characteristics.</p>
-<p><strong>About the example signals:</strong> Each signal pattern below demonstrates typical real-world behavior:</p>
+<p><strong>Important: Inputs vs Outputs</strong></p>
+<p>Timing diagrams show signals from the perspective of a specific component. Before reading any timing diagram, ask: "What component am I looking at?"</p>
 <ul>
-<li><p><strong>CLK</strong>: A steady periodic waveform — this is what every clock looks like</p>
+<li><strong>Inputs</strong>: Signals coming <em>into</em> the component from external sources</li>
+<li><strong>Outputs</strong>: Signals generated <em>by</em> the component</li>
+</ul>
+<p>In the example below, imagine we're looking at a <strong>data processing module</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Direction</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLK</td>
+<td>Input</td>
+<td>Crystal oscillator or PLL on the board</td>
+</tr>
+<tr>
+<td>RST_N</td>
+<td>Input</td>
+<td>Power-on reset circuit (hardware that monitors power supply)</td>
+</tr>
+<tr>
+<td>EN</td>
+<td>Input</td>
+<td>A controller or state machine that decides when this module should operate</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Input</td>
+<td>Upstream logic (e.g., a FIFO, another module's output, or external pins)</td>
+</tr>
+<tr>
+<td>BUS[7:0]</td>
+<td>Output</td>
+<td>This module's result — downstream logic will read it</td>
+</tr>
+</tbody>
+</table>
+<p><strong>About the example signals:</strong></p>
+<ul>
+<li><p><strong>CLK</strong>: Input from the system clock generator — every synchronous component receives this</p>
 </li>
-<li><p><strong>RST_N (active-low reset)</strong>: Asserted by the <strong>power-on reset circuit</strong> (a dedicated circuit on the board that holds reset low until power stabilizes). The timing (0.3 to 1.8) represents:</p>
+<li><p><strong>RST_N (active-low reset)</strong>: Input from the <strong>power-on reset circuit</strong>. The timing (0.3 to 1.8) represents:</p>
 <ul>
-<li><strong>Starts at 0.3</strong> (not exactly 0): In reality, reset doesn't activate the instant power is applied — there's a small delay while the reset circuit detects stable power</li>
-<li><strong>Releases at 1.8</strong>: The reset circuit releases after it confirms power is stable and the clock is running reliably</li>
+<li><strong>Starts at 0.3</strong> (not exactly 0): The reset circuit needs time to detect stable power</li>
+<li><strong>Releases at 1.8</strong>: Released after power and clock are confirmed stable</li>
 <li>This is <em>asynchronous</em> to the clock — notice it doesn't align with clock edges</li>
 </ul>
 </li>
-<li><p><strong>EN (enable)</strong>: Active during cycles 2-7 — represents a typical "operation window" controlled by your logic</p>
+<li><p><strong>EN (enable)</strong>: Input from a <strong>controller state machine</strong> that orchestrates the system. The controller asserts EN when it wants this module to process data (cycles 2-7), then deasserts it when done.</p>
 </li>
-<li><p><strong>D (data)</strong>: Pattern <code>[0,0,0,1,0,1,1,0,1,0]</code> shows arbitrary data changing while enable is active</p>
+<li><p><strong>D (data)</strong>: Input from <strong>upstream logic</strong> — could be a sensor interface, a FIFO buffer, or another module's output. The pattern shows data arriving while the module is enabled.</p>
 </li>
-<li><p><strong>BUS[7:0]</strong>: A multi-bit signal (8 wires). The <strong>slanting "X" lines at transitions</strong> are a standard notation meaning:</p>
+<li><p><strong>BUS[7:0]</strong>: Output produced by this module. The <strong>slanting "X" lines at transitions</strong> are standard notation meaning:</p>
 <ul>
 <li>All 8 bits are changing simultaneously</li>
-<li>We don't know/care about the exact moment each bit switches</li>
-<li>The "X" pattern visually says "transition happening here — don't sample during this time"</li>
+<li>The "X" pattern says "transition happening — don't sample during this time"</li>
 <li>Values shown (<code>XX</code>, <code>00</code>, <code>01</code>, etc.) are the stable values between transitions</li>
+<li><code>XX</code> at startup means "unknown" — the module hasn't produced valid output yet</li>
 </ul>
 </li>
 </ul>
