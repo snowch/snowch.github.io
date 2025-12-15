@@ -7627,15 +7627,25 @@ a.anchor-link {
 <h2 id="Signal-Types-in-Timing-Diagrams">Signal Types in Timing Diagrams<a class="anchor-link" href="#Signal-Types-in-Timing-Diagrams">¶</a></h2><p>Digital systems use several types of signals, each with distinct characteristics.</p>
 <p><strong>About the example signals:</strong> Each signal pattern below demonstrates typical real-world behavior:</p>
 <ul>
-<li><strong>CLK</strong>: A steady periodic waveform — this is what every clock looks like</li>
-<li><strong>RST_N (active-low reset)</strong>: Asserted at startup (cycles 0-2), then released — mimics a power-on reset sequence</li>
-<li><strong>EN (enable)</strong>: Active during cycles 2-7 — represents a typical "operation window"</li>
-<li><strong>D (data)</strong>: Pattern <code>[0,0,0,1,0,1,1,0,1,0]</code> shows arbitrary data that changes while enable is active</li>
-<li><strong>BUS[7:0]</strong>: Values <code>XX,00,00,01,02,03,03,03,04,00</code> show:<ul>
-<li><code>XX</code>: Unknown state at startup</li>
-<li>Sequential values (01,02,03): A counter or incrementing address</li>
-<li>Repeated value (03,03,03): A held/stable value</li>
-<li>Return to 00: End of transaction</li>
+<li><p><strong>CLK</strong>: A steady periodic waveform — this is what every clock looks like</p>
+</li>
+<li><p><strong>RST_N (active-low reset)</strong>: Asserted by the <strong>power-on reset circuit</strong> (a dedicated circuit on the board that holds reset low until power stabilizes). The timing (0.3 to 1.8) represents:</p>
+<ul>
+<li><strong>Starts at 0.3</strong> (not exactly 0): In reality, reset doesn't activate the instant power is applied — there's a small delay while the reset circuit detects stable power</li>
+<li><strong>Releases at 1.8</strong>: The reset circuit releases after it confirms power is stable and the clock is running reliably</li>
+<li>This is <em>asynchronous</em> to the clock — notice it doesn't align with clock edges</li>
+</ul>
+</li>
+<li><p><strong>EN (enable)</strong>: Active during cycles 2-7 — represents a typical "operation window" controlled by your logic</p>
+</li>
+<li><p><strong>D (data)</strong>: Pattern <code>[0,0,0,1,0,1,1,0,1,0]</code> shows arbitrary data changing while enable is active</p>
+</li>
+<li><p><strong>BUS[7:0]</strong>: A multi-bit signal (8 wires). The <strong>slanting "X" lines at transitions</strong> are a standard notation meaning:</p>
+<ul>
+<li>All 8 bits are changing simultaneously</li>
+<li>We don't know/care about the exact moment each bit switches</li>
+<li>The "X" pattern visually says "transition happening here — don't sample during this time"</li>
+<li>Values shown (<code>XX</code>, <code>00</code>, <code>01</code>, etc.) are the stable values between transitions</li>
 </ul>
 </li>
 </ul>
