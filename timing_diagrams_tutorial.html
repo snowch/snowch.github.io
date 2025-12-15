@@ -7546,7 +7546,15 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Anatomy-of-a-Timing-Diagram">Anatomy of a Timing Diagram<a class="anchor-link" href="#Anatomy-of-a-Timing-Diagram">¶</a></h2><p>Let's start with a simple timing diagram showing a clock and a data signal:</p>
+<h2 id="Anatomy-of-a-Timing-Diagram">Anatomy of a Timing Diagram<a class="anchor-link" href="#Anatomy-of-a-Timing-Diagram">¶</a></h2><p>Let's start with a simple timing diagram showing a clock and a data signal.</p>
+<p><strong>About the example data:</strong> The data pattern <code>[0, 0, 1, 1, 1, 0, 1, 0]</code> was chosen deliberately to show:</p>
+<ul>
+<li><strong>Staying low</strong> (cycles 0-1): Data can remain stable across multiple cycles</li>
+<li><strong>Rising transition</strong> (cycle 2): LOW→HIGH change</li>
+<li><strong>Staying high</strong> (cycles 2-4): Data holds its value</li>
+<li><strong>Multiple transitions</strong> (cycles 5-7): Demonstrates that data can change every cycle</li>
+</ul>
+<p>This pattern gives you a representative sample of the behaviors you'll encounter in real timing diagrams.</p>
 </div>
 </div>
 </div>
@@ -7616,7 +7624,21 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Signal-Types-in-Timing-Diagrams">Signal Types in Timing Diagrams<a class="anchor-link" href="#Signal-Types-in-Timing-Diagrams">¶</a></h2><p>Digital systems use several types of signals, each with distinct characteristics:</p>
+<h2 id="Signal-Types-in-Timing-Diagrams">Signal Types in Timing Diagrams<a class="anchor-link" href="#Signal-Types-in-Timing-Diagrams">¶</a></h2><p>Digital systems use several types of signals, each with distinct characteristics.</p>
+<p><strong>About the example signals:</strong> Each signal pattern below demonstrates typical real-world behavior:</p>
+<ul>
+<li><strong>CLK</strong>: A steady periodic waveform — this is what every clock looks like</li>
+<li><strong>RST_N (active-low reset)</strong>: Asserted at startup (cycles 0-2), then released — mimics a power-on reset sequence</li>
+<li><strong>EN (enable)</strong>: Active during cycles 2-7 — represents a typical "operation window"</li>
+<li><strong>D (data)</strong>: Pattern <code>[0,0,0,1,0,1,1,0,1,0]</code> shows arbitrary data that changes while enable is active</li>
+<li><strong>BUS[7:0]</strong>: Values <code>XX,00,00,01,02,03,03,03,04,00</code> show:<ul>
+<li><code>XX</code>: Unknown state at startup</li>
+<li>Sequential values (01,02,03): A counter or incrementing address</li>
+<li>Repeated value (03,03,03): A held/stable value</li>
+<li>Return to 00: End of transaction</li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -7694,6 +7716,13 @@ a.anchor-link {
 <li><strong>Falling edge (negative edge)</strong>: HIGH → LOW transition</li>
 </ul>
 <p>Most designs use <strong>rising-edge triggered</strong> flip-flops.</p>
+<p><strong>About the example values:</strong> The D input pattern <code>[0,1,1,0,1,0,0,1,1,0]</code> was chosen to demonstrate:</p>
+<ul>
+<li><strong>Value captured</strong>: At each rising edge, Q takes whatever value D has at that instant</li>
+<li><strong>Changes between edges</strong>: D changes mid-cycle (after the falling edge), but these changes don't affect Q until the next rising edge</li>
+<li><strong>Q always lags D</strong>: Notice Q is always "one cycle behind" — it shows what D was at the previous rising edge</li>
+</ul>
+<p>The Q values <code>[0,0,1,1,0,1,0,0,1,1]</code> are not arbitrary — they're the logical consequence of sampling D at each rising edge.</p>
 </div>
 </div>
 </div>
@@ -7841,7 +7870,22 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Example:-Reading-a-Memory-Interface">Example: Reading a Memory Interface<a class="anchor-link" href="#Example:-Reading-a-Memory-Interface">¶</a></h2><p>Let's examine a realistic timing diagram for a simple synchronous memory read operation:</p>
+<h2 id="Example:-Reading-a-Memory-Interface">Example: Reading a Memory Interface<a class="anchor-link" href="#Example:-Reading-a-Memory-Interface">¶</a></h2><p>Let's examine a realistic timing diagram for a simple synchronous memory read operation.</p>
+<p><strong>About the signal timing:</strong> This example models a typical synchronous SRAM read sequence:</p>
+<ul>
+<li><strong>CS_N (Chip Select)</strong>: Goes low at cycle 2 and stays low through cycle 6 — the memory chip ignores all other signals when CS_N is high</li>
+<li><strong>RD_N (Read Enable)</strong>: Asserted one cycle after CS_N (cycle 3) — this is the actual read command</li>
+<li><strong>ADDR</strong>: Set to address <code>00</code> when CS_N goes low — we're reading from memory address 0x00</li>
+<li><strong>DATA</strong>: Returns <code>42</code> after one cycle delay (cycle 4) — memory needs time to fetch the data</li>
+<li><strong>VALID</strong>: Goes high when data is ready — tells the controller "you can sample now"</li>
+</ul>
+<p><strong>Why these specific values?</strong></p>
+<ul>
+<li>Address <code>00</code> is simple — any address would work the same way</li>
+<li>Data value <code>42</code> (the "answer to everything") is memorable and clearly shows valid data vs high-impedance <code>ZZ</code></li>
+<li>One-cycle latency between RD_N assertion and data valid is typical for synchronous memory</li>
+<li>The <code>ZZ</code> (high-impedance) shows the data bus is not being driven when no read is active</li>
+</ul>
 </div>
 </div>
 </div>
@@ -7890,7 +7934,20 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Common-Timing-Diagram-Patterns">Common Timing Diagram Patterns<a class="anchor-link" href="#Common-Timing-Diagram-Patterns">¶</a></h2><h3 id="Pattern-1:-Handshaking-(Request/Acknowledge)">Pattern 1: Handshaking (Request/Acknowledge)<a class="anchor-link" href="#Pattern-1:-Handshaking-(Request/Acknowledge)">¶</a></h3>
+<h2 id="Common-Timing-Diagram-Patterns">Common Timing Diagram Patterns<a class="anchor-link" href="#Common-Timing-Diagram-Patterns">¶</a></h2><h3 id="Pattern-1:-Handshaking-(Request/Acknowledge)">Pattern 1: Handshaking (Request/Acknowledge)<a class="anchor-link" href="#Pattern-1:-Handshaking-(Request/Acknowledge)">¶</a></h3><p><strong>About the signal timing:</strong> This pattern shows a classic "four-phase handshake":</p>
+<ol>
+<li><strong>REQ asserts</strong> (cycle 2): Requester says "I need something"</li>
+<li><strong>ACK asserts</strong> (cycle 4): Responder says "Got it, working on it" — the 2-cycle delay represents processing time</li>
+<li><strong>REQ deasserts</strong> (cycle 6): Requester sees ACK, says "Okay, I'll wait"</li>
+<li><strong>ACK deasserts</strong> (cycle 7): Responder finishes, ready for next request</li>
+</ol>
+<p><strong>Why these specific timings?</strong></p>
+<ul>
+<li>2-cycle delay before ACK: Shows that the responder needs time to process (could be memory access, computation, etc.)</li>
+<li>REQ held until ACK seen: Demonstrates proper protocol — you don't drop your request until acknowledged</li>
+<li>ACK held one cycle after REQ drops: Shows clean completion of the handshake</li>
+</ul>
+<p>This pattern is fundamental — you'll see it in bus protocols, FIFO interfaces, and inter-module communication.</p>
 </div>
 </div>
 </div>
@@ -7914,7 +7971,25 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Pattern-2:-Pipeline-Stages">Pattern 2: Pipeline Stages<a class="anchor-link" href="#Pattern-2:-Pipeline-Stages">¶</a></h3>
+<h3 id="Pattern-2:-Pipeline-Stages">Pattern 2: Pipeline Stages<a class="anchor-link" href="#Pattern-2:-Pipeline-Stages">¶</a></h3><p><strong>About the example:</strong> We show 5 instructions (A, B, C, D, E) flowing through a 3-stage pipeline (Fetch → Decode → Execute).</p>
+<p><strong>Why these specific values?</strong></p>
+<ul>
+<li><strong>3 stages</strong>: The minimum to show pipeline behavior clearly — real CPUs have 5-20+ stages, but the principle is the same</li>
+<li><strong>5 instructions</strong>: Enough to show:<ul>
+<li>Pipeline filling (cycles 1-3): Each cycle adds one more instruction in flight</li>
+<li>Steady state (cycles 4-5): All 3 stages busy simultaneously</li>
+<li>Pipeline draining (cycles 6-7): Last instructions completing</li>
+</ul>
+</li>
+<li><strong>Letters A-E</strong>: Simple labels that make it easy to track each instruction's progress through stages</li>
+</ul>
+<p><strong>Key insight to notice:</strong> Look at cycle 5 in the diagram — at that single instant:</p>
+<ul>
+<li>Instruction <strong>C</strong> is being fetched</li>
+<li>Instruction <strong>B</strong> is being decoded</li>
+<li>Instruction <strong>A</strong> is executing</li>
+</ul>
+<p>This "overlap" is why pipelines improve throughput — we're doing 3 things at once instead of waiting for each instruction to fully complete.</p>
 </div>
 </div>
 </div>
@@ -7955,7 +8030,28 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Timing-Hazards-and-Issues">Timing Hazards and Issues<a class="anchor-link" href="#Timing-Hazards-and-Issues">¶</a></h2><h3 id="Glitches">Glitches<a class="anchor-link" href="#Glitches">¶</a></h3><p>A <strong>glitch</strong> is an unwanted short pulse caused by unequal propagation delays through different logic paths:</p>
+<h2 id="Timing-Hazards-and-Issues">Timing Hazards and Issues<a class="anchor-link" href="#Timing-Hazards-and-Issues">¶</a></h2><h3 id="Glitches">Glitches<a class="anchor-link" href="#Glitches">¶</a></h3><p>A <strong>glitch</strong> is an unwanted short pulse caused by unequal propagation delays through different logic paths.</p>
+<p><strong>About this example:</strong> We use the simple logic function <code>Y = A AND (NOT B)</code> with a specific input change designed to expose the glitch:</p>
+<p><strong>Why A=0→1 and B=0→1 simultaneously?</strong></p>
+<ul>
+<li>In the ideal world (zero delay): When both go from 0 to 1:<ul>
+<li>A becomes 1, B becomes 1, so NOT B becomes 0</li>
+<li>Y = 1 AND 0 = 0 (no change from initial state)</li>
+</ul>
+</li>
+<li>In the real world: The NOT gate has a small delay (~0.1 time units in our example)<ul>
+<li>A rises to 1 immediately</li>
+<li>NOT B is still 1 (hasn't processed B's change yet)</li>
+<li>For that brief moment: Y = 1 AND 1 = 1 → <strong>GLITCH!</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>Why this matters:</strong> This specific input transition (both inputs changing together) is the classic "static hazard" case. The glitch duration equals the NOT gate's propagation delay. In a real circuit, this could:</p>
+<ul>
+<li>Cause a downstream flip-flop to capture the wrong value</li>
+<li>Trigger unintended state machine transitions</li>
+<li>Corrupt data in asynchronous designs</li>
+</ul>
 </div>
 </div>
 </div>
