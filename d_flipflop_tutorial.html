@@ -7656,7 +7656,16 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Edge-Triggered-Behavior">Edge-Triggered Behavior<a class="anchor-link" href="#Edge-Triggered-Behavior">¶</a></h2><p>The defining characteristic of a flip-flop is <strong>edge triggering</strong>. Let's visualize this:</p>
+<h2 id="Edge-Triggered-Behavior">Edge-Triggered Behavior<a class="anchor-link" href="#Edge-Triggered-Behavior">¶</a></h2><p>The defining characteristic of a flip-flop is <strong>edge triggering</strong>. Let's visualize this.</p>
+<p><strong>About the example values:</strong> The D input pattern was deliberately chosen to illustrate key behaviors:</p>
+<ul>
+<li><strong>D=1 before edge 1</strong> (cycles 0.3-0.7): Shows a value that IS captured at the rising edge</li>
+<li><strong>D=1 between edges</strong> (cycles 1.3-1.8): Shows that changes between clock edges are IGNORED</li>
+<li><strong>D=1 stable across edge 3</strong> (cycles 2.7-4.2): Shows normal capture of a stable signal</li>
+<li><strong>D=1 across edges 6-7</strong> (cycles 5.7-7.3): Shows consecutive captures of the same value</li>
+<li><strong>D=1 between edges</strong> (cycles 8.3-8.7): Another example of mid-cycle change being ignored</li>
+</ul>
+<p>This pattern demonstrates the core principle: <strong>only the value of D at the exact moment of the rising edge matters</strong>.</p>
 </div>
 </div>
 </div>
@@ -7773,6 +7782,14 @@ a.anchor-link {
 <li>Higher priority than clock</li>
 <li>Can cause timing issues if not handled carefully</li>
 </ul>
+<p><strong>About the example timing:</strong> The signals were chosen to highlight asynchronous behavior:</p>
+<ul>
+<li><strong>RST_N asserted at cycle 3.3</strong> (mid-cycle): Notice Q goes to 0 immediately — it doesn't wait for a clock edge. This is the defining characteristic of async reset.</li>
+<li><strong>RST_N released at cycle 5.2</strong> (also mid-cycle): Normal operation resumes at the next clock edge</li>
+<li><strong>D has values during reset</strong>: Even though D=1 during cycles 4-5, Q stays 0 because reset has priority</li>
+<li><strong>After reset</strong>: Q captures D normally starting at edge 6</li>
+</ul>
+<p>The key insight: <strong>asynchronous means "ignores the clock"</strong> — reset takes effect the instant it's asserted.</p>
 </div>
 </div>
 </div>
@@ -7801,6 +7818,14 @@ a.anchor-link {
 <li>Cleaner timing behavior</li>
 <li>Preferred in most modern designs</li>
 </ul>
+<p><strong>About the example timing:</strong> Compare this directly to the async reset above — same D pattern, same reset window:</p>
+<ul>
+<li><strong>RST asserted at cycle 3.3</strong> (mid-cycle): Unlike async, Q does NOT immediately go to 0. Q was already 1, and it stays 1!</li>
+<li><strong>Q resets at edge 4</strong>: Only when the clock edge arrives AND reset is still active does Q go to 0</li>
+<li><strong>Reset still active at edge 5</strong>: Q stays 0 because reset overrides D</li>
+<li><strong>Normal operation at edge 6</strong>: Reset was released at 5.2, so now D is captured normally</li>
+</ul>
+<p>The key difference: <strong>Q stays at 1 from edge 3 until edge 4</strong>, even though reset was asserted at 3.3. Synchronous reset respects clock boundaries.</p>
 </div>
 </div>
 </div>
@@ -7867,7 +7892,21 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="D-Flip-Flop-with-Enable">D Flip-Flop with Enable<a class="anchor-link" href="#D-Flip-Flop-with-Enable">¶</a></h2><p>An <strong>enable</strong> input allows you to selectively update the flip-flop:</p>
+<h2 id="D-Flip-Flop-with-Enable">D Flip-Flop with Enable<a class="anchor-link" href="#D-Flip-Flop-with-Enable">¶</a></h2><p>An <strong>enable</strong> input allows you to selectively update the flip-flop.</p>
+<p><strong>About the example values:</strong></p>
+<ul>
+<li><strong>D pattern</strong> <code>[1,0,1,1,0,1,0,1,0,1]</code>: Alternating values to clearly show when D is captured vs ignored</li>
+<li><strong>EN pattern</strong>: Active during cycles 0-2, 5-6, and 9 — creating three "update windows"</li>
+</ul>
+<p><strong>Why this matters — trace through the diagram:</strong></p>
+<ul>
+<li><strong>Edges 0-2 (EN=1)</strong>: Q follows D → captures 1, then 0, then 1</li>
+<li><strong>Edges 3-4 (EN=0)</strong>: D changes to 1, then 0, but Q stays at 1 (its last captured value)</li>
+<li><strong>Edges 5-6 (EN=1)</strong>: Q captures again → gets 1, then 0</li>
+<li><strong>Edges 7-8 (EN=0)</strong>: D changes but Q holds at 0</li>
+<li><strong>Edge 9 (EN=1)</strong>: Q captures D=1</li>
+</ul>
+<p>The Q values <code>[1,0,1,1,1,1,0,0,0,1]</code> are not arbitrary — they follow directly from the rule: "capture D when EN=1, hold when EN=0".</p>
 </div>
 </div>
 </div>
