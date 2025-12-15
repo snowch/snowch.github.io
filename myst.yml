@@ -38,7 +38,7 @@ project:
         - file: d-flip-flop-interactive.ipynb
           title: Interactive D Flip-Flop
         - file: quick_ref.ipynb
-          title: Quick Reference
+          title: "Latches & Flip-Flops Quick Reference"
         - file: sr_latch_lab.ipynb
           title: "Lab: SR Latch"
         - file: d_flip_flop_lab.ipynb
