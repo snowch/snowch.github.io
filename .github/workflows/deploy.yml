@@ -34,10 +34,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install jupyter-book mystmd
+        run: pip install jupyter-book mystmd numpy matplotlib wavedrom
 
       - name: Build the book
-        run: myst build --html
+        run: myst build --html --execute
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
