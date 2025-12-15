@@ -37,14 +37,6 @@ project:
           title: Timing Diagrams
         - file: fsm_tutorial.ipynb
           title: Finite State Machines
-    - title: Practical Labs
-      children:
-        - file: sr_latch_lab.ipynb
-          title: "Lab: SR Latch"
-        - file: d_flip_flop_lab.ipynb
-          title: "Lab: D Flip-Flop"
-        - file: moore_fsm_lab.ipynb
-          title: "Lab: Moore FSM"
     - title: ML, AI & Math
       children:
         - file: birthday_tutorial.ipynb
