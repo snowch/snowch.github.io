@@ -11,10 +11,7 @@ project:
     - digital electronics
   authors:
     - name: Chris Snow
-      email: snowch@gmail.com
       url: https://snowch.github.io
-      affiliations:
-        - VAST Data
   github: https://github.com/snowch/snowch.github.io
   license: CC-BY-4.0
   toc:
