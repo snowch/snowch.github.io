@@ -35,7 +35,7 @@ project:
           title: Finite State Machines
     - title: Practical Labs
       children:
-        - file: d-flip-flop-interactive.md
+        - file: d-flip-flop-interactive.ipynb
           title: Interactive D Flip-Flop
         - file: quick_ref.ipynb
           title: Quick Reference
