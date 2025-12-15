@@ -51,12 +51,14 @@ project:
               title: Understanding Neural Networks
             - file: nn_flexible_network_blog.ipynb
               title: Flexible Network Architecture
-    - title: Resources
-      children:
-        - file: books.md
-        - file: talks.md
-        - file: opensource.md
-        - file: external-articles.md
+    - file: books.md
+      title: Books & Guides
+    - file: talks.md
+      title: Talks
+    - file: opensource.md
+      title: Open Source
+    - file: external-articles.md
+      title: External Articles
 
 site:
   template: book-theme
