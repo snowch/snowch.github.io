@@ -2,6 +2,8 @@
 
 Step through the master-slave latch timing at nanosecond level.
 
+![Master-Slave D Flip-Flop](d-flip-flop-preview.svg)
+
 **[Launch the Interactive Visualization](d-flip-flop-viz.html)**
 
 ## What You'll Learn
