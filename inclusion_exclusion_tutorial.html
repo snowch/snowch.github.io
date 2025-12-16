@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>conditional_probability_tutorial</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>inclusion_exclusion_tutorial</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7517,10 +7517,10 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Understanding-Conditional-Probability-with-Venn-Diagrams">Understanding Conditional Probability with Venn Diagrams<a class="anchor-link" href="#Understanding-Conditional-Probability-with-Venn-Diagrams">¶</a></h1><p><em>A visual guide to P(A|B) and how events influence each other</em></p>
+<h1 id="The-Inclusion-Exclusion-Principle">The Inclusion-Exclusion Principle<a class="anchor-link" href="#The-Inclusion-Exclusion-Principle">¶</a></h1><p><em>A visual guide to counting unions without double-counting</em></p>
 <hr/>
-<p>Conditional probability is one of the most important concepts in probability theory. It answers the question: "<strong>How does knowing one event occurred change the probability of another event?</strong>"</p>
-<p>Venn diagrams give us powerful visual intuition for these relationships. Let's build up from the basics.</p>
+<p>The inclusion-exclusion principle is a fundamental counting technique that helps us determine the size of a union of sets. The challenge? When we naively add up the sizes of sets, we <strong>double-count</strong> elements that appear in multiple sets.</p>
+<p>Venn diagrams make this principle crystal clear. Let's build up our understanding starting with two sets.</p>
 </div>
 </div>
 </div>
@@ -7531,18 +7531,13 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="The-Core-Idea:-Shrinking-the-Sample-Space">The Core Idea: Shrinking the Sample Space<a class="anchor-link" href="#The-Core-Idea:-Shrinking-the-Sample-Space">¶</a></h2><p>When we write $P(A|B)$ (read as "the probability of A <em>given</em> B"), we're asking:</p>
-<blockquote>
-<p>"If we <strong>know</strong> B happened, what's the probability A also happened?"</p>
-</blockquote>
-<p>The key insight: <strong>knowing B occurred restricts our universe to just B</strong>. We're no longer considering all possible outcomes — only those where B is true.</p>
-<p>The formula captures this beautifully:</p>
-<p>$$P(A|B) = \frac{P(A \cap B)}{P(B)}$$</p>
-<ul>
-<li><strong>Numerator</strong> $P(A \cap B)$: The probability that <em>both</em> A and B occur</li>
-<li><strong>Denominator</strong> $P(B)$: The probability that B occurs (our new "universe")</li>
-</ul>
-<p>Let's visualize this with two events.</p>
+<h2 id="The-Problem:-Na%C3%AFve-Counting-Fails">The Problem: Naïve Counting Fails<a class="anchor-link" href="#The-Problem:-Na%C3%AFve-Counting-Fails">¶</a></h2><p>Suppose we want to count how many elements are in "A <strong>or</strong> B" (written as $A \cup B$, the <strong>union</strong>).</p>
+<p>Our first instinct might be:</p>
+<p>$$|A \cup B| = |A| + |B| \quad \text{✗ WRONG!}$$</p>
+<p>Why is this wrong? Because elements in <strong>both</strong> A and B (the intersection $A \cap B$) get counted <strong>twice</strong>!</p>
+<p>The inclusion-exclusion principle fixes this:</p>
+<p>$$|A \cup B| = |A| + |B| - |A \cap B| \quad \text{✓ CORRECT}$$</p>
+<p>Let's visualize why.</p>
 </div>
 </div>
 </div>
@@ -7554,7 +7549,7 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Two-Events:-The-Foundation">Two Events: The Foundation<a class="anchor-link" href="#Two-Events:-The-Foundation">¶</a></h2><p>Let's start with two overlapping events A and B in a sample space.</p>
+<h2 id="Two-Sets:-The-Foundation">Two Sets: The Foundation<a class="anchor-link" href="#Two-Sets:-The-Foundation">¶</a></h2>
 </div>
 </div>
 </div>
@@ -7566,7 +7561,14 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Key observation:</strong> The intersection $A \cap B$ (where both events occur) is the same as $B \cap A$. The order doesn't matter for intersections — intersection is <strong>commutative</strong>.</p>
+<h3 id="The-Two-Set-Formula">The Two-Set Formula<a class="anchor-link" href="#The-Two-Set-Formula">¶</a></h3><p>$$|A \cup B| = |A| + |B| - |A \cap B|$$</p>
+<p><strong>Why it works:</strong></p>
+<ol>
+<li>Start by adding $|A|$ and $|B|$ — this counts everything in both sets</li>
+<li>But wait! Elements in $A \cap B$ were counted <strong>twice</strong> (once in $|A|$, once in $|B|$)</li>
+<li>Subtract $|A \cap B|$ once to correct the double-counting</li>
+</ol>
+<p><strong>Note:</strong> $A \cap B = B \cap A$ (intersection is <strong>commutative</strong>) — order doesn't matter!</p>
 </div>
 </div>
 </div>
@@ -7578,7 +7580,17 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Visualizing-Conditional-Probability:-P(A%7CB)">Visualizing Conditional Probability: P(A|B)<a class="anchor-link" href="#Visualizing-Conditional-Probability:-P(A%7CB)">¶</a></h2><p>Now let's see what happens when we <strong>condition on B</strong>.</p>
+<h2 id="Example-1:-Student-Clubs">Example 1: Student Clubs<a class="anchor-link" href="#Example-1:-Student-Clubs">¶</a></h2><p><strong>Scenario:</strong> At a school:</p>
+<ul>
+<li>45 students are in the <strong>Drama Club</strong> (set D)</li>
+<li>35 students are in the <strong>Chess Club</strong> (set C)</li>
+<li>15 students are in <strong>both clubs</strong> (D ∩ C)</li>
+</ul>
+<p><strong>Question:</strong> How many students are in <em>at least one</em> club?</p>
+<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p>Using inclusion-exclusion:</p>
+<p>$$|D \cup C| = |D| + |C| - |D \cap C|$$
+$$|D \cup C| = 45 + 35 - 15 = 65$$</p>
+<p><strong>Answer:</strong> 65 students are in at least one club.</p>
 </div>
 </div>
 </div>
@@ -7590,48 +7602,47 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Critical insight:</strong></p>
-<ul>
-<li>$P(A|B) \neq P(B|A)$ in general!</li>
-<li>The numerator $P(A \cap B)$ is the same for both</li>
-<li>But the denominators differ: $P(A|B)$ divides by $P(B)$, while $P(B|A)$ divides by $P(A)$</li>
-</ul>
+<hr/>
+<h2 id="Extending-to-Three-Sets">Extending to Three Sets<a class="anchor-link" href="#Extending-to-Three-Sets">¶</a></h2><p>With three sets, the counting becomes trickier. We need to:</p>
+<ol>
+<li><strong>Include</strong> all three sets individually</li>
+<li><strong>Exclude</strong> all pairwise intersections (we double-counted them)</li>
+<li><strong>Include</strong> the triple intersection back (we excluded it too many times!)</li>
+</ol>
+<p>The formula:</p>
+<p>$$|A \cup B \cup C| = |A| + |B| + |C| - |A \cap B| - |A \cap C| - |B \cap C| + |A \cap B \cap C|$$</p>
+<p>Let's visualize why each term is necessary.</p>
 </div>
 </div>
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=cell-8">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Example-1:-Medical-Testing">Example 1: Medical Testing<a class="anchor-link" href="#Example-1:-Medical-Testing">¶</a></h2><p>Let's make this concrete with a classic example: medical testing.</p>
-<p><strong>Scenario:</strong></p>
+<h3 id="Why-Each-Term-in-the-Three-Set-Formula?">Why Each Term in the Three-Set Formula?<a class="anchor-link" href="#Why-Each-Term-in-the-Three-Set-Formula?">¶</a></h3><p>$$|A \cup B \cup C| = |A| + |B| + |C| - |A \cap B| - |A \cap C| - |B \cap C| + |A \cap B \cap C|$$</p>
+<p><strong>Understanding the counting:</strong></p>
+<p>| Region | Times counted in |A|+|B|+|C| | After subtracting pairs | After adding triple |
+|--------|---------------------|------------------------|--------------------|
+| A only | 1× | 1× | 1× ✓ |
+| B only | 1× | 1× | 1× ✓ |
+| C only | 1× | 1× | 1× ✓ |
+| A∩B only | 2× | 2× - 1× = 1× | 1× ✓ |
+| A∩C only | 2× | 2× - 1× = 1× | 1× ✓ |
+| B∩C only | 2× | 2× - 1× = 1× | 1× ✓ |
+| A∩B∩C | 3× | 3× - 3× = 0× | 0× + 1× = 1× ✓ |</p>
+<p>The center region (A∩B∩C) is:</p>
 <ul>
-<li><strong>Event D:</strong> Person has the disease (1% of population)</li>
-<li><strong>Event T:</strong> Test returns positive</li>
-<li>Test accuracy:<ul>
-<li>If you have the disease, test is positive 95% of the time: $P(T|D) = 0.95$</li>
-<li>If you don't have the disease, test is negative 90% of the time (10% false positive): $P(T|D^c) = 0.10$</li>
+<li>Added <strong>3 times</strong> (once each in |A|, |B|, |C|)</li>
+<li>Subtracted <strong>3 times</strong> (once each in |A∩B|, |A∩C|, |B∩C|)</li>
+<li>Net = 0, so we add it back <strong>once</strong> with +|A∩B∩C|</li>
 </ul>
-</li>
-</ul>
-<p><strong>Question:</strong> If you test positive, what's the probability you actually have the disease? That is, what is $P(D|T)$?</p>
-<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p>We need to use <strong>Bayes' Theorem</strong>:</p>
-<p>$$P(D|T) = \frac{P(T|D) \cdot P(D)}{P(T)}$$</p>
-<p>First, let's find $P(T)$ using the <strong>law of total probability</strong>:</p>
-<p>$$P(T) = P(T|D) \cdot P(D) + P(T|D^c) \cdot P(D^c)$$
-$$P(T) = 0.95 \times 0.01 + 0.10 \times 0.99 = 0.0095 + 0.099 = 0.1085$$</p>
-<p>Now we can compute:</p>
-<p>$$P(D|T) = \frac{0.95 \times 0.01}{0.1085} = \frac{0.0095}{0.1085} \approx 0.0876 = 8.76\%$$</p>
-<p><strong>Surprising result:</strong> Even with a positive test, there's only an 8.76% chance you have the disease!</p>
-<p>This is because the disease is rare (1%), so most positive tests are false positives from the 99% of people who don't have the disease.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=cell-9">
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -7640,28 +7651,24 @@ $$P(T) = 0.95 \times 0.01 + 0.10 \times 0.99 = 0.0095 + 0.099 = 0.1085$$</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Example-2:-Drawing-Cards">Example 2: Drawing Cards<a class="anchor-link" href="#Example-2:-Drawing-Cards">¶</a></h2><p>Let's look at a simpler example to build intuition.</p>
-<p><strong>Scenario:</strong> Draw one card from a standard 52-card deck.</p>
+<h2 id="Example-2:-Programming-Languages-Survey">Example 2: Programming Languages Survey<a class="anchor-link" href="#Example-2:-Programming-Languages-Survey">¶</a></h2><p><strong>Scenario:</strong> A survey of 100 programmers asks about language proficiency:</p>
 <ul>
-<li><strong>Event A:</strong> Card is an Ace</li>
-<li><strong>Event H:</strong> Card is a Heart</li>
+<li><strong>Python (P):</strong> 50 programmers</li>
+<li><strong>JavaScript (J):</strong> 40 programmers</li>
+<li><strong>Rust (R):</strong> 30 programmers</li>
 </ul>
-<p><strong>Questions:</strong></p>
-<ol>
-<li>What is $P(A|H)$? (Probability it's an Ace, given it's a Heart)</li>
-<li>What is $P(H|A)$? (Probability it's a Heart, given it's an Ace)</li>
-</ol>
-<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p><strong>Given probabilities:</strong></p>
+<p><strong>Overlaps:</strong></p>
 <ul>
-<li>$P(A) = 4/52 = 1/13$ (4 Aces in the deck)</li>
-<li>$P(H) = 13/52 = 1/4$ (13 Hearts in the deck)</li>
-<li>$P(A \cap H) = 1/52$ (exactly one Ace of Hearts)</li>
+<li><strong>P ∩ J:</strong> 20 programmers know both Python and JavaScript</li>
+<li><strong>P ∩ R:</strong> 15 programmers know both Python and Rust</li>
+<li><strong>J ∩ R:</strong> 10 programmers know both JavaScript and Rust</li>
+<li><strong>P ∩ J ∩ R:</strong> 8 programmers know all three</li>
 </ul>
-<p><strong>Question 1:</strong> $P(A|H) = \frac{P(A \cap H)}{P(H)} = \frac{1/52}{13/52} = \frac{1}{13}$</p>
-<p><strong>Interpretation:</strong> If we know the card is a Heart (13 cards), there's 1 Ace among them, so the probability is 1/13.</p>
-<p><strong>Question 2:</strong> $P(H|A) = \frac{P(A \cap H)}{P(A)} = \frac{1/52}{4/52} = \frac{1}{4}$</p>
-<p><strong>Interpretation:</strong> If we know the card is an Ace (4 cards), there's 1 Heart among them, so the probability is 1/4.</p>
-<p>Notice: $P(A|H) = 1/13$ and $P(H|A) = 1/4$ are <strong>different</strong>!</p>
+<p><strong>Question:</strong> How many programmers know <em>at least one</em> of these languages?</p>
+<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p>$$|P \cup J \cup R| = |P| + |J| + |R| - |P \cap J| - |P \cap R| - |J \cap R| + |P \cap J \cap R|$$</p>
+<p>$$|P \cup J \cup R| = 50 + 40 + 30 - 20 - 15 - 10 + 8$$</p>
+<p>$$|P \cup J \cup R| = 120 - 45 + 8 = 83$$</p>
+<p><strong>Answer:</strong> 83 programmers know at least one of Python, JavaScript, or Rust.</p>
 </div>
 </div>
 </div>
@@ -7674,7 +7681,34 @@ $$P(T) = 0.95 \times 0.01 + 0.10 \times 0.99 = 0.0095 + 0.099 = 0.1085$$</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Extending-to-Three-Events">Extending to Three Events<a class="anchor-link" href="#Extending-to-Three-Events">¶</a></h2><p>Now let's see what happens when we add a third event C. The concepts remain the same, but the visualization becomes richer.</p>
+<h2 id="Example-3:-Probability-Version">Example 3: Probability Version<a class="anchor-link" href="#Example-3:-Probability-Version">¶</a></h2><p>The inclusion-exclusion principle also works for <strong>probabilities</strong>!</p>
+<p>$$P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C)$$</p>
+<p><strong>Scenario:</strong> Rolling a fair six-sided die:</p>
+<ul>
+<li><strong>Event A:</strong> Roll is divisible by 2 (outcomes: {2, 4, 6})</li>
+<li><strong>Event B:</strong> Roll is divisible by 3 (outcomes: {3, 6})</li>
+<li><strong>Event C:</strong> Roll is ≤ 3 (outcomes: {1, 2, 3})</li>
+</ul>
+<p><strong>Question:</strong> What's the probability of rolling a number that satisfies <em>at least one</em> of these conditions?</p>
+<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p>First, let's identify the sets:</p>
+<ul>
+<li>A = {2, 4, 6}, so P(A) = 3/6 = 1/2</li>
+<li>B = {3, 6}, so P(B) = 2/6 = 1/3</li>
+<li>C = {1, 2, 3}, so P(C) = 3/6 = 1/2</li>
+</ul>
+<p><strong>Intersections:</strong></p>
+<ul>
+<li>A ∩ B = {6} → P(A ∩ B) = 1/6</li>
+<li>A ∩ C = {2} → P(A ∩ C) = 1/6</li>
+<li>B ∩ C = {3} → P(B ∩ C) = 1/6</li>
+<li>A ∩ B ∩ C = {} (empty) → P(A ∩ B ∩ C) = 0</li>
+</ul>
+<p><strong>Apply inclusion-exclusion:</strong></p>
+<p>$$P(A \cup B \cup C) = \frac{1}{2} + \frac{1}{3} + \frac{1}{2} - \frac{1}{6} - \frac{1}{6} - \frac{1}{6} + 0$$</p>
+<p>$$P(A \cup B \cup C) = \frac{3}{6} + \frac{2}{6} + \frac{3}{6} - \frac{1}{6} - \frac{1}{6} - \frac{1}{6}$$</p>
+<p>$$P(A \cup B \cup C) = \frac{8}{6} - \frac{3}{6} = \frac{5}{6}$$</p>
+<p><strong>Answer:</strong> The probability is 5/6.</p>
+<p><strong>Verification:</strong> The union is {1, 2, 3, 4, 6} — that's 5 outcomes out of 6, confirming P = 5/6. ✓</p>
 </div>
 </div>
 </div>
@@ -7686,18 +7720,18 @@ $$P(T) = 0.95 \times 0.01 + 0.10 \times 0.99 = 0.0095 + 0.099 = 0.1085$$</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Key-Concepts-with-Three-Events">Key Concepts with Three Events<a class="anchor-link" href="#Key-Concepts-with-Three-Events">¶</a></h3><p>With three events A, B, and C, we have:</p>
+<hr/>
+<h2 id="The-General-Formula">The General Formula<a class="anchor-link" href="#The-General-Formula">¶</a></h2><p>For <strong>n sets</strong> A₁, A₂, ..., Aₙ, the inclusion-exclusion principle extends to:</p>
+<p>$$|A_1 \cup A_2 \cup \cdots \cup A_n| = \sum_{i} |A_i| - \sum_{i&lt;j} |A_i \cap A_j| + \sum_{i&lt;j&lt;k} |A_i \cap A_j \cap A_k| - \cdots + (-1)^{n+1} |A_1 \cap A_2 \cap \cdots \cap A_n|$$</p>
+<p><strong>Pattern:</strong></p>
 <ol>
-<li><p><strong>Triple intersection</strong>: $A \cap B \cap C$ — where all three events occur simultaneously</p>
-</li>
-<li><p><strong>Pairwise intersections</strong>: $A \cap B$, $A \cap C$, $B \cap C$ — where exactly two events occur</p>
-</li>
-<li><p><strong>Conditional on multiple events</strong>: We can condition on intersections:
-$$P(A|B \cap C) = \frac{P(A \cap B \cap C)}{P(B \cap C)}$$</p>
-</li>
-<li><p><strong>Union</strong>: $A \cup B \cup C$ — at least one of the three events occurs</p>
-</li>
+<li><strong>Add</strong> all single sets</li>
+<li><strong>Subtract</strong> all pairwise intersections</li>
+<li><strong>Add</strong> all triple intersections</li>
+<li><strong>Subtract</strong> all quadruple intersections</li>
+<li>Continue alternating <strong>+</strong> and <strong>-</strong></li>
 </ol>
+<p>The signs alternate because we're correcting for over-counting and under-counting at each step!</p>
 </div>
 </div>
 </div>
@@ -7709,109 +7743,30 @@ $$P(A|B \cap C) = \frac{P(A \cap B \cap C)}{P(B \cap C)}$$</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Example-3:-Student-Survey-with-Three-Attributes">Example 3: Student Survey with Three Attributes<a class="anchor-link" href="#Example-3:-Student-Survey-with-Three-Attributes">¶</a></h2><p>Let's apply three-event conditional probability to a concrete scenario.</p>
-<p><strong>Scenario:</strong> Survey of 1,000 students</p>
+<h2 id="Key-Takeaways">Key Takeaways<a class="anchor-link" href="#Key-Takeaways">¶</a></h2><ol>
+<li><p><strong>Naïve addition overcounts</strong> — elements in multiple sets get counted multiple times</p>
+</li>
+<li><p><strong>Two sets:</strong> $|A \cup B| = |A| + |B| - |A \cap B|$</p>
 <ul>
-<li><strong>Event A:</strong> Studies more than 2 hours/day (400 students)</li>
-<li><strong>Event B:</strong> Plays a sport (300 students)</li>
-<li><strong>Event C:</strong> Member of a club (250 students)</li>
+<li>Subtract the intersection once to fix double-counting</li>
 </ul>
-<p><strong>Intersections:</strong></p>
+</li>
+<li><p><strong>Three sets:</strong> $|A \cup B \cup C| = |A| + |B| + |C| - |A \cap B| - |A \cap C| - |B \cap C| + |A \cap B \cap C|$</p>
 <ul>
-<li>$A \cap B$: 120 students (studies hard AND plays sport)</li>
-<li>$A \cap C$: 100 students (studies hard AND in a club)</li>
-<li>$B \cap C$: 80 students (plays sport AND in a club)</li>
-<li>$A \cap B \cap C$: 50 students (does all three)</li>
+<li>Subtract pairwise intersections, then add back the triple intersection</li>
 </ul>
-<p><strong>Question:</strong> What's the probability a student studies hard, given they both play a sport and are in a club?</p>
-<p>That is, find $P(A|B \cap C)$.</p>
-<h3 id="Solution">Solution<a class="anchor-link" href="#Solution">¶</a></h3><p>First, we need $P(B \cap C)$. From the data:</p>
-<ul>
-<li>Students who play a sport AND are in a club: 80</li>
-<li>$P(B \cap C) = 80/1000 = 0.08$</li>
-</ul>
-<p>Next, $P(A \cap B \cap C)$:</p>
-<ul>
-<li>Students who do all three: 50</li>
-<li>$P(A \cap B \cap C) = 50/1000 = 0.05$</li>
-</ul>
-<p>Therefore:
-$$P(A|B \cap C) = \frac{P(A \cap B \cap C)}{P(B \cap C)} = \frac{0.05}{0.08} = 0.625 = 62.5\%$$</p>
-<p><strong>Interpretation:</strong> Among students who both play a sport and are in a club, 62.5% study more than 2 hours per day.</p>
-<p>Compare this to the overall rate: $P(A) = 400/1000 = 40\%$. So being athletic and involved in clubs is associated with higher study rates!</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide-input" id="cell-id=cell-16">
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-17">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Important-Formulas-and-Relationships">Important Formulas and Relationships<a class="anchor-link" href="#Important-Formulas-and-Relationships">¶</a></h2><h3 id="Basic-Conditional-Probability">Basic Conditional Probability<a class="anchor-link" href="#Basic-Conditional-Probability">¶</a></h3><p>$$P(A|B) = \frac{P(A \cap B)}{P(B)}$$</p>
-<h3 id="Multiplication-Rule">Multiplication Rule<a class="anchor-link" href="#Multiplication-Rule">¶</a></h3><p>Rearranging the conditional probability formula:</p>
-<p>$$P(A \cap B) = P(A|B) \cdot P(B) = P(B|A) \cdot P(A)$$</p>
-<h3 id="Bayes'-Theorem">Bayes' Theorem<a class="anchor-link" href="#Bayes'-Theorem">¶</a></h3><p>Combining the multiplication rule:</p>
-<p>$$P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}$$</p>
-<h3 id="Independence">Independence<a class="anchor-link" href="#Independence">¶</a></h3><p>Two events A and B are <strong>independent</strong> if:</p>
-<p>$$P(A|B) = P(A)$$</p>
-<p>That is, knowing B doesn't change the probability of A. Equivalently:</p>
-<p>$$P(A \cap B) = P(A) \cdot P(B)$$</p>
-<h3 id="Chain-Rule-(Three-Events)">Chain Rule (Three Events)<a class="anchor-link" href="#Chain-Rule-(Three-Events)">¶</a></h3><p>For three events:</p>
-<p>$$P(A \cap B \cap C) = P(A) \cdot P(B|A) \cdot P(C|A \cap B)$$</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-18">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Common-Pitfalls">Common Pitfalls<a class="anchor-link" href="#Common-Pitfalls">¶</a></h2><h3 id="1.-Confusing-P(A%7CB)-with-P(B%7CA)">1. Confusing P(A|B) with P(B|A)<a class="anchor-link" href="#1.-Confusing-P(A%7CB)-with-P(B%7CA)">¶</a></h3><p>These are generally <strong>not equal</strong>! The classic example is the medical test:</p>
-<ul>
-<li>$P(\text{Test+}|\text{Disease})$ = 95% (test sensitivity)</li>
-<li>$P(\text{Disease}|\text{Test+})$ = 8.76% (what you really want to know)</li>
-</ul>
-<h3 id="2.-Ignoring-Base-Rates">2. Ignoring Base Rates<a class="anchor-link" href="#2.-Ignoring-Base-Rates">¶</a></h3><p>Even very accurate tests can have low $P(\text{Disease}|\text{Test+})$ if the disease is rare. This is called the <strong>base rate fallacy</strong>.</p>
-<h3 id="3.-Assuming-Independence">3. Assuming Independence<a class="anchor-link" href="#3.-Assuming-Independence">¶</a></h3><p>Don't assume $P(A \cap B) = P(A) \cdot P(B)$ unless you know A and B are independent!</p>
-<h3 id="4.-Forgetting-the-Sample-Space-Changes">4. Forgetting the Sample Space Changes<a class="anchor-link" href="#4.-Forgetting-the-Sample-Space-Changes">¶</a></h3><p>When you condition on B, you're working in a <strong>restricted sample space</strong>. The "universe" shrinks to just B.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cell-19">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Summary">Summary<a class="anchor-link" href="#Summary">¶</a></h2><p>Conditional probability is about <strong>updating our beliefs</strong> when we gain new information.</p>
-<p><strong>Key takeaways:</strong></p>
-<ol>
-<li><p><strong>Venn diagrams show it visually</strong> — conditioning shrinks the universe to the given event</p>
 </li>
-<li><p><strong>The formula is intuitive</strong> — $P(A|B) = \frac{P(A \cap B)}{P(B)}$ asks "what fraction of B is also A?"</p>
+<li><p><strong>Intersection is commutative:</strong> $A \cap B = B \cap A$ (order doesn't matter)</p>
 </li>
-<li><p><strong>Order matters</strong> — $P(A|B) \neq P(B|A)$ in general</p>
+<li><p><strong>Works for probabilities too:</strong> Replace set sizes with probabilities</p>
 </li>
-<li><p><strong>Intersection is symmetric</strong> — $A \cap B = B \cap A$ always</p>
+<li><p><strong>Pattern for n sets:</strong> Alternate between adding and subtracting, working through all possible intersections</p>
 </li>
-<li><p><strong>Extends to multiple events</strong> — We can condition on intersections like $B \cap C$</p>
-</li>
-<li><p><strong>Bayes' Theorem connects them</strong> — Lets us flip conditional probabilities</p>
-</li>
-<li><p><strong>Base rates are crucial</strong> — Rare events stay rare even with strong evidence</p>
+<li><p><strong>Venn diagrams are your friend</strong> — they make the over-counting and correction visible!</p>
 </li>
 </ol>
 <hr/>
-<p><em>Conditional probability is the foundation of Bayesian reasoning, machine learning, and statistical inference. Master these visual intuitions and you'll have a powerful tool for understanding uncertainty!</em></p>
+<p><em>The inclusion-exclusion principle is fundamental in combinatorics, probability theory, and computer science. Master it, and you'll have a powerful tool for solving counting problems!</em></p>
 </div>
 </div>
 </div>
