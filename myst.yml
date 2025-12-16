@@ -39,6 +39,8 @@ project:
           title: Finite State Machines
     - title: ML, AI & Math
       children:
+        - file: inclusion_exclusion_tutorial.ipynb
+          title: Inclusion-Exclusion Principle
         - file: birthday_tutorial.ipynb
           title: Birthday Paradox
         - file: nn_edge_detector_blog.ipynb
