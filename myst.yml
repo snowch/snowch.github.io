@@ -31,7 +31,7 @@ project:
           title: D Flip-Flops
         - file: d-flip-flop-interactive.ipynb
           title: Interactive D Flip-Flop
-        - file: quick_ref.ipynb
+        - file: latches_flipflop_quick_ref.md
           title: "Latches & Flip-Flops Quick Reference"
         - file: timing_diagrams_tutorial.ipynb
           title: Timing Diagrams
