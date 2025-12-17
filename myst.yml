@@ -8,7 +8,7 @@ project:
     - data engineering
     - machine learning
     - artificial intelligence
-    - digital electronics
+    - digital design
   authors:
     - name: Chris Snow
       url: https://snowch.github.io
@@ -25,7 +25,7 @@ project:
     - file: external-articles.md
       title: External Articles
     - ---
-    - title: Digital Electronics
+    - title: Digital Design
       children:
         - file: d_flipflop_tutorial.ipynb
           title: D Flip-Flops
@@ -37,6 +37,10 @@ project:
           title: Timing Diagrams
         - file: fsm_tutorial.ipynb
           title: Finite State Machines
+    - title: Computer Architecture
+      children:
+        - file: computer_architecture_coming_soon.md
+          title: Coming Soon
     - title: ML, AI & Math
       children:
         - file: inclusion_exclusion_tutorial.ipynb
