@@ -37,13 +37,13 @@ project:
           title: Timing Diagrams
         - file: fsm_tutorial.ipynb
           title: Finite State Machines
-    - title: Probability
-      children:
-        - file: probability.md
     - title: Computer Architecture
       children:
         - file: computer_architecture_coming_soon.md
           title: Coming Soon
+    - title: Probability
+      children:
+        - file: probability.md
     - title: ML, AI & Math
       children:
         - file: inclusion_exclusion_tutorial.ipynb
