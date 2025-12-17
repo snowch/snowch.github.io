@@ -37,6 +37,9 @@ project:
           title: Timing Diagrams
         - file: fsm_tutorial.ipynb
           title: Finite State Machines
+    - title: Probability
+      children:
+        - file: probability.md
     - title: Computer Architecture
       children:
         - file: computer_architecture_coming_soon.md
