@@ -27,34 +27,34 @@ project:
     - ---
     - title: Digital Design
       children:
-        - file: d_flipflop_tutorial.ipynb
+        - file: digital-design/d_flipflop_tutorial.ipynb
           title: D Flip-Flops
-        - file: d-flip-flop-interactive.ipynb
+        - file: digital-design/d-flip-flop-interactive.ipynb
           title: Interactive D Flip-Flop
-        - file: latches_flipflop_quick_ref.md
+        - file: digital-design/latches_flipflop_quick_ref.md
           title: "Latches & Flip-Flops Quick Reference"
-        - file: timing_diagrams_tutorial.ipynb
+        - file: digital-design/timing_diagrams_tutorial.ipynb
           title: Timing Diagrams
-        - file: fsm_tutorial.ipynb
+        - file: digital-design/fsm_tutorial.ipynb
           title: Finite State Machines
     - title: Computer Architecture
       children:
-        - file: computer_architecture_coming_soon.md
+        - file: computer-architecture/computer_architecture_coming_soon.md
           title: Coming Soon
     - title: Probability
       children:
-        - file: probability.md
+        - file: probability/probability.md
     - title: ML, AI & Math
       children:
-        - file: inclusion_exclusion_tutorial.ipynb
+        - file: probability/inclusion_exclusion_tutorial.ipynb
           title: Inclusion-Exclusion Principle
-        - file: birthday_tutorial.ipynb
+        - file: probability/birthday_tutorial.ipynb
           title: Birthday Paradox
-        - file: nn_edge_detector_blog.ipynb
+        - file: ml-ai/nn_edge_detector_blog.ipynb
           title: Neural Network Edge Detector
-        - file: nn_tutorial_blog.ipynb
+        - file: ml-ai/nn_tutorial_blog.ipynb
           title: Understanding Neural Networks
-        - file: nn_flexible_network_blog.ipynb
+        - file: ml-ai/nn_flexible_network_blog.ipynb
           title: Flexible Network Architecture
 
 site:
@@ -63,7 +63,7 @@ site:
   options:
     logo_text: Chris Snow
     static:
-      - d-flip-flop-viz.html
+      - digital-design/d-flip-flop-viz.html
       - googlea64efe48103f11c2.html
   nav:
     - title: GitHub
