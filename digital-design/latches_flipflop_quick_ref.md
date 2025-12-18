@@ -27,7 +27,7 @@ This reference covers the behavior, truth tables, and timing requirements for co
 | 1 | 0 | 0 | Q | **Hold** |
 | 1 | 0 | 1 | 0 | **Reset** |
 | 1 | 1 | 0 | 1 | **Set** |
-| 1 | 1 | 1 | ? | {red}`**FORBIDDEN**` |
+| 1 | 1 | 1 | ? | ⛔ **FORBIDDEN** |
 
 ### D Latch (Transparent)Eliminates the forbidden state by ensuring S and R are never both high.
 

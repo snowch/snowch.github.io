@@ -37,7 +37,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y graphviz texlive-latex-base texlive-latex-extra texlive-fonts-recommended cm-super
 
       - name: Install Python dependencies
-        run: pip install jupyter-book mystmd numpy matplotlib matplotlib-venn scipy wavedrom graphviz
+        run: pip install -r requirements.txt
 
       - name: Build the book
         run: myst build --html --execute

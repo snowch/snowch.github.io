@@ -1,0 +1,9 @@
+# Python dependencies for building the Jupyter Book
+jupyter-book
+mystmd
+numpy
+matplotlib
+matplotlib-venn
+scipy
+wavedrom
+graphviz
