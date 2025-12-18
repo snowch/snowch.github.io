@@ -24,7 +24,6 @@ project:
       title: Open Source
     - file: external-articles.md
       title: External Articles
-    - ---
     - title: Digital Design
       children:
         - file: digital-design/d_flipflop_tutorial.ipynb
