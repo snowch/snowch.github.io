@@ -31,4 +31,8 @@ plt.rc('font', family='serif')
 
 **Reference:** https://matplotlib.org/stable/users/explain/text/usetex.html
 
-**Note:** Requires LaTeX installation on the system. The GitHub Actions workflow should have LaTeX available for building Jupyter Books.
+**Important:**
+- Requires LaTeX installation on the system (`latex` command must be available)
+- **NOT currently available** in the GitHub Actions workflow
+- Use Unicode subscripts/superscripts instead (e.g., `D₁`, `Q₀`, `Q̄₁`) for equations that need to render in GitHub Actions
+- If LaTeX support is needed, add to workflow: `sudo apt-get install texlive-latex-base texlive-latex-extra`
