@@ -31,4 +31,4 @@ plt.rc('font', family='serif')
 
 **Reference:** https://matplotlib.org/stable/users/explain/text/usetex.html
 
-**Note:** Requires LaTeX installation on the system. The GitHub Actions workflow should have LaTeX available for building Jupyter Books.
+**Note:** Requires LaTeX installation on the system. The GitHub Actions workflow has LaTeX available (`texlive-latex-base` and `texlive-latex-extra` are installed) for building Jupyter Books with matplotlib LaTeX rendering.
