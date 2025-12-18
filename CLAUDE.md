@@ -14,3 +14,21 @@ The site is deployed via GitHub Actions (`.github/workflows/deploy.yml`). When a
 - name: Install Python dependencies
   run: pip install jupyter-book mystmd numpy matplotlib matplotlib-venn scipy pandas wavedrom graphviz
 ```
+
+## Matplotlib LaTeX Rendering
+
+Matplotlib supports LaTeX rendering for mathematical equations and symbols. Enable it with:
+
+```python
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+```
+
+**When to use:**
+- Mathematical equations in plots (e.g., $D_1 = Q_0 \cdot X$)
+- Technical notation with subscripts, superscripts, and special symbols
+- Professional-looking typography in diagrams
+
+**Reference:** https://matplotlib.org/stable/users/explain/text/usetex.html
+
+**Note:** Requires LaTeX installation on the system. The GitHub Actions workflow should have LaTeX available for building Jupyter Books.
