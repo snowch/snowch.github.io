@@ -65,7 +65,9 @@ The JK Flip-Flop is "universal" because it can be configured to act like a D or 
 
 ---
 
-## Timing ConstraintsFor reliable operation, data must be stable around the active clock edge.
+## Timing Constraints
+
+For reliable operation, data must be stable around the active clock edge.
 
 | Parameter | Symbol | Description |
 | --- | --- | --- |
