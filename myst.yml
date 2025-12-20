@@ -60,6 +60,7 @@ site:
   template: book-theme
   title: Chris Snow
   options:
+    favicon: favicon.ico
     logo_text: Chris Snow
     static:
       - digital-design/d-flip-flop-viz.html
