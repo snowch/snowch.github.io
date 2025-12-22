@@ -65,6 +65,14 @@ site:
     static:
       - digital-design/d-flip-flop-viz.html
       - googlea64efe48103f11c2.html
+      - favicon.ico
+      - favicon-16x16.png
+      - favicon-32x32.png
+      - favicon-48x48.png
+      - apple-touch-icon.png
+      - android-chrome-192x192.png
+      - android-chrome-512x512.png
+      - site.webmanifest
   nav:
     - title: GitHub
       url: https://github.com/snowch
