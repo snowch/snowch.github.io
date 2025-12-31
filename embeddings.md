@@ -1,4 +1,4 @@
-# Embeddings at Scale
+# Embeddings at Scale Book
 
 Learn how to build and deploy embedding systems at massive scale. This comprehensive guide covers everything from fundamental embedding concepts to production deployment strategies for handling billions of vectors.
 
