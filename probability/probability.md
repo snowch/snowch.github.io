@@ -1,4 +1,4 @@
-# Probability
+# Probability Book
 
 Learn probability theory through hands-on Python examples and interactive visualizations. This comprehensive guide covers fundamental concepts from basic probability rules to advanced topics like Bayes' theorem and probability distributions.
 
