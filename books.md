@@ -1,4 +1,4 @@
-# Other Books & Guides
+# Guides
 
 Books and learning resources I've authored.
 
