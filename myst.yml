@@ -18,6 +18,8 @@ project:
     - file: index.md
     - file: embeddings.md
       title: Embeddings Book
+    - file: probability/probability.md
+      title: Probability Book
     - file: talks.md
       title: Talks & Presentations
     - file: opensource.md
@@ -26,8 +28,6 @@ project:
       title: External Articles
     - title: Books & Guides
       children:
-        - file: probability/probability.md
-          title: Probability Book
         - file: matrix-calculus.md
           title: Matrix Calculus Book
         - file: books.md
