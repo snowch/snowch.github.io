@@ -18,6 +18,8 @@ project:
     - file: index.md
     - file: books.md
       title: Books & Guides
+    - file: embeddings.md
+      title: Embeddings Book
     - file: probability/probability.md
       title: Probability Book
     - file: matrix-calculus.md
