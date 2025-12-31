@@ -1,4 +1,4 @@
-# Matrix Calculus
+# Matrix Calculus Book
 
 Learn matrix calculus and derivatives essential for machine learning applications. This comprehensive guide covers fundamental concepts from basic matrix operations to advanced differentiation techniques used in deep learning.
 
