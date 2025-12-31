@@ -17,7 +17,3 @@ Learn probability theory through hands-on Python examples and interactive visual
 **[Learn Probability →](https://snowch.github.io/learn_probability/)**
 
 The complete probability guide is available as an interactive Jupyter Book with hands-on examples you can explore and modify.
-
-**[Matrix Calculus →](https://snowch-notes.github.io/matrix-calculus/)**
-
-Learn derivatives for machine learning applications with practical examples and explanations.

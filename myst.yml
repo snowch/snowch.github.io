@@ -20,6 +20,8 @@ project:
       title: Books & Guides
     - file: probability/probability.md
       title: Probability Book
+    - file: matrix-calculus.md
+      title: Matrix Calculus Book
     - file: talks.md
       title: Talks
     - file: opensource.md
