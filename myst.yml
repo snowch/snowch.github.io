@@ -18,6 +18,8 @@ project:
     - file: index.md
     - file: books.md
       title: Books & Guides
+    - file: probability/probability.md
+      title: Probability Book
     - file: talks.md
       title: Talks
     - file: opensource.md
@@ -40,9 +42,6 @@ project:
       children:
         - file: computer-architecture/computer_architecture_coming_soon.md
           title: Coming Soon
-    - title: Probability
-      children:
-        - file: probability/probability.md
     - title: ML, AI & Math
       children:
         - file: probability/inclusion_exclusion_tutorial.ipynb
