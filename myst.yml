@@ -16,52 +16,48 @@ project:
   license: CC-BY-4.0
   toc:
     - file: index.md
+    - title: AI Engineering Notes
+      children:
+        - file: probability/inclusion_exclusion_tutorial.ipynb
+          title: Inclusion-Exclusion Principle
+        - file: probability/birthday_tutorial.ipynb
+          title: Birthday Paradox
+        - file: ml-ai/nn_edge_detector_blog.ipynb
+          title: Neural Network Edge Detector
+        - file: ml-ai/nn_tutorial_blog.ipynb
+          title: Understanding Neural Networks
+        - file: ml-ai/nn_flexible_network_blog.ipynb
+          title: Flexible Network Architecture
     - file: embeddings.md
-      title: Embeddings Book
-    - file: probability/probability.md
-      title: Probability Book
-    - file: talks.md
-      title: Talks & Presentations
+      title: Embeddings at Scale Book
     - file: opensource.md
       title: Open Source Work
     - file: external-articles.md
       title: External Articles
-    - title: Books & Guides
+    - file: talks.md
+      title: Talks & Presentations
+    - file: probability/probability.md
+      title: Probability Book
+    - file: matrix-calculus.md
+      title: Matrix Calculus Book
+    - file: books.md
+      title: Other Books & Guides
+    - title: Computer Architecture Notes
       children:
-        - file: matrix-calculus.md
-          title: Matrix Calculus Book
-        - file: books.md
-          title: Guides
-    - title: Notes
+        - file: computer-architecture/computer_architecture_coming_soon.md
+          title: Coming Soon
+    - title: Digital Design Notes
       children:
-        - title: ML, AI & Math Notes
-          children:
-            - file: probability/inclusion_exclusion_tutorial.ipynb
-              title: Inclusion-Exclusion Principle
-            - file: probability/birthday_tutorial.ipynb
-              title: Birthday Paradox
-            - file: ml-ai/nn_edge_detector_blog.ipynb
-              title: Neural Network Edge Detector
-            - file: ml-ai/nn_tutorial_blog.ipynb
-              title: Understanding Neural Networks
-            - file: ml-ai/nn_flexible_network_blog.ipynb
-              title: Flexible Network Architecture
-        - title: Computer Architecture Notes
-          children:
-            - file: computer-architecture/computer_architecture_coming_soon.md
-              title: Coming Soon
-        - title: Digital Design Notes
-          children:
-            - file: digital-design/d_flipflop_tutorial.ipynb
-              title: D Flip-Flops
-            - file: digital-design/d-flip-flop-interactive.ipynb
-              title: Interactive D Flip-Flop
-            - file: digital-design/latches_flipflop_quick_ref.md
-              title: "Latches & Flip-Flops Quick Reference"
-            - file: digital-design/timing_diagrams_tutorial.ipynb
-              title: Timing Diagrams
-            - file: digital-design/fsm_tutorial.ipynb
-              title: Finite State Machines
+        - file: digital-design/d_flipflop_tutorial.ipynb
+          title: D Flip-Flops
+        - file: digital-design/d-flip-flop-interactive.ipynb
+          title: Interactive D Flip-Flop
+        - file: digital-design/latches_flipflop_quick_ref.md
+          title: "Latches & Flip-Flops Quick Reference"
+        - file: digital-design/timing_diagrams_tutorial.ipynb
+          title: Timing Diagrams
+        - file: digital-design/fsm_tutorial.ipynb
+          title: Finite State Machines
 
 site:
   template: book-theme
