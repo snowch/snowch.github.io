@@ -16,6 +16,15 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 
 ---
 
+## Select Highlights
+
+- **Built $xx million EMEA presales team from scratch** · Grew technical presales organization from zero to 12 staff (2 managers, 10 ICs) at HPE, managing regional AI/Big Data portfolio
+- **Published Author** · Books on embeddings at scale, probability, matrix calculus, linear algebra
+- **Apache Committer** · Open source contributor since 2013
+- **Technical Leadership** · 11+ years in data engineering, AI/ML; 10+ years in presales; enterprise + public sector
+
+---
+
 ## Experience
 
 Recent roles and affiliations:
