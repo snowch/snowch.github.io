@@ -45,6 +45,8 @@ project:
       title: Probability Book
     - file: matrix-calculus.md
       title: Matrix Calculus Book
+    - file: linear-algebra.md
+      title: Linear Algebra Book
     - file: books.md
       title: Other Books & Guides
     - title: Computer Architecture Notes
