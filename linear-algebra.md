@@ -1,4 +1,4 @@
-# Learn Linear Algebra
+# Learn Linear Algebra Book
 
 Learn linear algebra fundamentals through interactive exercises and visualizations. This comprehensive guide uses SageMath to provide hands-on experience with essential linear algebra concepts for machine learning and data science.
 
