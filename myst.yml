@@ -18,7 +18,7 @@ project:
   # These will be included in the sitemap index
   project_sites:
     - learn_probability
-    - embeddings-at-scale
+    - embeddings-at-scale-book
   toc:
     - file: index.md
     - title: AI Engineering Notes
