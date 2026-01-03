@@ -38,8 +38,6 @@ project:
       title: Embeddings at Scale Book
     - file: opensource.md
       title: Open Source Work
-    - file: github-stars.md
-      title: GitHub Stars
     - file: external-articles.md
       title: External Articles
     - file: talks.md
