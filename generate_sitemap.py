@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Generate sitemap.xml and robots.txt for the site.
+Generate sitemap index, main sitemap, and robots.txt for the site.
 This script should be run after `myst build` completes.
+
+For sites with project pages (e.g., snowch.github.io/project-name):
+- Creates sitemap-main.xml for the main site
+- Creates sitemap_index.xml that references main + project sitemaps
+- robots.txt points to sitemap_index.xml
 """
 import os
 import yaml
@@ -59,8 +64,8 @@ def get_file_lastmod(file_path, build_dir='_build/html'):
     # Fallback to current date if file doesn't exist
     return datetime.now().strftime('%Y-%m-%d')
 
-def generate_sitemap(config, build_dir='_build/html', base_url='https://snowch.github.io/'):
-    """Generate sitemap.xml from MyST configuration."""
+def generate_main_sitemap(config, build_dir='_build/html', base_url='https://snowch.github.io/'):
+    """Generate sitemap for main site pages."""
     pages = []
 
     # Extract pages from project TOC
@@ -87,9 +92,38 @@ def generate_sitemap(config, build_dir='_build/html', base_url='https://snowch.g
 
     return '\n'.join(sitemap_lines)
 
-def generate_robots_txt(base_url='https://snowch.github.io/'):
+def generate_sitemap_index(config, base_url='https://snowch.github.io/'):
+    """Generate sitemap index that references main + project sitemaps."""
+    lastmod = datetime.now().strftime('%Y-%m-%d')
+
+    index_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
+    index_lines.append('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+
+    # Add main sitemap
+    index_lines.append('  <sitemap>')
+    index_lines.append(f'    <loc>{urljoin(base_url, "sitemap-main.xml")}</loc>')
+    index_lines.append(f'    <lastmod>{lastmod}</lastmod>')
+    index_lines.append('  </sitemap>')
+
+    # Add project site sitemaps if configured
+    project_sites = config.get('project', {}).get('project_sites', [])
+    for project in project_sites:
+        project_sitemap_url = urljoin(base_url, f'{project}/sitemap.xml')
+        index_lines.append('  <sitemap>')
+        index_lines.append(f'    <loc>{project_sitemap_url}</loc>')
+        index_lines.append('  </sitemap>')
+
+    index_lines.append('</sitemapindex>')
+
+    return '\n'.join(index_lines)
+
+def generate_robots_txt(base_url='https://snowch.github.io/', has_project_sites=False):
     """Generate robots.txt file."""
-    sitemap_url = urljoin(base_url, 'sitemap.xml')
+    # Point to sitemap index if there are project sites, otherwise to main sitemap
+    if has_project_sites:
+        sitemap_url = urljoin(base_url, 'sitemap_index.xml')
+    else:
+        sitemap_url = urljoin(base_url, 'sitemap-main.xml')
 
     robots_lines = [
         '# robots.txt for snowch.github.io',
@@ -104,7 +138,7 @@ def generate_robots_txt(base_url='https://snowch.github.io/'):
     return '\n'.join(robots_lines)
 
 def main():
-    """Main function to generate sitemap and robots.txt."""
+    """Main function to generate sitemap files and robots.txt."""
     # Load MyST configuration
     config = load_myst_config()
 
@@ -120,17 +154,34 @@ def main():
         print("Creating directory and proceeding...")
         os.makedirs(build_dir, exist_ok=True)
 
-    # Generate sitemap.xml
-    sitemap_xml = generate_sitemap(config, build_dir, base_url)
-    sitemap_path = os.path.join(build_dir, 'sitemap.xml')
+    # Generate main sitemap
+    main_sitemap_xml = generate_main_sitemap(config, build_dir, base_url)
+    main_sitemap_path = os.path.join(build_dir, 'sitemap-main.xml')
 
-    with open(sitemap_path, 'w') as f:
-        f.write(sitemap_xml)
+    with open(main_sitemap_path, 'w') as f:
+        f.write(main_sitemap_xml)
 
-    print(f"✓ Generated {sitemap_path}")
+    print(f"✓ Generated {main_sitemap_path}")
+
+    # Check if there are project sites
+    project_sites = config.get('project', {}).get('project_sites', [])
+    has_project_sites = len(project_sites) > 0
+
+    # Generate sitemap index if there are project sites
+    if has_project_sites:
+        sitemap_index_xml = generate_sitemap_index(config, base_url)
+        index_path = os.path.join(build_dir, 'sitemap_index.xml')
+
+        with open(index_path, 'w') as f:
+            f.write(sitemap_index_xml)
+
+        print(f"✓ Generated {index_path}")
+        print(f"  References: sitemap-main.xml + {len(project_sites)} project site(s)")
+        for project in project_sites:
+            print(f"    - {project}/sitemap.xml")
 
     # Generate robots.txt
-    robots_txt = generate_robots_txt(base_url)
+    robots_txt = generate_robots_txt(base_url, has_project_sites)
     robots_path = os.path.join(build_dir, 'robots.txt')
 
     with open(robots_path, 'w') as f:
@@ -139,7 +190,7 @@ def main():
     print(f"✓ Generated {robots_path}")
 
     # Print summary
-    print(f"\nSitemap contains {sitemap_xml.count('<url>')} URLs")
+    print(f"\nMain sitemap contains {main_sitemap_xml.count('<url>')} URLs")
     print(f"Site: {base_url}")
 
 if __name__ == '__main__':

@@ -14,6 +14,11 @@ project:
       url: https://snowch.github.io
   github: https://github.com/snowch/snowch.github.io
   license: CC-BY-4.0
+  # GitHub Pages project sites (snowch.github.io/project-name)
+  # These will be included in the sitemap index
+  project_sites:
+    - learn_probability
+    - embeddings-at-scale
   toc:
     - file: index.md
     - title: AI Engineering Notes
