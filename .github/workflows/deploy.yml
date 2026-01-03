@@ -56,6 +56,9 @@ jobs:
           BASE_URL: ${{ steps.pages.outputs.base_path == '/' && '' || steps.pages.outputs.base_path }}
         run: myst build --html --execute
 
+      - name: Generate sitemap and robots.txt
+        run: python generate_sitemap.py
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

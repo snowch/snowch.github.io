@@ -7,3 +7,4 @@ matplotlib-venn
 scipy
 wavedrom
 graphviz
+PyYAML
