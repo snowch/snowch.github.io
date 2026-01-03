@@ -189,6 +189,12 @@ def main():
 
     print(f"✓ Generated {robots_path}")
 
+    # Remove old sitemap.xml if it exists (from previous MyST builds)
+    old_sitemap = os.path.join(build_dir, 'sitemap.xml')
+    if os.path.exists(old_sitemap):
+        os.remove(old_sitemap)
+        print(f"✓ Removed old {old_sitemap}")
+
     # Print summary
     print(f"\nMain sitemap contains {main_sitemap_xml.count('<url>')} URLs")
     print(f"Site: {base_url}")
