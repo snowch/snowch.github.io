@@ -36,12 +36,6 @@ project:
           title: Flexible Network Architecture
     - file: embeddings.md
       title: Embeddings at Scale Book
-    - file: opensource.md
-      title: Open Source Work
-    - file: external-articles.md
-      title: External Articles
-    - file: talks.md
-      title: Talks & Presentations
     - file: probability/probability.md
       title: Probability Book
     - file: matrix-calculus.md
@@ -50,6 +44,12 @@ project:
       title: Learn Linear Algebra Book
     - file: books.md
       title: Other Books & Guides
+    - file: opensource.md
+      title: Open Source Work
+    - file: external-articles.md
+      title: External Articles
+    - file: talks.md
+      title: Talks & Presentations
     - title: Computer Architecture Notes
       children:
         - file: computer-architecture/computer_architecture_coming_soon.md
