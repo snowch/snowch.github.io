@@ -19,6 +19,7 @@ project:
   project_sites:
     - learn_probability
     - embeddings-at-scale-book
+    - learn_linear_algebra
   toc:
     - file: index.md
     - title: AI Engineering Notes
