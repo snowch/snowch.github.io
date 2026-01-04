@@ -59,6 +59,9 @@ jobs:
       - name: Generate sitemap and robots.txt
         run: python generate_sitemap.py
 
+      - name: Copy Google verification file
+        run: cp googlea64efe48103f11c2.html _build/html/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
