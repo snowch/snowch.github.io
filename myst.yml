@@ -34,10 +34,10 @@ project:
 
         - title: Neural Networks From Scratch
           children:
+            - file: ml-ai/nn_edge_detector_blog.ipynb
+              title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
             - file: ml-ai/nn_tutorial_blog.ipynb
               title: "Understanding Neural Networks: From Pixels to Predictions"
-            - file: ml-ai/nn_edge_detector_blog.ipynb
-              title: "From Pixels to Features: Learning an Edge Detector from Scratch"
             - file: ml-ai/nn_flexible_network_blog.ipynb
               title: Building a General Neural Network from Scratch
     - file: embeddings.md
