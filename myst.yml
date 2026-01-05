@@ -37,7 +37,7 @@ project:
             - file: ml-ai/nn_edge_detector_blog.ipynb
               title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
             - file: ml-ai/nn_tutorial_blog.ipynb
-              title: "Understanding Neural Networks: From Pixels to Predictions"
+              title: "Training an Edge-Detection Neural Network from Scratch"
             - file: ml-ai/nn_flexible_network_blog.ipynb
               title: Building a General Neural Network from Scratch
     - file: embeddings.md
