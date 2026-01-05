@@ -136,7 +136,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: embedding lookup = one-hot × matrix
-In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere).
+In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere); see the {doc}`NN tutorial blog <nn_tutorial_blog#part-4-measuring-wrongness---the-loss-function>` for an example.
 
 If `one_hot(id)` is a length-`V` vector, then:
 
