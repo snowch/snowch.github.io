@@ -27,7 +27,7 @@ By the end, you'll understand:
 - How backpropagation computes gradients
 - How gradient descent learns the right weights
 
-**Companion post:** For a deeper dive into how a single neuron works as a pattern detector (weights, ReLU, bias), see [How Neural Networks Learn to See: Building an Edge Detector from Scratch](nn_edge_detector_blog.ipynb). This tutorial focuses on the *training* process — how the network discovers those weights automatically.
+**Companion post:** For a deeper dive into how a single neuron works as a pattern detector (weights, ReLU, bias), see [NN01 - Edge Detection Intuition: A Single Neuron as Pattern Matching](nn_edge_detector_blog.ipynb). This tutorial focuses on the *training* process — how the network discovers those weights automatically.
 
 ```{code-cell} ipython3
 :tags: [remove-input]
