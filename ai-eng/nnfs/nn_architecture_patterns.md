@@ -13,13 +13,9 @@ keywords:
 # NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
 
 :::{seealso} If you’re coming from your earlier NN-from-scratch posts
-These links should point to the **rendered pages** in your MyST project (not GitHub source).
-
-- NN tutorial (dense → softmax → predictions): {doc}`ai-eng/nnfs/nn_tutorial_blog.md`
-- Flexible architecture (stacking modules cleanly): {doc}`ai-eng/nnfs/nn_flexible_network_blog.md`
-- Edge detector (learned features, visual intuition): {doc}`ai-eng/nnfs/nn_edge_detector_blog.md`
-
-> If your TOC uses notebooks instead (e.g. `ml-ai/nn_tutorial_blog.ipynb`), change the paths above to match your `myst.yml`.
+- NN tutorial (dense → softmax → predictions): {doc}`nn_tutorial_blog`
+- Flexible architecture (stacking modules cleanly): {doc}`nn_flexible_network_blog`
+- Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`
 :::
 
 
@@ -285,10 +281,10 @@ Recommended path:
 
 1) Your NN-from-scratch posts (dense layers, training loop, flexible architectures)
 2) **NN04 (this chapter)**
-3) **TR00**: attention + transformer architecture map
+3) {doc}`TR00 <../transformer/TR00_attention_and_transformer_architectures>`: attention + transformer architecture map
 4) **TR01–TR04**: implement a tiny decoder-only transformer end-to-end
 5) **IN01**: inference engineering (KV cache, batching, memory)
 
 :::{seealso} Next
-Read **TR00** next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
+Read {doc}`../transformer/TR00_attention_and_transformer_architectures` next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
 :::
