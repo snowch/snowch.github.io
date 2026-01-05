@@ -77,8 +77,6 @@ A linear layer computes: $\mathbf{z} = \mathbf{x} W + \mathbf{b}$
 - **Backward:** Compute gradients for W and b, return gradient for input
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 class Linear:
     """Fully connected layer: z = x @ W + b"""
     
@@ -130,8 +128,6 @@ ReLU computes: $h = \max(0, z)$
 It has no learnable parameters, but still needs to pass gradients through.
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 class ReLU:
     """ReLU activation: h = max(0, z)"""
     
@@ -159,8 +155,6 @@ print("  backward(dh) -> returns dh * (z > 0)")
 We combine softmax and cross-entropy into one layer because their combined gradient is simple: $\frac{\partial L}{\partial z} = p - y$
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 class SoftmaxCrossEntropy:
     """Combined softmax + cross-entropy loss"""
     
@@ -199,8 +193,6 @@ print("  backward()    -> returns (p - y) / batch_size")
 Now we can stack layers into a network. The key insight: **forward and backward are just loops!**
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 class Network:
     """A neural network as a stack of layers"""
     
@@ -284,8 +276,6 @@ Each layer:
 Let's verify our flexible network works by training it on the same edge detection task.
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 # Create training data (same as before)
 def make_data(n_samples=100):
     X, y = [], []
@@ -314,8 +304,6 @@ print(f"Training: {len(X_train)} samples, Test: {len(X_test)} samples")
 ```
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 # Train with our flexible network!
 # Try different architectures:
 
@@ -389,8 +377,6 @@ The same training code works for all of them!
 Here's the full implementation in ~100 lines:
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 """
 Flexible Neural Network from Scratch
 =====================================
