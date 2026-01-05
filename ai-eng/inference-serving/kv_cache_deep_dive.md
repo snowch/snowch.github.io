@@ -31,59 +31,164 @@ LLMs generate text **one token at a time**. Each new token depends on *all previ
 If you do the “naive” thing, every time you generate a token you re-run lots of the same work again and again.
 
 
-### A concrete toy example: prompt tokens → keys/values (and what “all layers” means)
+### A concrete toy example (visual): prompt tokens → keys/values (and what “all layers” means)
 
-Let’s make this tangible with a tiny, made-up transformer:
+Let’s make this tangible with a tiny, made-up transformer. The *exact* token splits depend on the tokenizer, but the mechanics are the same.
 
-- **Prompt tokens (n=4):** `t0  t1  t2  t3`  
-  (Think “4 tokens after tokenization”, without worrying about the exact BPE splits.)
-- **Model:** 2 layers, 2 attention heads  
-- **Dimensions:** `d_model = 8`, `n_heads = 2`, so `d_head = 4`
+#### Step 0 — From raw text to tokens (what “BPE” means)
 
-At **each layer**, the model holds a hidden state for every token:
+Most LLMs don’t operate on words directly; they operate on **tokens** produced by a tokenizer.
+A common tokenizer family is **BPE (Byte Pair Encoding)**: it starts from bytes/characters and repeatedly merges the most frequent adjacent pairs to form a vocabulary of “subword” units.
 
-- Layer ℓ hidden states: **Hℓ** with shape **(n, d_model)** = (4, 8)
+So you might see splits like:
 
-Then it projects those hidden states into **Q, K, V** using learned matrices. Conceptually:
+- Raw text: `I love Rust!`
+- Tokens (illustrative 4-token example): `["I", " love", " Rust", "!"]`
+
+Sometimes you’ll get surprises (also illustrative), like splitting uncommon words:
+
+- Raw text: `unbelievable`
+- Tokens: `["un", "believ", "able"]` (or other subword chunks)
+
+The key point: **the model sees a sequence of token IDs**, not words.
+
+```{mermaid}
+flowchart LR;
+  A["Raw text prompt"] --> B["Tokenizer (e.g., BPE)"];
+  B --> C["Token strings (4 tokens)\n[I] [ love] [ Rust] [!]"];
+  C --> D["Token IDs (integers)"];
+  D --> E["Embeddings (vectors)"];
+```
+
+#### Step 1 — A tiny transformer (2 layers, 2 heads)
+
+We’ll use a toy setup:
+
+- Prompt length **n = 4** tokens: `t0  t1  t2  t3`
+- **L = 2** transformer layers
+- **2 attention heads**
+- `d_model = 8`, so per-head `d_head = 4`
+
+At each layer ℓ, the model holds hidden states for every token:
+
+- **Hℓ** has shape **(n, d_model)** = (4, 8)
+
+Then it computes projections:
 
 - **Qℓ = Hℓ · Wqℓ**
 - **Kℓ = Hℓ · Wkℓ**
 - **Vℓ = Hℓ · Wvℓ**
 
-With multi-head attention, you can think of **Kℓ** and **Vℓ** as being stored per head:
+With multi-head attention, think of K and V as stored per head:
 
-- **Kℓ** shape ≈ (n, n_heads, d_head) = (4, 2, 4)  
+- **Kℓ** shape ≈ (n, n_heads, d_head) = (4, 2, 4)
 - **Vℓ** shape ≈ (n, n_heads, d_head) = (4, 2, 4)
 
-So when we say **“KV cache for all layers”**, we mean:
+Here’s what “all layers” means visually: **each layer has its own K/V cache**.
 
-- For **layer 1**, cache `K1` and `V1` for **every prompt token**
-- For **layer 2**, cache `K2` and `V2` for **every prompt token**
-- …and so on up to layer L
+```{mermaid}
+flowchart TB;
+  subgraph L0["Input"];
+    T["Tokens: t0 t1 t2 t3"] --> E["Embeddings"];
+  end;
 
-A simple mental model is:
+  E --> L1["Layer 1 (attention + MLP)"];
+  L1 --> L2["Layer 2 (attention + MLP)"];
+  L2 --> OUT["Logits -> next token"];
 
-| Layer | Cached keys | Cached values |
-|---|---|---|
-| 1 | K1 for tokens t0..t3 | V1 for tokens t0..t3 |
-| 2 | K2 for tokens t0..t3 | V2 for tokens t0..t3 |
+  subgraph C1["KV cache (Layer 1)"];
+    K1["K1 cache: 4 rows (t0..t3)"] --> V1["V1 cache: 4 rows (t0..t3)"];
+  end;
 
-#### What happens at generation time?
+  subgraph C2["KV cache (Layer 2)"];
+    K2["K2 cache: 4 rows (t0..t3)"] --> V2["V2 cache: 4 rows (t0..t3)"];
+  end;
 
-When you generate the next token (call it `t4`):
+  L1 -. "writes K/V for each token" .-> C1;
+  L2 -. "writes K/V for each token" .-> C2;
+```
 
-- The model computes the **new token’s** `k_new` and `v_new` at **each layer** (and for each head)
-- It **appends one row** to the cache for each layer:
-  - `Kℓ_cache` grows from (4, 2, 4) → (5, 2, 4)
-  - `Vℓ_cache` grows from (4, 2, 4) → (5, 2, 4)
+#### Step 2 — What happens when you generate the next token?
 
-The key idea is: **previous tokens’ K/V never change**, so we keep them and only add the new token’s K/V.
+When generating the next token (call it `t4`):
+
+- You compute **only the new token’s** `k_new` and `v_new` at **each layer**
+- You append one row to each layer’s cache:
+  - `Kℓ_cache` grows from 4 → 5 rows
+  - `Vℓ_cache` grows from 4 → 5 rows
+
+```{mermaid}
+flowchart LR;
+  subgraph Before["Before generating t4"];
+    B1["Layer 1 KV rows: 4"] --> B2["Layer 2 KV rows: 4"];
+  end;
+  subgraph Step["Generate token t4"];
+    S1["Compute (k_new, v_new) at Layer 1"] --> S2["Append to Layer 1 cache"];
+    S3["Compute (k_new, v_new) at Layer 2"] --> S4["Append to Layer 2 cache"];
+  end;
+  subgraph After["After appending t4"];
+    A1["Layer 1 KV rows: 5"] --> A2["Layer 2 KV rows: 5"];
+  end;
+
+  Before --> Step --> After;
+```
+
+
+
+#### Step 3 — A tiny “numbers” example (one head, one layer)
+
+To make attention feel less abstract, here’s a **toy single-head** example at **one layer**.
+
+Assume `d_head = 2` and we already cached keys/values for the 4 prompt tokens:
+
+**K cache (4 tokens × 2 dims)**
+
+| token | k = [k1, k2] |
+|---|---|
+| t0 ("I") | [2, 0] |
+| t1 (" love") | [1, 0] |
+| t2 (" Rust") | [0, 0] |
+| t3 ("!") | [-1, 0] |
+
+**V cache (4 tokens × 2 dims)**
+
+| token | v = [v1, v2] |
+|---|---|
+| t0 | [10, 0] |
+| t1 | [5, 0] |
+| t2 | [1, 0] |
+| t3 | [0, 0] |
+
+Now we’re generating the next token `t4`. The model computes a **new query** for the current position:
+
+- `q_new = [1, 0]`
+
+**Attention scores** are dot products (scaled by `sqrt(d_head)` in real models; we’ll ignore scaling here for simplicity):
+
+- score(t0) = q·k0 = 1×2 + 0×0 = 2  
+- score(t1) = q·k1 = 1×1 + 0×0 = 1  
+- score(t2) = q·k2 = 1×0 + 0×0 = 0  
+- score(t3) = q·k3 = 1×(-1) + 0×0 = -1  
+
+Softmax turns these into weights (rounded):
+
+- w ≈ [0.644, 0.237, 0.087, 0.032]
+
+Finally, the attention output is a weighted sum of values:
+
+- out = Σ wᵢ · vᵢ  
+- out ≈ 0.644·[10,0] + 0.237·[5,0] + 0.087·[1,0] + 0.032·[0,0]  
+- out ≈ **[7.713, 0]**
+
+Two important takeaways:
+
+1. **The K/V for t0..t3 were reused** — we didn’t recompute them during decode.
+2. The **new query still compares against all cached keys** — long context still costs.
 
 If you want an intuition anchor:
 
 - **K/V are like “index cards” for each token at each layer**
-- KV cache is literally keeping those index cards around so you don’t have to rewrite them every time you add a new token
-
+- KV cache keeps those index cards around so you don’t have to recreate them every time you add a new token
 
 ### Without KV Cache (naive decode loop)
 
