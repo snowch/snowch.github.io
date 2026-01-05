@@ -40,6 +40,8 @@ This tutorial builds the “big picture” you need before implementing anything
 If you later turn this into an executed notebook, this avoids the common Matplotlib font-cache log line:
 
 ```python
+:tags: [hide-cell]
+
 import logging
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 ```
