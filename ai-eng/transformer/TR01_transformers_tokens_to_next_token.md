@@ -299,4 +299,4 @@ Two key anchors:
 - [**TR03 — Transformer Block from Scratch:**](TR03_transformer_block_from_scratch.md) add residuals, LayerNorm, MLP, and stacking.
 - [**TR04 — Train a Tiny Decoder Model:**](TR04_train_tiny_decoder_model.md) dataset, training loop, and generation.
 
-If you want the systems follow-up after TR04, the next topic is [IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference](../inference-serving/kv-cache-deep-dive.md).
+If you want the systems follow-up after TR04, the next topic is [IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference](/kv-cache-deep-dive/).
