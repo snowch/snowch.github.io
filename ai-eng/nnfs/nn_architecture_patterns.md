@@ -57,7 +57,7 @@ Example: `B=2`, `C=8`:
   (two examples, each with 8 features)
 
 :::{note} Where you’ve seen this before
-In your **NN tutorial blog**, your input matrix is essentially `(B, C)`:
+In the {doc}`NN tutorial blog <nn_tutorial_blog#the-networks-job>`, you gather a batch of input vectors into a matrix, which is essentially `(B, C)`:
 - `B` rows = examples in the batch
 - `C` columns = features per example
 
@@ -136,7 +136,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: embedding lookup = one-hot × matrix
-In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere).
+In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere); see the {doc}`NN tutorial blog <nn_tutorial_blog#part-4-measuring-wrongness---the-loss-function>` for an example.
 
 If `one_hot(id)` is a length-`V` vector, then:
 
