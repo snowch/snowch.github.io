@@ -295,8 +295,8 @@ Two key anchors:
 
 ## Next posts in the series
 
-- **TR02 — Self-Attention from Scratch:** implement Q/K/V + causal masking (with exact shapes).
-- **TR03 — Transformer Block from Scratch:** add residuals, LayerNorm, MLP, and stacking.
-- **TR04 — Train a Tiny Decoder Model:** dataset, training loop, and generation.
+- [**TR02 — Self-Attention from Scratch:**](./tr02-self-attention-from-scratch) implement Q/K/V + causal masking (with exact shapes).
+- [**TR03 — Transformer Block from Scratch:**](./tr03-transformer-block-from-scratch) add residuals, LayerNorm, MLP, and stacking.
+- [**TR04 — Train a Tiny Decoder Model:**](./tr04-train-tiny-decoder-model) dataset, training loop, and generation.
 
-If you want the systems follow-up after TR04, the next topic is KV cache and inference optimizations.
+If you want the systems follow-up after TR04, the next topic is [IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference](./kv-cache-deep-dive).
