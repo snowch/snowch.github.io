@@ -1,6 +1,6 @@
 ---
-title: "TR02 — Self-Attention from Scratch (Q/K/V, Masking, Shapes)"
-description: "Implement causal self-attention from scratch in PyTorch: tensor shapes, Q/K/V projections, masking, softmax, and attention weight inspection."
+title: "TR02 — Self-Attention from Scratch"
+description: "Implement causal self-attention from scratch in PyTorch: Q/K/V projections, masking, tensor shapes, and attention-weight inspection."
 keywords:
   - self-attention
   - qkv
@@ -9,73 +9,117 @@ keywords:
   - transformers from scratch
 ---
 
-# TR02 — Self-Attention from Scratch (Q/K/V, Masking, Shapes)
+# TR02 — Self-Attention from Scratch
 
-Scope A: **PyTorch tensors + autograd**, but we implement attention ourselves (no `nn.MultiheadAttention`).
+Self-attention is the new “operator” that makes transformers different from classic feed-forward networks.
 
-By the end, you’ll have a clean `CausalSelfAttention` module you can drop into a GPT-style model.
+This tutorial builds a **minimal, correct** causal self-attention module that:
 
----
+- projects embeddings into **Q / K / V**
+- computes **scaled dot-product attention**
+- applies a **causal mask** (no peeking ahead)
+- returns the mixed output in the same shape as the input
 
-## 1) The mental model
-
-For each token position *t*:
-
-- \(q_t\): what I’m looking for
-- \(k_i\): what token *i* offers as a match key
-- \(v_i\): what content token *i* contributes if selected
-
-Scores: \(s_{t,i} = q_t \cdot k_i\)
-
-Weights: \(w_{t,*} = \text{softmax}(s_{t,*})\)
-
-Output: \(o_t = \sum_i w_{t,i} v_i\)
+This module becomes the attention sub-layer inside the transformer block in TR03.
 
 ---
 
-## 2) Shapes cheat sheet (single batch)
+## What you will build
 
-Let:
+By the end, you will have:
 
-- `B` batch size
-- `T` sequence length
-- `C = d_model`
-- `nh` number of heads
-- `hs = C // nh` head size
-
-We store activations as:
-
-- `x`: (B, T, C)
-- `q, k, v`: (B, nh, T, hs)
-- attention weights: (B, nh, T, T)
-- output: (B, T, C)
+- a working `CausalSelfAttention` module
+- a clear shape model for every tensor involved
+- a tiny visualization that confirms the causal mask is working
 
 ---
 
-## 3) Causal mask (the “no peeking” rule)
+## Setup (optional)
 
-We need to enforce: token *t* can attend only to tokens \(\le t\).
+```{code-cell} ipython3
+:tags: [remove-input]
 
-Implementation trick: create a lower-triangular matrix and use it to set illegal logits to \(-\infty\) before softmax.
-
-```python
-mask = torch.tril(torch.ones(T, T, device=x.device))
-att = att.masked_fill(mask == 0, float('-inf'))
+import logging
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 ```
 
 ---
 
-## 4) Minimal implementation (multi-head causal self-attention)
+## Part 1: The attention rule (one head)
 
-This is a “from scratch” attention module:
+For each token position `t`, attention produces an output vector:
 
-- computes Q/K/V projections
-- reshapes into heads
-- applies scaled dot-product attention
-- applies causal mask
-- returns combined output
+- `q_t` (query): what token `t` is looking for
+- `k_i` (key): what token `i` offers as a match
+- `v_i` (value): what token `i` contributes as content
 
-```python
+Mechanically:
+
+1. similarity scores: `score[t, i] = q_t · k_i`
+2. normalize: `w[t, :] = softmax(score[t, :])`
+3. mix: `out_t = Σ_i w[t, i] v_i`
+
+Matrix form:
+
+\[
+\text{Attention}(Q,K,V)=\text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+\]
+
+---
+
+## Part 2: Shapes you must get right
+
+Most transformer confusion is actually shape confusion.
+
+Assume:
+
+- `B` = batch size
+- `T` = sequence length
+- `C` = `d_model` (embedding width)
+- `nh` = number of heads
+- `hs` = head size = `C // nh`
+
+### Core shapes (batch included)
+
+- input `x`: **(B, T, C)**
+- projections (before heads): `q, k, v`: **(B, T, C)**
+- after splitting into heads: `q, k, v`: **(B, nh, T, hs)**
+- attention logits: **(B, nh, T, T)**
+- output per head: **(B, nh, T, hs)**
+- recombined output: **(B, T, C)**
+
+---
+
+## Part 3: Causal mask (decoder-only rule)
+
+Decoder-only attention must not look forward.
+
+For token positions `0..T-1`, token `t` may attend to `0..t`.
+
+That is exactly a lower-triangular matrix:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import torch
+
+T = 4
+mask = torch.tril(torch.ones(T, T))
+mask
+```
+
+When applied to logits, masked positions become `-inf` before softmax, which drives their probability to ~0.
+
+---
+
+## Part 4: Implement multi-head causal self-attention
+
+This implementation does not use `nn.MultiheadAttention`.  
+It is the “from scratch” version you can reason about line-by-line.
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -83,18 +127,21 @@ import torch.nn.functional as F
 class CausalSelfAttention(nn.Module):
     def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):
         super().__init__()
-        assert d_model % n_heads == 0
+        assert d_model % n_heads == 0, "d_model must be divisible by n_heads"
         self.d_model = d_model
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads
 
-        # One linear that produces Q, K, V in a single matmul
+        # Produce Q, K, V in one matmul: (B, T, C) -> (B, T, 3C)
         self.qkv = nn.Linear(d_model, 3 * d_model, bias=False)
+
+        # Final projection after concatenating heads
         self.proj = nn.Linear(d_model, d_model, bias=False)
+
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B, T, C = x.shape  # (batch, time, channels)
+    def forward(self, x: torch.Tensor, return_weights: bool = False):
+        B, T, C = x.shape
 
         qkv = self.qkv(x)                 # (B, T, 3C)
         q, k, v = qkv.split(C, dim=2)     # each (B, T, C)
@@ -104,14 +151,14 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
         v = v.view(B, T, self.n_heads, self.head_dim).transpose(1, 2)
 
-        # Scaled dot-product attention: (B, nh, T, T)
+        # Attention logits: (B, nh, T, T)
         att = (q @ k.transpose(-2, -1)) * (1.0 / (self.head_dim ** 0.5))
 
-        # Causal mask
+        # Causal mask (broadcast to B, nh)
         mask = torch.tril(torch.ones(T, T, device=x.device)).view(1, 1, T, T)
-        att = att.masked_fill(mask == 0, float('-inf'))
+        att = att.masked_fill(mask == 0, float("-inf"))
 
-        # Softmax -> weights
+        # Softmax to weights
         w = F.softmax(att, dim=-1)
         w = self.dropout(w)
 
@@ -121,30 +168,34 @@ class CausalSelfAttention(nn.Module):
         # Recombine heads: (B, T, C)
         y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.proj(y)
+
+        if return_weights:
+            return y, w
         return y
 ```
 
 ---
 
-## 5) Visualize attention weights (tiny example)
+## Part 5: Confirm the mask visually (tiny test)
 
-A simple debugging/teaching trick: run the module and inspect weights.
+Sanity check: for a short sequence, attention weights should be ~0 above the diagonal.
 
-Modify the forward pass to optionally return weights:
+```{code-cell} ipython3
+:tags: [remove-input]
 
-```python
-# inside forward(...)
-# return y, w  # if you want weights too
-```
-
-Then plot a single head’s attention matrix for a tiny prompt.
-
-```python
 import matplotlib.pyplot as plt
+import torch
 
-# Suppose w is (B, nh, T, T)
+torch.manual_seed(0)
+
+B, T, C = 1, 8, 32
+attn = CausalSelfAttention(d_model=C, n_heads=4, dropout=0.0)
+
+x = torch.randn(B, T, C)
+y, w = attn(x, return_weights=True)     # w: (B, nh, T, T)
+
 head = 0
-mat = w[0, head].detach().cpu().numpy()  # (T, T)
+mat = w[0, head].detach().cpu().numpy()
 
 plt.figure(figsize=(6, 5))
 plt.imshow(mat)
@@ -155,21 +206,19 @@ plt.colorbar()
 plt.show()
 ```
 
-Expected behavior:
-- Upper triangle should be ~0 (masked)
-- Later tokens can attend to earlier tokens
+Expected:
+
+- the upper-right triangle is near zero (masked)
+- each row sums to ~1 (softmax)
 
 ---
 
-## 6) The bridge to KV cache (why K/V matter)
+## Summary
 
-In this module, `k` and `v` are computed for **every token** at every forward pass.
+Causal self-attention is:
 
-During inference decode, you generate one token at a time — so recomputing `k` and `v` for old tokens repeatedly is wasteful.
+- a learned, input-dependent way to mix token information
+- constrained by a causal mask so the model cannot look ahead
+- implemented by careful reshaping and matrix multiplies
 
-That’s exactly what KV cache avoids.
-
-Next:
-- **TR03** will wrap this attention into a full transformer block
-- **TR04** will train and generate with a tiny decoder model
-- Then your **IN01** KV cache post becomes the optimization sequel
+In TR03, this becomes one sub-layer inside the full transformer block.
