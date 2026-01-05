@@ -12,7 +12,7 @@ keywords:
 
 # NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
 
-:::{seealso} If you’re coming from your earlier NN-from-scratch posts
+:::{seealso} Prerequisites
 - NN tutorial (dense → softmax → predictions): {doc}`nn_tutorial_blog`
 - Flexible architecture (stacking modules cleanly): {doc}`nn_flexible_network_blog`
 - Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`
@@ -28,6 +28,8 @@ By the end of this chapter you will be able to:
 3. Recognize and implement **residual connections**: `y = x + f(x)`
 4. Explain why transformers use **LayerNorm** (and where it sits in the block)
 5. Understand the preview idea behind attention: **dynamic mixing weights**
+
+This chapter is the **bridge** to transformers. By the end of the series (TR00–TR04), you’ll understand how attention works and how transformer blocks are built end-to-end.
 
 ---
 
@@ -59,12 +61,15 @@ In your **NN tutorial blog**, your input matrix is essentially `(B, C)`:
 - `B` rows = examples in the batch
 - `C` columns = features per example
 
-Transformers keep this idea, but add one more axis: time / token position.
+In that tutorial, you pass a batch matrix `X` into a dense layer (`Y = X @ W + b`), where each row is one example and each column is a feature.
+
+Transformers keep this exact structure but add one more axis: time / token position.
 :::
 
 ### 1.3 Batch of sequences (transformer default)
 
-Transformers add the sequence dimension:
+Transformers add the sequence dimension because they process **ordered tokens**.  
+The model needs a separate axis to keep track of token position so it can mix information across time.
 
 - shape: `(B, T, C)`
 
@@ -131,7 +136,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: embedding lookup = one-hot × matrix
-In many from-scratch NN setups, you use **one-hot vectors** (a 1 in one position, zeros elsewhere).
+In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere).
 
 If `one_hot(id)` is a length-`V` vector, then:
 
