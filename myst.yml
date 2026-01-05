@@ -36,10 +36,10 @@ project:
           children:
             - file: ml-ai/nn_tutorial_blog.ipynb
               title: "Understanding Neural Networks: From Pixels to Predictions"
-            - file: ml-ai/nn_flexible_network_blog.ipynb
-              title: Building a Flexible Neural Network from Scratch
             - file: ml-ai/nn_edge_detector_blog.ipynb
-              title: "How Neural Networks Learn to See: Building an Edge Detector from Scratch"
+              title: "From Pixels to Features: Learning an Edge Detector from Scratch"
+            - file: ml-ai/nn_flexible_network_blog.ipynb
+              title: Building a General Neural Network from Scratch
     - file: embeddings.md
       title: Embeddings at Scale Book
     - file: probability/probability.md
