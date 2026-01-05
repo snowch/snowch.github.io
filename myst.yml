@@ -40,6 +40,9 @@ project:
               title: "Training an Edge-Detection Neural Network from Scratch"
             - file: ai-eng/nnfs/nn_flexible_network_blog.md
               title: Building a General Neural Network from Scratch
+            - file: ai-eng/nnfs/nn_architecture_patterns.md
+              title: Architecture Patterns
+              
 
         - title: "Transformers From Scratch"
           children:
