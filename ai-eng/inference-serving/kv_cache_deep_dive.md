@@ -30,6 +30,61 @@ LLMs generate text **one token at a time**. Each new token depends on *all previ
 
 If you do the “naive” thing, every time you generate a token you re-run lots of the same work again and again.
 
+
+### A concrete toy example: prompt tokens → keys/values (and what “all layers” means)
+
+Let’s make this tangible with a tiny, made-up transformer:
+
+- **Prompt tokens (n=4):** `t0  t1  t2  t3`  
+  (Think “4 tokens after tokenization”, without worrying about the exact BPE splits.)
+- **Model:** 2 layers, 2 attention heads  
+- **Dimensions:** `d_model = 8`, `n_heads = 2`, so `d_head = 4`
+
+At **each layer**, the model holds a hidden state for every token:
+
+- Layer ℓ hidden states: **Hℓ** with shape **(n, d_model)** = (4, 8)
+
+Then it projects those hidden states into **Q, K, V** using learned matrices. Conceptually:
+
+- **Qℓ = Hℓ · Wqℓ**
+- **Kℓ = Hℓ · Wkℓ**
+- **Vℓ = Hℓ · Wvℓ**
+
+With multi-head attention, you can think of **Kℓ** and **Vℓ** as being stored per head:
+
+- **Kℓ** shape ≈ (n, n_heads, d_head) = (4, 2, 4)  
+- **Vℓ** shape ≈ (n, n_heads, d_head) = (4, 2, 4)
+
+So when we say **“KV cache for all layers”**, we mean:
+
+- For **layer 1**, cache `K1` and `V1` for **every prompt token**
+- For **layer 2**, cache `K2` and `V2` for **every prompt token**
+- …and so on up to layer L
+
+A simple mental model is:
+
+| Layer | Cached keys | Cached values |
+|---|---|---|
+| 1 | K1 for tokens t0..t3 | V1 for tokens t0..t3 |
+| 2 | K2 for tokens t0..t3 | V2 for tokens t0..t3 |
+
+#### What happens at generation time?
+
+When you generate the next token (call it `t4`):
+
+- The model computes the **new token’s** `k_new` and `v_new` at **each layer** (and for each head)
+- It **appends one row** to the cache for each layer:
+  - `Kℓ_cache` grows from (4, 2, 4) → (5, 2, 4)
+  - `Vℓ_cache` grows from (4, 2, 4) → (5, 2, 4)
+
+The key idea is: **previous tokens’ K/V never change**, so we keep them and only add the new token’s K/V.
+
+If you want an intuition anchor:
+
+- **K/V are like “index cards” for each token at each layer**
+- KV cache is literally keeping those index cards around so you don’t have to rewrite them every time you add a new token
+
+
 ### Without KV Cache (naive decode loop)
 
 ```{mermaid}
