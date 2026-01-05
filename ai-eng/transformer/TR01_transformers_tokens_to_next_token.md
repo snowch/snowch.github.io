@@ -35,17 +35,6 @@ This tutorial builds the “big picture” you need before implementing anything
 
 ---
 
-# Setup (optional)
-
-If you later turn this into an executed notebook, this avoids the common Matplotlib font-cache log line:
-
-```{code-cell} python
-import logging
-logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
-```
-
----
-
 ## Part 1: The training objective — next-token prediction
 
 Suppose the token sequence is:
