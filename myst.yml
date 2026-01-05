@@ -40,7 +40,7 @@ project:
               title: Building a Flexible Neural Network from Scratch
             - file: ml-ai/nn_edge_detector_blog.ipynb
               title: "How Neural Networks Learn to See: Building an Edge Detector from Scratch"
-
+    - file: embeddings.md
       title: Embeddings at Scale Book
     - file: probability/probability.md
       title: Probability Book
