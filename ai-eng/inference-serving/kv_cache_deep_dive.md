@@ -257,7 +257,9 @@ Modern GPUs have finite memory:
 **Problem:** Memory becomes the bottleneck before compute saturation.
  
 ### 2. Memory Fragmentation
-
+ 
+As requests complete at different times, memory becomes fragmented:
+ 
 ```mermaid
 flowchart LR
   subgraph GM["GPU Memory (example)"]
@@ -270,13 +272,6 @@ flowchart LR
   NOTE["Total free = 8GB\nbut no contiguous 8GB block"]
   F1 -.-> NOTE
   F2 -.-> NOTE
-```
- 
-As requests complete at different times, memory becomes fragmented:
- 
-```
-[Request A: 10 GB] [Free: 5 GB] [Request B: 8 GB] [Free: 3 GB] [Request C: 12 GB]
-                   ↑ Can't fit a new 15 GB request despite 8 GB total free space!
 ```
  
 This is where **PagedAttention** (vLLM's innovation) helps by using paging-style memory management—a topic we'll cover in a future post.
