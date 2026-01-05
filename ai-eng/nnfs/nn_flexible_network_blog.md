@@ -531,5 +531,5 @@ def backward(self, grad_output):
 ---
 
 **Further Reading:**
-- [Understanding Neural Networks: From Pixels to Predictions](nn_tutorial_blog.ipynb) — The concepts behind this code
+- [NN02 - Training an Edge-Detection Neural Network from Scratch](nn_tutorial_blog.ipynb) — The concepts behind this code
 - [PyTorch nn.Module](https://pytorch.org/docs/stable/nn.html) — How the pros do it (same pattern!)
