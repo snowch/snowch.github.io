@@ -1,6 +1,6 @@
 ---
 title: "IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference"
-description: Understanding the key-value cache mechanism that enables efficient transformer inference, memory challenges at scale, and modern disaggregation approaches
+description: "Understanding the key-value cache mechanism that makes LLM inference practical: what it speeds up, what it doesn't, why memory explodes, and how disaggregation helps at scale."
 keywords:
   - llm inference
   - kv cache
@@ -8,40 +8,31 @@ keywords:
   - memory management
   - inference serving
 ---
- 
-# IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference
- 
-*Understanding the critical optimization that makes LLM inference practical*
- 
----
- 
-When you chat with ChatGPT or any modern LLM, the model doesn't recompute everything from scratch with each new token. Behind the scenes, a crucial optimization called **KV caching** dramatically speeds up inference by remembering previous computation results.
- 
-In this post, we'll explore:
- 
-- **What is KV cache** and why it's essential for LLM inference
-- **How transformer attention works** (the foundation)
-- **The KV cache mechanism** and its memory-speed tradeoff
-- **Memory challenges at scale** and why they matter
-- **Disaggregation approaches** like VAST Data's solution
- 
-No PhD required—just curiosity about how production LLMs actually work!
- 
----
- 
-## The Problem: Autoregressive Generation is Slow
- 
-Large language models generate text **one token at a time**. Each new token requires running the full transformer forward pass:
- 
-```
-Input: "The cat sat on the"
-Step 1: Generate → "mat"       (full forward pass)
-Step 2: Generate → "and"       (full forward pass on "The cat sat on the mat")
-Step 3: Generate → "purred"    (full forward pass on "The cat sat on the mat and")
-...
-```
 
-```mermaid
+# IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference
+
+*The critical optimization that makes LLM inference practical — and the memory tradeoff that comes with it.*
+
+In this post, we’ll cover:
+
+- What KV cache is (and why it exists)
+- A quick attention primer (Q/K/V in plain terms)
+- What KV cache **speeds up** — and what it **doesn’t**
+- Why KV cache memory explodes with long context + concurrency
+- Why memory fragmentation happens in practice
+- How cache disaggregation helps at large scale (and when it’s worth it)
+
+No PhD required — just curiosity about how production LLMs actually work.
+
+## The Problem: Autoregressive Generation Is Expensive
+
+LLMs generate text **one token at a time**. Each new token depends on *all previous tokens* (prompt + already-generated tokens).
+
+If you do the “naive” thing, every time you generate a token you re-run lots of the same work again and again.
+
+### Without KV Cache (naive decode loop)
+
+```{mermaid}
 sequenceDiagram
   autonumber
   participant U as User
@@ -49,375 +40,293 @@ sequenceDiagram
 
   U->>M: Prompt tokens (length n)
 
-  alt Without KV cache
-    loop each new token
-      M->>M: Recompute K,V for all n tokens (all layers)
-      M->>M: Attention over full context
-      M-->>U: Next token
-    end
-  else With KV cache
-    M->>M: Compute K,V for prompt once
-    M->>M: Store K,V in cache
-    loop each new token
-      M->>M: Compute q_new, k_new, v_new (new token only)
-      M->>M: Append (k_new,v_new) to cache
-      M->>M: Attention(q_new, K_cached, V_cached)
-      M-->>U: Next token
-    end
+  loop For each new token
+    M->>M: Recompute K,V for all previous tokens (all layers)
+    M->>M: Attention over full context
+    M-->>U: Next token
   end
 ```
- 
-Without optimization, generating a 100-token response would require:
-- **100 full forward passes**
-- Each pass processes **every previous token** again
-- Computational cost grows **quadratically** with sequence length
- 
-This is prohibitively expensive. **KV cache solves this problem.**
- 
----
- 
-## Transformer Attention: A Quick Primer
 
-```mermaid
-flowchart TD
-  X["Input tokens<br/>X"] --> E["Embeddings"]
-  E --> L1["Layer i"]
-  L1 --> Q["Compute Q"]
-  L1 --> K["Compute K"]
-  L1 --> V["Compute V"]
+### With KV Cache (practical decode loop)
 
-  K --> KC[("KV Cache<br/>Keys")]
-  V --> VC[("KV Cache<br/>Values")]
+```{mermaid}
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant M as LLM
 
-  Q --> A["Attention<br/>softmax(QK^T / sqrt(d)) * V"]
-  KC --> A
-  VC --> A
+  U->>M: Prompt tokens (length n)
+  M->>M: Compute K,V for prompt once
+  M->>M: Store K,V in KV cache
 
-  A --> O["Layer output"] --> NEXT["Next layer / logits"]
+  loop For each new token
+    M->>M: Compute K,V for NEW token only (all layers)
+    M->>M: Append to KV cache
+    M->>M: Attention using cached K,V
+    M-->>U: Next token
+  end
 ```
- 
-To understand KV cache, we need to understand how transformer attention works.
- 
-### The Three Matrices: Q, K, V
- 
-In self-attention, each token is transformed into three vectors:
- 
-| Matrix | Name | Role |
-|--------|------|------|
-| **Q** | Query | "What am I looking for?" |
-| **K** | Key | "What information do I offer?" |
-| **V** | Value | "What information do I contain?" |
- 
-For an input sequence with $n$ tokens and hidden dimension $d$:
- 
-$$
-\begin{aligned}
-Q &= X W^Q \quad &\text{shape: } (n, d) \\
-K &= X W^K \quad &\text{shape: } (n, d) \\
-V &= X W^V \quad &\text{shape: } (n, d)
-\end{aligned}
-$$
- 
-### The Attention Mechanism
- 
-Attention computes how much each token should "attend to" every other token:
- 
-$$
+
+## Prefill vs Decode: The Two-Phase Mental Model
+
+It helps to split inference into two phases:
+
+- **Prefill**: process the prompt once (compute K/V for the whole prompt, build the initial KV cache)
+- **Decode**: generate tokens one-by-one (append new K/V each step)
+
+KV cache helps most during **decode**, because decode is where repeated work would otherwise explode.
+
+## Transformer Attention: Q, K, V in One Page
+
+Attention is easiest to understand if you treat Q/K/V as roles:
+
+- **Query (Q)**: “What am I looking for?”
+- **Key (K)**: “What do I contain?”
+- **Value (V)**: “If you attend to me, here’s what you get.”
+
+The attention formula is typically written as:
+
+\[
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V
-$$
- 
-**Step by step:**
- 
-1. **Compute similarity scores:** $QK^T$ measures how related each query is to each key
-2. **Normalize with softmax:** Convert scores to probabilities (attention weights)
-3. **Weighted combination:** Multiply attention weights by values to get output
- 
-**Key insight:** For each new token, we compute its query $q_{new}$, but we need **all previous keys and values** to compute attention over the full context.
- 
----
- 
+\]
+
+You don’t need to memorize it. The important bit is:
+
+- **Q** from the current token compares against **all cached K**
+- those scores weight **all cached V**
+- the result produces the output for the next layer / logits
+
+Here’s the flow:
+
+```{mermaid}
+flowchart TD;
+  X["Input tokens"] --> E["Embeddings"];
+  E --> L["Transformer layer i"];
+
+  L --> Q["Compute Q"];
+  L --> K["Compute K"];
+  L --> V["Compute V"];
+
+  K --> KC["KV cache: Keys"];
+  V --> VC["KV cache: Values"];
+
+  Q --> A["Attention = softmax(QK^T / sqrt(d)) * V"];
+  KC --> A;
+  VC --> A;
+
+  A --> O["Layer output"] --> NEXT["Next layer / logits"];
+```
+
 ## The KV Cache Optimization
- 
+
 ### The Revelation
- 
-Notice something important: **When generating a new token, the keys and values of previous tokens don't change!**
- 
-- Token 1's key $k_1$ and value $v_1$ are computed once and **never change**
-- Token 2's key $k_2$ and value $v_2$ are computed once and **never change**
-- Only the **new token** needs fresh computation
- 
-### How KV Cache Works
- 
-Instead of recomputing all keys and values every step:
- 
-**Without KV Cache (inefficient):**
+
+During decode, for *previous tokens*:
+
+- their **keys** don’t change
+- their **values** don’t change
+
+So recomputing K/V for them every decode step is pure waste.
+
+### Pseudocode: without vs with cache
+
+**Without KV cache (wasteful):**
 ```python
-# Step 1: Generate token for "The cat sat on the"
-Q, K, V = compute_all(["The", "cat", "sat", "on", "the"])
-output_1 = attention(Q, K, V)  # Generate "mat"
- 
-# Step 2: Generate next token
-Q, K, V = compute_all(["The", "cat", "sat", "on", "the", "mat"])  # ❌ Recompute everything!
-output_2 = attention(Q, K, V)  # Generate "and"
+# At each decode step:
+Q, K, V = compute_QKV_for_all_tokens(context_tokens)  # recompute everything
+y = attention(Q, K, V)
+next_token = sample(y)
 ```
- 
-**With KV Cache (efficient):**
+
+**With KV cache (efficient projections):**
 ```python
-# Step 1: Generate token for "The cat sat on the"
-Q, K, V = compute_all(["The", "cat", "sat", "on", "the"])
-cache_K, cache_V = K, V  # ✅ Save for later
-output_1 = attention(Q, K, V)  # Generate "mat"
- 
-# Step 2: Generate next token
-q_new, k_new, v_new = compute_new(["mat"])
-K = concatenate(cache_K, k_new)  # Reuse cached keys
-V = concatenate(cache_V, v_new)  # Reuse cached values
-output_2 = attention(q_new, K, V)  # Only compute new query
+# Prefill once:
+K_cache, V_cache = compute_KV_for_prompt(prompt_tokens)
+
+# Decode loop:
+for t in range(num_new_tokens):
+    q_new, k_new, v_new = compute_QKV_for_new_token(last_token)
+    K_cache.append(k_new)
+    V_cache.append(v_new)
+
+    y = attention(q_new, K_cache, V_cache)
+    next_token = sample(y)
 ```
- 
-### Speedup Analysis
- 
-For a sequence of length $n$ with $L$ layers and hidden dimension $d$:
- 
-| Metric | Without KV Cache | With KV Cache |
-|--------|------------------|---------------|
-| **Computation per step** | $O(n \cdot d)$ for all tokens | $O(d)$ for new token only |
-| **100-token generation** | Processes ~5,000 tokens | Processes ~100 tokens |
-| **Speedup** | 1x baseline | **10-100x faster** |
- 
-This is why KV cache is **non-negotiable** for production LLM serving.
- 
----
- 
+
+**What you saved:** recomputing K/V projections for all previous tokens at every step.
+
+## What KV Cache Does *Not* Fix
+
+KV cache removes repeated **K/V projection work**, but it does **not** remove the need to do attention against the context.
+
+During decode, the model still needs to compute something equivalent to:
+
+- compare the **new query** to **all previous keys**
+- produce a weighted sum over **all previous values**
+
+So even with KV cache, decode attention work still grows with context length.
+
+**Practical takeaway:**  
+KV cache is necessary — but long context still costs you (compute + memory).
+
+## Speedup Analysis (Accurate Version)
+
+Let:
+
+- \(n\) = current context length (prompt + generated so far)
+- \(L\) = number of layers
+- \(d\) = hidden dimension
+
+A simplified breakdown per decode step:
+
+| Component (per step) | Without KV Cache | With KV Cache |
+|---|---:|---:|
+| K/V projections for previous tokens | \(O(n \cdot L \cdot d)\) | **0** (reused) |
+| K/V projections for new token | \(O(L \cdot d)\) | \(O(L \cdot d)\) |
+| Attention vs context (new token attends to n tokens) | \(O(n \cdot L \cdot d)\) | \(O(n \cdot L \cdot d)\) |
+| **Total per step** | big constant * \(O(nLd)\) + redundant work | **smaller constant** * \(O(nLd)\) |
+
+So why is KV cache such a big deal?
+
+Because without KV cache, the *projection work* for old tokens repeats every step and your total work across a response can grow roughly **quadratically** with the number of generated tokens.
+
+With KV cache, projection work is closer to **linear** in generated tokens (plus the attention term, which remains).
+
 ## The Memory Tradeoff: Cache Size Explodes at Scale
 
-```mermaid
-flowchart LR
-  M["KV cache memory"] --> EQ["~ 2 * L * n * d * p"]
-  EQ --> K1["2 = K and V"]
-  EQ --> K2["L = layers"]
-  EQ --> K3["n = tokens"]
-  EQ --> K4["d = hidden dim"]
-  EQ --> K5["p = bytes per element"]
-```
- 
-KV cache trades **compute for memory**. Let's quantify the cost.
- 
-### Memory Calculation
- 
-For a single request with:
-- Sequence length: $n$ tokens
-- Number of layers: $L$
-- Hidden dimension: $d$
-- Number of attention heads: $h$
-- Precision: $p$ bytes (2 for FP16, 1 for INT8)
- 
-**KV cache size per request:**
- 
-$$
-\text{Memory} = 2 \times L \times n \times d \times p
-$$
- 
-The factor of 2 accounts for **both keys and values**.
- 
-### Real-World Example: Llama 2 70B
- 
-Let's calculate for a typical production scenario:
- 
-| Parameter | Value |
-|-----------|-------|
-| Model | Llama 2 70B |
-| Layers ($L$) | 80 |
-| Hidden dimension ($d$) | 8,192 |
-| Sequence length ($n$) | 4,096 tokens |
-| Precision ($p$) | 2 bytes (FP16) |
- 
-$$
-\begin{aligned}
-\text{Memory} &= 2 \times 80 \times 4{,}096 \times 8{,}192 \times 2 \text{ bytes} \\
-&= 10{,}737{,}418{,}240 \text{ bytes} \\
-&\approx \mathbf{10.7 \text{ GB per request}}
-\end{aligned}
-$$
- 
-**For a batch of 32 concurrent requests:** $10.7 \times 32 = \mathbf{342 \text{ GB}}$ just for KV cache!
- 
-This is **separate from model weights** (~140 GB for Llama 2 70B in FP16).
- 
----
- 
-## Production Challenges
- 
-### 1. Memory Capacity Limits
- 
-Modern GPUs have finite memory:
-- **A100 (80GB):** Can handle ~7 concurrent long-context requests
-- **H100 (80GB):** Similar constraints despite better compute
- 
-**Problem:** Memory becomes the bottleneck before compute saturation.
- 
-### 2. Memory Fragmentation
- 
-As requests complete at different times, memory becomes fragmented:
- 
-```mermaid
-flowchart LR
-  subgraph GM["GPU Memory (example)"]
-    A["Request A: 10GB"] --> F1["Free: 5GB"]
-    F1 --> B["Request B: 8GB"]
-    B --> F2["Free: 3GB"]
-    F2 --> C["Request C: 12GB"]
-  end
+KV cache stores **K and V tensors** for each token, for each layer.
 
-  NOTE["Total free = 8GB\nbut no contiguous 8GB block"]
-  F1 -.-> NOTE
-  F2 -.-> NOTE
+A very common back-of-the-envelope estimate:
+
+\[
+\text{KV Memory} \approx 2 \times L \times n \times d \times p
+\]
+
+Where:
+
+- \(2\) is for **K and V**
+- \(p\) is bytes per element (e.g., FP16 = 2 bytes)
+
+Here’s a visual factor breakdown:
+
+```{mermaid}
+flowchart LR;
+  M["KV cache memory per request"] --> F1["2x (K and V)"];
+  M --> F2["L layers"];
+  M --> F3["n tokens"];
+  M --> F4["d hidden dim"];
+  M --> F5["p bytes per element"];
 ```
- 
-This is where **PagedAttention** (vLLM's innovation) helps by using paging-style memory management—a topic we'll cover in a future post.
- 
-### 3. Multi-Request Inefficiency
- 
-Traditional KV cache requires:
-- **Contiguous allocation** per request
-- **No sharing** between requests (even if they share prefixes)
-- **Static reservation** even during compute-bound phases
- 
----
- 
+
+### Real-World Example: Llama 2 70B (illustrative)
+
+Assume:
+
+- \(L = 80\)
+- \(d = 8192\)
+- \(n = 4096\)
+- \(p = 2\) bytes (FP16)
+
+\[
+\text{Memory} = 2 \times 80 \times 4096 \times 8192 \times 2 \approx 10.7 \text{ GB (decimal)} \approx 10.0 \text{ GiB}
+\]
+
+That’s **per request** for KV cache.
+
+**Now multiply by concurrency.**  
+Batch 32: ~\(10.7 \times 32 \approx 342\) GB of KV cache memory.
+
+And this is separate from model weights (e.g., ~140 GB for a 70B model in FP16).
+
+## Why Memory Fragmentation Shows Up
+
+Even if your GPU has “enough free memory” in total, allocations can fail if free space is chopped into non-contiguous holes.
+
+```{mermaid}
+flowchart LR;
+  subgraph GM["GPU memory (example)"];
+    A["Request A: 10GB"] --> F1["Free: 5GB"];
+    F1 --> B["Request B: 8GB"];
+    B --> F2["Free: 3GB"];
+    F2 --> C["Request C: 12GB"];
+  end;
+  NOTE["Total free = 8GB, but no contiguous 8GB block"];
+  F1 -.-> NOTE;
+  F2 -.-> NOTE;
+```
+
+This becomes more likely with:
+
+- many concurrent requests
+- variable sequence lengths
+- frequent allocation/free cycles
+
 ## Modern Solution: Cache Disaggregation
 
-```mermaid
+If KV cache dominates memory, one idea is to avoid keeping *all* KV cache in GPU memory.
+
+Instead:
+
+- keep a smaller **active working set** on GPU
+- keep a larger cache pool in **external memory** (CPU RAM, NVMe, or specialized storage)
+- move KV in/out as needed (often with techniques like paging)
+
+```{mermaid}
 flowchart LR;
-subgraph T["Traditional (monolithic)"];
-  GPU1["GPU memory"] --> W1["Model weights"];
-  GPU1 --> C1["KV cache (all requests)"];
-end;
-subgraph D["Disaggregated cache"];
-  GPU2["GPU memory"] --> W2["Model weights"];
-  GPU2 --> WS["Active working set"];
-  EXT["External KV store"] -->|"get prefix"| GPU2;
-  GPU2 -->|"put KV updates"| EXT;
-end;
+  subgraph T["Traditional (monolithic)"];
+    GPU1["GPU memory"] --> W1["Model weights"];
+    GPU1 --> C1["KV cache (all requests)"];
+  end;
+
+  subgraph D["Disaggregated cache"];
+    GPU2["GPU memory"] --> W2["Model weights"];
+    GPU2 --> WS["Active KV working set"];
+    EXT["External KV store"] --> GPU2;
+    GPU2 --> EXT;
+  end;
 ```
- 
-### The Disaggregation Paradigm
- 
-Instead of storing KV cache in GPU memory alongside compute:
- 
-**Traditional (monolithic):**
-```
-GPU Memory = [Model Weights] + [KV Cache for All Requests]
-```
- 
-**Disaggregated:**
-```
-GPU Memory = [Model Weights] + [Active Working Set]
-External Storage = [Full KV Cache Pool]
-```
- 
-Benefits:
-- **Decouple memory from compute** → Scale each independently
-- **Share cache across GPUs** → Better resource utilization
-- **Persistent cache** → Reuse across sessions
- 
-### VAST Data's Approach: VUA (VAST Undivided Attention)
- 
-VAST Data pioneered a **disaggregated KV cache** approach with their VUA library:
- 
-**Architecture Overview:**
- 
-1. **Token-Based Fragmentation**
-   - Split tokens into groups using a fixed split factor
-   - Hash token prefixes to directory paths
-   - Store cache fragments separately
- 
-2. **Core Operations**
-   ```python
-   # Store computed KV cache
-   vua.put(tokens, kv_cache)  # Fragments and stores
- 
-   # Retrieve matching cache
-   cached_kv = vua.get_closest(token_prefix)  # Fast prefix search
-   ```
- 
-3. **vLLM Integration**
-   - Works as a vLLM plugin (v0.8.5+)
-   - Supports tensor parallelism
-   - Uses GPU Direct Storage (GDS) for fast transfers
- 
-**Key Innovation:** By disaggregating cache storage, VAST enables:
-- **Elastic scaling:** Add storage independently of GPU memory
-- **Prefix reuse:** Share cached computations across requests with common prefixes
-- **Cost efficiency:** Use cheaper, larger storage for cache pool
- 
-**Note:** VUA's functionality has since been consolidated into **LMCache's generic GDS backend**, representing the evolution toward standardized disaggregated caching infrastructure.
- 
-### When Disaggregation Makes Sense
- 
+
+**Why this helps:**
+- Scale cache capacity independently of GPU memory
+- Support longer context and/or higher concurrency
+- Enable reuse when many requests share prefixes (depending on your serving stack)
+
+**Tradeoffs:**
+- Moving KV has overhead (latency + bandwidth)
+- You need careful policies for what stays “hot” on GPU
+- More moving parts operationally
+
+> Note: Different vendors and open-source stacks approach disaggregated caching differently. The important idea is the architecture pattern (separating weights + active KV on GPU from a larger KV pool elsewhere), not any single implementation.
+
+## When Disaggregation Is Worth It
+
 | Scenario | Traditional KV Cache | Disaggregated Cache |
-|----------|---------------------|---------------------|
-| **Short sequences (<2K tokens)** | ✅ Fast, simple | ⚠️ Overhead not worth it |
-| **Long sequences (>8K tokens)** | ❌ Memory bottleneck | ✅ Scales beyond GPU memory |
-| **Repeated prefixes (chatbots)** | ❌ No sharing | ✅ Reuse cached prefixes |
-| **Elastic workloads** | ❌ Fixed GPU memory | ✅ Scale storage dynamically |
- 
----
- 
-## The Future of KV Cache Optimization
- 
-This post covers the fundamentals, but the innovation continues. Future topics in this series include:
- 
-### Coming Soon:
- 
-**IN02 - PagedAttention & Memory Management**
-- How vLLM eliminates fragmentation with paging
-- Virtual memory concepts applied to LLM serving
-- Block-level cache management
- 
-**IN03 - Throughput Engineering**
-- Continuous batching vs traditional batching
-- Prefill vs decode phase optimization
-- Chunked prefill strategies
- 
-**IN04 - Speculative Decoding**
-- Using draft models to generate multiple tokens
-- Acceptance rate mathematics
-- When speculation helps (and when it hurts)
- 
-**IN05 - Quantization for Serving**
-- Weight-only vs activation quantization
-- Impact on KV cache memory (INT8 cache = 2x capacity!)
-- Accuracy-performance tradeoffs
- 
-**IN06 - Parallelism at Scale**
-- Tensor parallelism vs pipeline parallelism
-- Disaggregated serving architectures
-- Autoscaling heuristics
- 
----
- 
-## Key Takeaways
- 
-1. **KV cache is essential** → Makes LLM inference 10-100x faster by avoiding recomputation
- 
-2. **Memory is the new bottleneck** → KV cache can consume more memory than model weights at scale
- 
-3. **Disaggregation enables scale** → Separating cache storage from compute unlocks new optimization strategies
- 
-4. **The landscape is evolving** → From monolithic GPU-bound caches to distributed, shared cache pools
- 
-Understanding KV cache is fundamental to building production LLM systems. Whether you're optimizing latency, scaling throughput, or managing costs, the cache strategy directly impacts all three.
- 
----
- 
-## Further Reading
- 
-- **vLLM Paper:** "Efficient Memory Management for Large Language Model Serving with PagedAttention" ([arXiv:2309.06180](https://arxiv.org/abs/2309.06180))
-- **VAST VUA GitHub:** [github.com/vast-data/VUA](https://github.com/vast-data/VUA)
-- **Transformer Architecture:** "Attention Is All You Need" ([arXiv:1706.03762](https://arxiv.org/abs/1706.03762))
-- **FlashAttention:** Memory-efficient exact attention ([arXiv:2205.14135](https://arxiv.org/abs/2205.14135))
- 
----
- 
-*Next up: We'll dive into PagedAttention and how vLLM eliminates memory fragmentation using virtual memory concepts. Stay tuned!*
+|---|---|---|
+| Short contexts (<2K) | ✅ simplest + fast | ⚠ overhead not worth it |
+| Long contexts (>8K) | ❌ GPU memory bottleneck | ✅ scales beyond GPU memory |
+| High concurrency | ❌ hits memory ceiling fast | ✅ higher headroom |
+| Shared prefixes (some workloads) | ⚠ limited reuse | ✅ potential reuse wins |
+| Low-latency single-user | ✅ best latency | ⚠ extra indirection |
+
+## Practical Engineering Checklist
+
+If you’re building or evaluating an LLM serving stack, ask:
+
+1. What is our **max context** and typical prompt length?
+2. What is our target **concurrency** (p95/p99), not just average?
+3. Are we memory-bound on **KV cache** or compute-bound on decode?
+4. Can we reduce KV footprint (precision/quantization choices) without harming quality?
+5. Do we need techniques like **paging / working-set KV** for long context?
+6. Are we measuring **prefill vs decode** separately (latency + throughput)?
+7. Do we have guardrails for **fragmentation** and variable-length spikes?
+
+## Summary
+
+- KV cache is essential because it avoids recomputing **K/V for old tokens** every decode step.
+- KV cache does **not** eliminate attention’s dependence on context length — long context still costs.
+- KV memory grows with layers, context length, and concurrency and can quickly dominate GPU memory.
+- At large scale, fragmentation and KV growth motivate **disaggregation** patterns (active KV on GPU, larger KV pool elsewhere).
+
+If you want a follow-up post, the natural sequel is:
+
+**IN02 — KV Cache Meets Serving: Prefill/Decode, Continuous Batching, and Where Latency Actually Goes**
