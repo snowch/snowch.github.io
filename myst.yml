@@ -41,6 +41,17 @@ project:
             - file: ai-eng/nnfs/nn_flexible_network_blog.md
               title: Building a General Neural Network from Scratch
 
+        - title: "Transformers From Scratch"
+          children:
+            - file: ai-eng/transformers/tr01_transformers_tokens_to_next_token.md
+              title: "TR01 — Transformers: From Tokens to Next-Token Prediction"
+            - file: ai-eng/transformers/tr02_self_attention_from_scratch.md
+              title: "TR02 — Self-Attention from Scratch (Q/K/V, Masking, Shapes)"
+            - file: ai-eng/transformers/tr03_transformer_block_from_scratch.md
+              title: "TR03 — Transformer Block from Scratch (Attention + MLP + Residuals)"
+            - file: ai-eng/transformers/tr04_train_tiny_decoder_model.md
+              title: "TR04 — Train a Tiny Decoder Model (Next-Token Dataset + Generation)"
+
         - title: Inference & Serving
           children:
             - file: ai-eng/inference-serving/kv_cache_deep_dive.md
