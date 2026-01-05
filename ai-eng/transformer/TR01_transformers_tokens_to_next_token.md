@@ -1,112 +1,198 @@
 ---
-title: "TR01 — Transformers: From Tokens to Next-Token Prediction (Training + Inference)"
-description: "A practical, engineer-friendly tour of decoder-only transformers: tokenization, attention blocks, causal masking, next-token training, and how inference differs from training."
+title: "TR01 — Transformers: From Tokens to Next-Token Prediction"
+description: "A step-by-step tutorial on decoder-only transformers: tokenization, causal self-attention, next-token training, and what changes during inference."
 keywords:
   - transformers
   - decoder-only
+  - gpt
   - next-token prediction
+  - self-attention
   - causal masking
   - llm training
   - llm inference
 ---
 
-# TR01 — Transformers: From Tokens to Next-Token Prediction (Training + Inference)
+# TR01 — Transformers: From Tokens to Next-Token Prediction
 
-You already have **neural networks from scratch** posts (forward/backprop, softmax/cross-entropy, building flexible architectures). This post focuses on what’s *new* in transformers: **self-attention, causal masking, next-token training**, and why inference becomes an engineering problem (KV cache, batching, etc.).
+*A visual, step-by-step guide to how GPT-style transformers work (training + inference).*
 
-Related reading from your own site:
-- NN tutorial: https://snowch.github.io/nn-tutorial-blog/
-- NN flexible architecture: https://snowch.github.io/nn-flexible-network-blog/
-- KV cache deep dive (systems sequel): IN01 (your post)
+* * *
+
+Transformers can seem intimidating because they introduce a new core operation: **self-attention**.  
+But at their core, decoder-only transformers do something very specific:
+
+> Read a sequence of tokens and predict the **next** token.
+
+This tutorial builds the “big picture” you need before implementing anything from scratch in TR02–TR04.
+
+## By the end, you’ll understand
+
+- What next-token prediction means (inputs vs targets)
+- What tokenization is (and why BPE exists)
+- The components of a decoder-only transformer block
+- How causal self-attention works (with a concrete 4-token example)
+- What “KV cache for all layers” means (in plain, mechanical terms)
 
 ---
 
-## 1) What problem are transformers solving?
+# Setup (optional)
 
-Classic feed-forward nets and CNNs use **fixed** computation patterns. For sequences, we want:
+If you later turn this into an executed notebook, this avoids the common Matplotlib font-cache log line:
 
-- **Order matters** (token positions)
-- **Long-range dependencies** (a word early can affect meaning later)
-- **Parallel training** (use GPU efficiently)
-
-Transformers solve this by letting each token compute a **weighted mix of other tokens** — the weights are *data-dependent* and change per input.
-
----
-
-## 2) From raw text → token IDs → embeddings
-
-A transformer doesn’t see words. It sees **token IDs**.
-
-- Raw text: `I love Rust!`
-- Tokens (illustrative): `["I", " love", " Rust", "!"]`
-- Token IDs: `[314, 1234, 9876, 0]` (integers)
-- Embeddings: each ID maps to a vector in \(\mathbb{R}^{d_{model}}\)
-
-### Why “BPE” shows up everywhere
-Many LLM tokenizers are **BPE-like** (Byte Pair Encoding): they split text into **subword pieces** so the vocab stays manageable while still representing arbitrary text.
-
-For “from scratch” learning, you can start with a *toy* tokenizer (char-level or whitespace). The transformer mechanics are identical.
-
-```{mermaid}
-flowchart LR;
-  A["Raw text"] --> B["Tokenizer\n(BPE in real LLMs)"];
-  B --> C["Token strings"];
-  C --> D["Token IDs (ints)"];
-  D --> E["Embeddings (vectors)"];
+```python
+import logging
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 ```
 
 ---
 
-## 3) The decoder-only transformer block (what you actually run)
+## Part 1: The training objective — next-token prediction
 
-A decoder-only transformer (GPT-style) is basically:
+Suppose the token sequence is:
 
-1. **Self-attention** (tokens look at earlier tokens)
-2. **MLP** (a per-token feed-forward network)
-3. **Residual connections + LayerNorm** (stability)
+`t0  t1  t2  t3  t4`
+
+Training uses a one-token shift:
+
+- **input**:  `t0  t1  t2  t3`
+- **target**: `t1  t2  t3  t4`
+
+So the model learns: “given tokens so far, what’s most likely next?”
 
 ```{mermaid}
-flowchart LR;
-  X["Embeddings + positions"] --> A["Causal self-attention"];
-  A --> R1["Residual + LayerNorm"];
-  R1 --> M["MLP (feed-forward)"];
-  M --> R2["Residual + LayerNorm"];
-  R2 --> OUT["Next layer / logits"];
+flowchart LR
+  A["Input: t0 t1 t2 t3"] --> B["Decoder-only transformer"]
+  B --> C["Predict: t1 t2 t3 t4"]
+  C --> D["Cross-entropy loss per position"]
 ```
 
-You stack this block **L times**.
+### Why this trains efficiently on GPUs
 
-> When posts say “KV cache for all layers”, they literally mean: each layer has its own K/V tensors cached for each token.
-
----
-
-## 4) Self-attention in one sentence (and why it’s different)
-
-Self-attention computes, for each token:
-
-- a **query** vector Q (what I’m looking for)
-- **keys** K (what others contain)
-- **values** V (the content I’ll blend)
-
-Then it uses similarity between Q and K to compute weights, and returns a weighted sum of values.
-
-\[
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right) V
-\]
-
-The important difference vs a dense layer:
-
-- Dense layer weights are **fixed parameters**
-- Attention weights are **computed dynamically** from the input (token-to-token relationships)
+During training, you can compute predictions for **all positions at once** (with a causal mask).  
+That means fewer Python loops and more large matrix multiplies (good for GPUs).
 
 ---
 
-## 5) Causal masking: why the model can’t “peek ahead”
+## Part 2: Raw text → tokens → IDs → embeddings
 
-For next-token prediction, token *t* must only attend to tokens \(\le t\).
-That’s enforced by a **causal mask**.
+Transformers do not operate on words. They operate on **token IDs** (integers).
 
-For 4 tokens (t0..t3), allowed attention looks like:
+```{mermaid}
+flowchart LR
+  A["Raw text"] --> B["Tokenizer"]
+  B --> C["Token strings"]
+  C --> D["Token IDs"]
+  D --> E["Embeddings"]
+```
+
+### A concrete 4-token example
+
+Take:
+
+`I love Rust!`
+
+A GPT-style tokenizer might produce something like:
+
+- token strings (illustrative): `["I", " love", " Rust", "!"]`
+- token IDs (illustrative): `[314, 1234, 9876, 0]`
+
+Then an **embedding table** maps each ID to a vector:
+
+- embedding width: `d_model`
+- embeddings matrix shape: **(T, d_model)** → here **(4, d_model)**
+
+### What “BPE” means (in plain English)
+
+BPE (Byte Pair Encoding) is a way to build a vocabulary of **subword pieces**:
+
+- common words can become single tokens (efficient)
+- rare words can be represented as multiple subword tokens (still possible)
+- any text can be represented using the learned merges
+
+For “from scratch” learning, you can ignore BPE and start with:
+- a character-level tokenizer, or
+- a whitespace tokenizer
+
+The transformer mechanics are identical.
+
+---
+
+## Part 3: What runs inside a decoder-only transformer
+
+A GPT-style model stacks the same block **L times** (L = number of layers):
+
+1. **Causal self-attention** (tokens look backwards)
+2. **MLP / feed-forward** (per-token transformation)
+3. **Residual connections + LayerNorm** (stability and training dynamics)
+
+```{mermaid}
+flowchart LR
+  X["x: embeddings + positions"] --> LN1["LayerNorm"]
+  LN1 --> A["Causal self-attention"]
+  A --> R1["Add residual"]
+  R1 --> LN2["LayerNorm"]
+  LN2 --> M["MLP"]
+  M --> R2["Add residual"]
+  R2 --> Y["x: next layer"]
+```
+
+At the top, the model produces **logits** (scores over the vocabulary) for each position.  
+Softmax converts logits into a probability distribution.
+
+---
+
+## Part 4: Self-attention with a 4-token toy example
+
+Self-attention is easiest to understand by tracking **shapes**.
+
+### Notation guide (same style as NN02)
+
+- `T` = sequence length (number of tokens)  
+- `d_model` = embedding width  
+- `n_heads` = number of attention heads  
+- `d_head` = head width (often `d_model / n_heads`)  
+
+Common shapes (batch omitted for clarity):
+
+- token IDs: **(T,)**
+- embeddings: **(T, d_model)**
+- per-head Q/K/V: **(T, d_head)**
+- attention scores: **(T, T)**
+
+### Step 1: Tokens become vectors
+
+For tokens:
+
+`t0="I"  t1=" love"  t2=" Rust"  t3="!"`
+
+You start with embeddings:
+
+`X` has shape **(4, d_model)**
+
+### Step 2: Each layer produces Q, K, V
+
+Inside a single attention layer, the model projects X into three matrices:
+
+- `Q = X Wq`
+- `K = X Wk`
+- `V = X Wv`
+
+For one head, each has shape **(T, d_head)**.
+
+Intuition:
+- **Q** (query): what this token wants to look for
+- **K** (key): what each token offers as a match
+- **V** (value): what content gets mixed in
+
+### Step 3: Similarity scores and the causal mask
+
+Attention compares each query to all keys:
+
+`scores = Q Kᵀ` → shape **(T, T)**
+
+Decoder-only models apply a **causal mask** so token *i* cannot attend to tokens *after* i.
+
+Allowed pattern for 4 tokens:
 
 | query \ key | t0 | t1 | t2 | t3 |
 |---|---:|---:|---:|---:|
@@ -115,56 +201,102 @@ For 4 tokens (t0..t3), allowed attention looks like:
 | **t2** | ✅ | ✅ | ✅ | ❌ |
 | **t3** | ✅ | ✅ | ✅ | ✅ |
 
-This is what makes a transformer a *language model* rather than a general sequence encoder.
+Mechanically, implementations set masked positions to a very negative number (effectively `-inf`) before softmax.
 
----
+### Step 4: Softmax → weighted sum of V
 
-## 6) How transformers are trained (next-token prediction)
+- `weights = softmax(masked_scores)` (row-wise)
+- `output = weights V` → shape **(T, d_head)**
 
-Training objective: given a sequence of tokens \(t_0, t_1, ..., t_n\),
-predict \(t_1, t_2, ..., t_{n+1}\).
-
-- Inputs: `t0 t1 t2 t3`
-- Targets: `t1 t2 t3 t4`
-
-This is called **teacher forcing**: during training, you feed the *true* previous tokens.
+So each token output is a learned mixture of earlier tokens.
 
 ```{mermaid}
-flowchart LR;
-  P["Input tokens\n(t0 t1 t2 t3)"] --> M["Model (masked)"];
-  M --> S["Predict next tokens\n(t1 t2 t3 t4)"];
-  S --> L["Cross-entropy loss\n(sum over positions)"];
+flowchart LR
+  X["X: embeddings"] --> Q["Q = X Wq"]
+  X --> K["K = X Wk"]
+  X --> V["V = X Wv"]
+  Q --> S["scores = Q K^T"]
+  K --> S
+  S --> CM["mask future positions"]
+  CM --> W["softmax -> weights"]
+  W --> O["output = weights V"]
+  V --> O
 ```
 
-Key training fact: **you compute loss at many positions in parallel** (GPU-friendly).
+---
+
+## Part 5: What “all layers” means (and why KV cache exists)
+
+A transformer has **L layers**.  
+Each layer computes its own Q/K/V for the current sequence.
+
+So “K/V for all layers” literally means:
+
+- Layer 0 has its own K and V tensors
+- Layer 1 has its own K and V tensors
+- …
+- Layer L-1 has its own K and V tensors
+
+### Why caching K and V helps during inference
+
+During inference, tokens are generated one at a time.  
+When a new token arrives at time step `T+1`:
+
+- you compute **new Q/K/V for the new token**
+- but you still need **K/V for all previous tokens** to attend over the full context
+
+If you recompute old K/V at every step, you redo the same work repeatedly.
+
+So inference engines store:
+
+- `K_cache[layer, head, time, d_head]`
+- `V_cache[layer, head, time, d_head]`
+
+That stored state is the **KV cache**.
 
 ---
 
-## 7) Training vs inference (the engineering cliff)
+## Part 6: Training vs inference (why they feel different)
 
-### Training (parallel over positions)
-- You process the whole sequence at once (with a causal mask).
-- You compute logits for every position in one forward pass.
+### Training: parallel over positions
 
-### Inference (autoregressive)
-- You do **prefill** once (process prompt, build initial state)
-- Then **decode** one token at a time (generate token, append, repeat)
+- Feed the whole token sequence
+- Use a causal mask
+- Compute loss for many positions in one forward pass
 
-This is where inference performance engineering shows up:
+### Inference: sequential decoding
 
-- KV cache
-- batching
-- speculative decoding
-- paged KV management
+Inference splits into two phases:
 
-Your KV cache post (IN01) is the natural next step after this one.
+1. **Prefill**: run the prompt once to build initial attention state  
+2. **Decode**: generate one token, append it, update KV cache, repeat  
+
+This is where serving becomes a systems problem: memory, batching, cache layout.
 
 ---
 
-## 8) What’s next in this series
+## Summary
 
-- **TR02 — Self-Attention from Scratch:** Q/K/V, causal mask, shapes, and a minimal PyTorch implementation (no `nn.MultiheadAttention`).
-- **TR03 — Transformer Block from Scratch:** add residuals, layernorm, MLP, stacking layers into a GPT-like model.
-- **TR04 — Train a Tiny Decoder Model:** next-token dataset, training loop, and generation (prefill + decode).
+A decoder-only transformer can be summarized as:
 
-If you can implement and explain these four pieces, you’re already doing “AI engineering”, not just “AI usage”.
+1. Tokenize text into IDs  
+2. Embed IDs into vectors  
+3. Repeat **L blocks** of:
+   - causal self-attention (dynamic mixing of earlier tokens)
+   - MLP (per-token non-linear transform)
+4. Project to vocab logits and train with next-token cross-entropy  
+
+Two key anchors:
+
+- Training is **parallel** over positions (mask enforces causality)
+- Inference is **sequential**, so caching K/V becomes essential
+
+---
+
+## Next posts in the series
+
+- **TR02 — Self-Attention from Scratch:** implement Q/K/V + causal masking (with exact shapes).
+- **TR03 — Transformer Block from Scratch:** add residuals, LayerNorm, MLP, and stacking.
+- **TR04 — Train a Tiny Decoder Model:** dataset, training loop, and generation.
+
+If you want the systems follow-up after TR04, the next topic is KV cache and inference optimizations.
