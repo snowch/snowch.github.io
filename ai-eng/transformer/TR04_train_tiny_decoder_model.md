@@ -1,6 +1,6 @@
 ---
-title: "TR04 — Train a Tiny Decoder Model (Next-Token Dataset + Generation)"
-description: "Train a small decoder-only transformer end-to-end in PyTorch: dataset prep, teacher forcing, cross-entropy loss, and a clean generate() loop."
+title: "TR04 — Train a Tiny Decoder Model"
+description: "Train a small decoder-only transformer end-to-end in PyTorch: dataset prep, teacher forcing, cross-entropy loss, and a baseline generate loop."
 keywords:
   - training loop
   - teacher forcing
@@ -10,19 +10,40 @@ keywords:
   - pytorch
 ---
 
-# TR04 — Train a Tiny Decoder Model (Next-Token Dataset + Generation)
+# TR04 — Train a Tiny Decoder Model
 
-Now we train the model from TR03 on a tiny text corpus.
+This post connects everything into a complete loop:
 
-This is **Scope A**: we rely on PyTorch for autograd, but the model is implemented from scratch (attention, blocks, stack, generation).
+1. build a tokenizer  
+2. build a next-token dataset  
+3. train the decoder-only model  
+4. generate text from a prompt  
+
+The result is a small, end-to-end baseline that is easy to understand and extend.
 
 ---
 
-## 1) A tiny tokenizer (toy, but enough to learn)
+## What you will build
 
-For learning, start with a **character-level** tokenizer. It’s simple, debuggable, and shows the mechanics clearly.
+By the end, you will have:
 
-```python
+- a runnable training loop (teacher forcing + cross-entropy)
+- a baseline `generate()` function that produces text autoregressively
+- the mental model for why inference later benefits from KV caching
+
+---
+
+## Part 1: Tokenization (toy, but perfect for learning)
+
+Real LLMs use BPE-style tokenizers. For learning, a **character-level tokenizer** is ideal:
+
+- completely deterministic
+- easy to debug
+- no external dependencies
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
 class CharTokenizer:
     def __init__(self, text: str):
         chars = sorted(list(set(text)))
@@ -40,18 +61,18 @@ class CharTokenizer:
         return "".join(self.itos[i] for i in ids)
 ```
 
-For production, you’d switch to a BPE tokenizer — but training mechanics are identical.
-
 ---
 
-## 2) Dataset: fixed-length chunks for next-token prediction
+## Part 2: Dataset for next-token prediction
 
-Given a long stream of token IDs, we sample windows of length `block_size`:
+Given a long stream of token IDs, sample windows of length `T`:
 
-- input: `x = ids[i : i+T]`
+- input:  `x = ids[i : i+T]`
 - target: `y = ids[i+1 : i+T+1]`
 
-```python
+```{code-cell} ipython3
+:tags: [remove-input]
+
 import torch
 
 class NextTokenDataset(torch.utils.data.Dataset):
@@ -70,17 +91,23 @@ class NextTokenDataset(torch.utils.data.Dataset):
 
 ---
 
-## 3) Training loop (teacher forcing + cross-entropy)
+## Part 3: Training loop (teacher forcing + cross-entropy)
 
-We feed `x` (true previous tokens) and compute logits for each position.
-Then we compute cross-entropy against `y`.
+Training steps:
 
-```python
+1. forward pass: `logits = model(x)`  
+2. compute cross-entropy loss against `y`  
+3. backprop + optimizer step  
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
 import torch.nn.functional as F
 
 def train_one_epoch(model, loader, optimizer, device):
     model.train()
     total_loss = 0.0
+
     for x, y in loader:
         x, y = x.to(device), y.to(device)  # (B, T)
 
@@ -88,8 +115,8 @@ def train_one_epoch(model, loader, optimizer, device):
         B, T, V = logits.shape
 
         loss = F.cross_entropy(
-            logits.view(B*T, V),
-            y.view(B*T)
+            logits.view(B * T, V),
+            y.view(B * T),
         )
 
         optimizer.zero_grad(set_to_none=True)
@@ -103,21 +130,26 @@ def train_one_epoch(model, loader, optimizer, device):
 
 ---
 
-## 4) A clean generate() loop (prefill + decode)
+## Part 4: A baseline generate loop (autoregressive decoding)
 
-Generation is autoregressive:
+Autoregressive decoding:
 
-1. Start with a prompt (token IDs)
-2. Repeatedly:
-   - run model
-   - take the last position logits
-   - sample the next token
-   - append it
+1. start with a prompt token sequence  
+2. repeatedly:
+   - run the model  
+   - take the last position logits  
+   - sample the next token  
+   - append it to the sequence  
 
-```python
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import torch
+
 @torch.no_grad()
 def generate(model, idx, max_new_tokens: int, temperature: float = 1.0):
     model.eval()
+
     for _ in range(max_new_tokens):
         logits = model(idx)                   # (B, T, vocab)
         logits = logits[:, -1, :] / temperature
@@ -126,17 +158,21 @@ def generate(model, idx, max_new_tokens: int, temperature: float = 1.0):
         next_id = torch.multinomial(probs, num_samples=1)  # (B, 1)
 
         idx = torch.cat([idx, next_id], dim=1)
+
     return idx
 ```
 
-This works, but it’s not optimal.
+This baseline is correct and easy to understand.
 
-**Why?** Each step recomputes work for all previous tokens.  
-That’s exactly why KV cache exists (see your IN01 post).
+The performance limitation is also clear: each decode step recomputes work for all earlier tokens.  
+Caching K/V is the standard optimization.
 
 ---
 
-## 5) Put it together (minimal runnable script)
+## Part 5: Put it together (minimal runnable script)
+
+The script below shows how the components fit together in practice.  
+It is written as a plain code block so it does not require a dataset to execute during a docs build.
 
 ```python
 import torch
@@ -180,20 +216,13 @@ if __name__ == "__main__":
 
 ---
 
-## 6) Where to go next (systems)
+## Summary
 
-At this point you have the full learning loop:
+You now have:
 
-- tokenization → embeddings
-- transformer blocks
-- next-token loss
-- autoregressive generation
+- tokenization
+- a next-token dataset
+- a training loop
+- a generation loop
 
-Now you’re ready for *systems* posts:
-
-- KV cache (your IN01)
-- continuous batching
-- chunked prefill
-- paged KV memory management
-
-A great follow-up is: **“Speed up generate() with KV cache”** — which turns TR04 directly into IN01.
+From here, the next step is inference performance: caching K/V and improving batching and memory behavior.
