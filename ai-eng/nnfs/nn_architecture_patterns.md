@@ -13,9 +13,9 @@ keywords:
 # NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
 
 :::{seealso} Prerequisites
+- Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`
 - NN tutorial (dense → softmax → predictions): {doc}`nn_tutorial_blog`
 - Flexible architecture (stacking modules cleanly): {doc}`nn_flexible_network_blog`
-- Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`
 :::
 
 
