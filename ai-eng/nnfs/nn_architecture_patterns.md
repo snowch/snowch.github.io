@@ -1,5 +1,5 @@
 ---
-title: "NN04 - Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)"
+title: "NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)"
 description: "A hands-on bridge from feed-forward networks to transformers: how to think in (B,T,C), how embeddings work, and why residual + LayerNorm are everywhere."
 keywords:
   - neural networks from scratch
@@ -10,7 +10,18 @@ keywords:
   - bridge to transformers
 ---
 
-# NN04 - Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
+# NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
+
+:::{seealso} If you’re coming from your earlier NN-from-scratch posts
+These links should point to the **rendered pages** in your MyST project (not GitHub source).
+
+- NN tutorial (dense → softmax → predictions): {doc}`ai-eng/nnfs/nn_tutorial_blog.md`
+- Flexible architecture (stacking modules cleanly): {doc}`ai-eng/nnfs/nn_flexible_network_blog.md`
+- Edge detector (learned features, visual intuition): {doc}`ai-eng/nnfs/nn_edge_detector_blog.md`
+
+> If your TOC uses notebooks instead (e.g. `ml-ai/nn_tutorial_blog.ipynb`), change the paths above to match your `myst.yml`.
+:::
+
 
 ## Learning goals
 
@@ -20,7 +31,7 @@ By the end of this chapter you will be able to:
 2. Explain **embedding lookup** (token IDs → vectors)
 3. Recognize and implement **residual connections**: `y = x + f(x)`
 4. Explain why transformers use **LayerNorm** (and where it sits in the block)
-5. Understand the key preview idea behind attention: **dynamic mixing weights**
+5. Understand the preview idea behind attention: **dynamic mixing weights**
 
 ---
 
@@ -47,6 +58,14 @@ Example: `B=2`, `C=8`:
 - `x_batch.shape = (2, 8)`  
   (two examples, each with 8 features)
 
+:::{note} Where you’ve seen this before
+In your **NN tutorial blog**, your input matrix is essentially `(B, C)`:
+- `B` rows = examples in the batch
+- `C` columns = features per example
+
+Transformers keep this idea, but add one more axis: time / token position.
+:::
+
 ### 1.3 Batch of sequences (transformer default)
 
 Transformers add the sequence dimension:
@@ -65,7 +84,7 @@ Where:
 Interpretation:
 - 2 sequences in the batch
 - each sequence has 4 tokens
-- each token is represented by an 8‑dim vector
+- each token is represented by an 8-dim vector
 
 ```{mermaid}
 flowchart TB;
@@ -74,13 +93,14 @@ flowchart TB;
 ```
 
 ### Check yourself
-- If `x.shape = (32, 128, 256)`, what are `B`, `T`, `C`?
+If `x.shape = (32, 128, 256)`, what are `B`, `T`, and `C`?
 
 ---
 
 ## 2) Embeddings: token IDs → vectors
 
-Transformers do **not** take words as input. They take **token IDs** (integers).
+Transformers do **not** take words as input.  
+They take **token IDs** (integers).
 
 ### 2.1 Embedding table
 
@@ -91,7 +111,7 @@ An embedding is a matrix:
 
 Row `i` is the vector for token ID `i`.
 
-### 2.2 Lookup is not a “normal” matrix multiply
+### 2.2 Lookup is not a “normal” matrix multiply (but it *can be*)
 
 If your token IDs are:
 
@@ -107,6 +127,22 @@ Shape:
 For a batch of sequences:
 - `ids.shape = (B, T)`
 - `X.shape = (B, T, C)`
+
+```{mermaid}
+flowchart LR;
+  A["Token IDs (B,T)"] --> B["Embedding table E (V,C)"];
+  B --> C["Vectors X (B,T,C)"];
+```
+
+:::{note} Connection to NNFS: embedding lookup = one-hot × matrix
+In many from-scratch NN setups, you use **one-hot vectors** (a 1 in one position, zeros elsewhere).
+
+If `one_hot(id)` is a length-`V` vector, then:
+
+- `one_hot(id) @ E` returns row `E[id]`
+
+So embedding lookup is equivalent to multiplying by a matrix — it’s just implemented as a fast index operation.
+:::
 
 ### Tiny numeric example (toy)
 
@@ -124,12 +160,6 @@ Assume `V=6`, `C=4`. The embedding table is:
 Token IDs `[3, 1, 4, 0]` become vectors:
 
 - `E[3], E[1], E[4], E[0]`
-
-```{mermaid}
-flowchart LR;
-  A["Token IDs (B,T)"] --> B["Embedding table E (V,C)"];
-  B --> C["Vectors X (B,T,C)"];
-```
 
 ### Exercise
 Pick `C=3` and invent a tiny embedding table with `V=5`. Encode a 4-token sequence by hand.
@@ -149,6 +179,14 @@ For **a batch of sequences** `(B, T, C)`:
 - apply the same linear layer to every token:
 - output shape `(B, T, C2)`
 
+:::{note} Where you’ve seen this before
+In your **NN tutorial blog**, your dense layer is effectively:
+
+- `Y = X @ W + b`
+
+Transformers do the same operation — but `X` is `(B,T,C)` and you apply the same `W` to every token vector.
+:::
+
 ### Check yourself
 If `x.shape = (16, 64, 128)` and `W` maps `128 → 512`, what is the output shape?
 
@@ -162,21 +200,6 @@ $$
 y = x + f(x)
 $$
 
-This is not a new math trick. It is an architecture pattern that makes deep networks train well.
-
-### How to read it
-- `x` is the input
-- `f(x)` is “what this block computes”
-- the block outputs “input + change”
-
-```{mermaid}
-flowchart LR;
-  X["x"] --> F["f(x)"];
-  X --> ADD["+"];
-  F --> ADD;
-  ADD --> Y["y"];
-```
-
 ### Rule you must follow
 For `x + f(x)` to work:
 
@@ -187,6 +210,24 @@ In transformers:
 - MLP output has shape `(B, T, C)`
 - so both can be added back to `x`
 
+```{mermaid}
+flowchart LR;
+  X["x"] --> F["f(x)"];
+  X --> ADD["+"];
+  F --> ADD;
+  ADD --> Y["y"];
+```
+
+:::{note} Connection to NNFS: “architecture patterns”
+In your **flexible network** post, you already treat layers/blocks as composable modules.
+
+A residual connection is just another architecture pattern:
+- compute a block output
+- add it back to the input
+
+This one pattern is a big reason deep transformer stacks train reliably.
+:::
+
 ### Exercise
 Give an example of a shape mismatch that would break a residual connection, and how you would fix it.
 
@@ -194,20 +235,19 @@ Give an example of a shape mismatch that would break a residual connection, and 
 
 ## 5) LayerNorm (why transformers use it)
 
-Normalization keeps activations in a “good” range for training.
-
-Transformers usually use **LayerNorm**, which normalizes each token vector across its feature dimension.
+LayerNorm normalizes each token vector across its feature dimension.
 
 For one token vector `x` of shape `(C,)`:
 - compute mean and std across the `C` features
 - normalize: `(x - mean) / std`
-- apply learned scale and shift (optional)
+- apply learned scale and shift
 
 ### Why LayerNorm (not BatchNorm)?
 BatchNorm depends on batch statistics.
-For variable-length sequences and autoregressive inference, LayerNorm is simpler and behaves consistently.
+For variable-length sequences and autoregressive inference, LayerNorm behaves consistently.
 
-### Where it appears in transformer blocks
+### Where it appears in transformer blocks (preview)
+
 Common modern pattern is **pre-norm**:
 
 1. `x = x + Attention(LN(x))`
@@ -224,12 +264,13 @@ Dense layers have fixed weights:
 - `y = xW`
 
 Attention creates **input-dependent** mixing weights.
+
 You will see this later as:
 
 - `weights = softmax(QK^T)`
 - `out = weights V`
 
-You do not need to know all details yet.
+You do not need the details yet.
 You only need this bridge idea:
 
 > In attention, the model computes a matrix of weights from the input and then uses it to mix value vectors.
@@ -238,11 +279,16 @@ That’s why attention looks different from a normal layer, but it’s still lin
 
 ---
 
-## 7) Next steps
+## 7) Roadmap (and how to read the series)
 
-Now you are ready for:
+Recommended path:
 
-- **TR00**: attention + transformer architecture map  
-- **TR01–TR04**: implement a tiny decoder-only transformer end-to-end
+1) Your NN-from-scratch posts (dense layers, training loop, flexible architectures)
+2) **NN04 (this chapter)**
+3) **TR00**: attention + transformer architecture map
+4) **TR01–TR04**: implement a tiny decoder-only transformer end-to-end
+5) **IN01**: inference engineering (KV cache, batching, memory)
 
-If you can read `(B,T,C)` fluently and understand embeddings/residuals/layernorm, transformers stop feeling mysterious.
+:::{seealso} Next
+Read **TR00** next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
+:::
