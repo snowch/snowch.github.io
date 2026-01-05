@@ -43,6 +43,8 @@ project:
 
         - title: "Transformers From Scratch"
           children:
+            - file: ai-eng/transformer/TR00_attention_and_transformer_architectures.md
+              title: "TR00 — Attention and Transformer Architectures"
             - file: ai-eng/transformer/TR01_transformers_tokens_to_next_token.md
               title: "TR01 — Transformers: From Tokens to Next-Token Prediction"
             - file: ai-eng/transformer/TR02_self_attention_from_scratch.md
