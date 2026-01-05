@@ -40,6 +40,12 @@ project:
               title: "Training an Edge-Detection Neural Network from Scratch"
             - file: ml-ai/nn_flexible_network_blog.ipynb
               title: Building a General Neural Network from Scratch
+
+        - title: Inference & Serving
+          children:
+            - file: inference-serving/kv_cache_deep_dive.md
+              title: "IN01 - KV Cache Deep Dive"
+
     - file: embeddings.md
       title: Embeddings at Scale Book
     - file: probability/probability.md
