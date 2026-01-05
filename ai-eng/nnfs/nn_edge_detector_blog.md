@@ -53,6 +53,8 @@ That's it! The magic is in *what values the weights take* — they determine wha
 
 # Setup
 import numpy as np
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
