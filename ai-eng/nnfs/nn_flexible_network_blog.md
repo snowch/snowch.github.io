@@ -17,7 +17,7 @@ kernelspec:
 
 ---
 
-In [NN02 - Training an Edge-Detection Neural Network from Scratch](nn_tutorial_blog.ipynb), we built a 2-layer edge detector with hardcoded weights `W1`, `W2`. But what if we want 3 layers? Or 10?
+In [NN02 - Training an Edge-Detection Neural Network from Scratch](nn_tutorial_blog.md), we built a 2-layer edge detector with hardcoded weights `W1`, `W2`. But what if we want 3 layers? Or 10?
 
 This tutorial shows how to **generalize** that code into a flexible architecture where you can specify any layer sizes. We'll build a clean `Layer` class that handles forward and backward passes, then stack them together.
 
