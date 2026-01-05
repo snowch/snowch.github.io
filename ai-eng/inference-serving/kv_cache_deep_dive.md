@@ -40,6 +40,32 @@ Step 2: Generate → "and"       (full forward pass on "The cat sat on the mat")
 Step 3: Generate → "purred"    (full forward pass on "The cat sat on the mat and")
 ...
 ```
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant M as LLM
+
+  U->>M: Prompt tokens (length n)
+
+  alt Without KV cache
+    loop each new token
+      M->>M: Recompute K,V for all n tokens (all layers)
+      M->>M: Attention over full context
+      M-->>U: Next token
+    end
+  else With KV cache
+    M->>M: Compute K,V for prompt once
+    M->>M: Store K,V in cache
+    loop each new token
+      M->>M: Compute q_new, k_new, v_new (new token only)
+      M->>M: Append (k_new,v_new) to cache
+      M->>M: Attention(q_new, K_cached, V_cached)
+      M-->>U: Next token
+    end
+  end
+```
  
 Without optimization, generating a 100-token response would require:
 - **100 full forward passes**
@@ -51,6 +77,24 @@ This is prohibitively expensive. **KV cache solves this problem.**
 ---
  
 ## Transformer Attention: A Quick Primer
+
+```mermaid
+flowchart TD
+  X["Input tokens<br/>X"] --> E["Embeddings"]
+  E --> L1["Layer i"]
+  L1 --> Q["Compute Q"]
+  L1 --> K["Compute K"]
+  L1 --> V["Compute V"]
+
+  K --> KC[("KV Cache<br/>Keys")]
+  V --> VC[("KV Cache<br/>Values")]
+
+  Q --> A["Attention<br/>softmax(QK^T / sqrt(d)) * V"]
+  KC --> A
+  VC --> A
+
+  A --> O["Layer output"] --> NEXT["Next layer / logits"]
+```
  
 To understand KV cache, we need to understand how transformer attention works.
  
@@ -146,6 +190,16 @@ This is why KV cache is **non-negotiable** for production LLM serving.
 ---
  
 ## The Memory Tradeoff: Cache Size Explodes at Scale
+
+```mermaid
+flowchart LR
+  M["KV cache memory"] --> EQ["~ 2 * L * n * d * p"]
+  EQ --> K1["2 = K and V"]
+  EQ --> K2["L = layers"]
+  EQ --> K3["n = tokens"]
+  EQ --> K4["d = hidden dim"]
+  EQ --> K5["p = bytes per element"]
+```
  
 KV cache trades **compute for memory**. Let's quantify the cost.
  
@@ -203,6 +257,20 @@ Modern GPUs have finite memory:
 **Problem:** Memory becomes the bottleneck before compute saturation.
  
 ### 2. Memory Fragmentation
+
+```mermaid
+flowchart LR
+  subgraph GM["GPU Memory (example)"]
+    A["Request A: 10GB"] --> F1["Free: 5GB"]
+    F1 --> B["Request B: 8GB"]
+    B --> F2["Free: 3GB"]
+    F2 --> C["Request C: 12GB"]
+  end
+
+  NOTE["Total free = 8GB\nbut no contiguous 8GB block"]
+  F1 -.-> NOTE
+  F2 -.-> NOTE
+```
  
 As requests complete at different times, memory becomes fragmented:
  
@@ -223,6 +291,20 @@ Traditional KV cache requires:
 ---
  
 ## Modern Solution: Cache Disaggregation
+
+```mermaid
+flowchart LR;
+subgraph T["Traditional (monolithic)"];
+  GPU1["GPU memory"] --> W1["Model weights"];
+  GPU1 --> C1["KV cache (all requests)"];
+end;
+subgraph D["Disaggregated cache"];
+  GPU2["GPU memory"] --> W2["Model weights"];
+  GPU2 --> WS["Active working set"];
+  EXT["External KV store"] -->|"get prefix"| GPU2;
+  GPU2 -->|"put KV updates"| EXT;
+end;
+```
  
 ### The Disaggregation Paradigm
  
