@@ -33,9 +33,12 @@ By the end, you'll understand:
 :tags: [remove-input]
 
 # Setup
+import logging
 import numpy as np
 
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
