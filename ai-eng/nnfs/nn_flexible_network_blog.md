@@ -29,6 +29,8 @@ This tutorial shows how to **generalize** that code into a flexible architecture
 :tags: [remove-input]
 
 import numpy as np
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 import matplotlib.pyplot as plt
 np.random.seed(42)
 ```
