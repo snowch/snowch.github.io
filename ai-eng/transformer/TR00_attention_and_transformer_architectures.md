@@ -28,9 +28,49 @@ If you’ve already read TR01 and felt like you needed a “map” first, this i
 - **Key (K):** “what I offer as a match”
 - **Value (V):** “what I contribute if selected”
 
-\[
+$$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right) V
-\]
+$$
+
+## 1.5) The attention module (architecture): what happens inside the box?
+
+When you see a diagram that says **“Self-attention (Q,K,V)”**, the module is typically doing these steps:
+
+1. Start from token vectors **x** (shape: `B × T × C`)
+2. Project into **Q, K, V** using learned matrices:
+   - `Q = x Wq`, `K = x Wk`, `V = x Wv`
+3. Split into heads: `C = nh × hs`
+4. Compute attention scores (per head): `scores = Q @ K^T / sqrt(hs)`
+5. Apply a mask (for decoder-only): prevent looking at future tokens
+6. Softmax → weights
+7. Weighted sum: `out = weights @ V`
+8. Concatenate heads and project back to `C`
+
+Here’s a visual “inside the attention box” view:
+
+```{mermaid}
+flowchart LR;
+  X["Input x (B,T,C)"] --> P["Linear projections"];
+  P --> Q["Q (B,nh,T,hs)"];
+  P --> K["K (B,nh,T,hs)"];
+  P --> V["V (B,nh,T,hs)"];
+
+  Q --> S["Scores = Q @ K^T / sqrt(hs)"];
+  K --> S;
+
+  S --> M["Mask (decoder-only)"];
+  M --> W["Softmax -> weights"];
+  W --> O["Out = weights @ V"];
+  V --> O;
+
+  O --> C["Concat heads -> (B,T,C)"];
+  C --> Y["Output (B,T,C)"];
+```
+
+If you want to keep TR00 short: the goal is just to know what lives inside the attention box.
+TR02 is where we implement it.
+
+
 
 Don’t memorize the formula — the mental model is enough.
 
