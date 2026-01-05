@@ -22,19 +22,25 @@ project:
     - learn_linear_algebra
   toc:
     - file: index.md
-    - title: AI Engineering Notes
+
+    - title: AI Engineering Blog
       children:
-        - file: probability/inclusion_exclusion_tutorial.ipynb
-          title: Inclusion-Exclusion Principle
-        - file: probability/birthday_tutorial.ipynb
-          title: Birthday Paradox
-        - file: ml-ai/nn_edge_detector_blog.ipynb
-          title: Neural Network Edge Detector
-        - file: ml-ai/nn_tutorial_blog.ipynb
-          title: Understanding Neural Networks
-        - file: ml-ai/nn_flexible_network_blog.ipynb
-          title: Flexible Network Architecture
-    - file: embeddings.md
+        - title: Probability
+          children:
+            - file: probability/inclusion_exclusion_tutorial.ipynb
+              title: Inclusion-Exclusion Principle
+            - file: probability/birthday_tutorial.ipynb
+              title: Birthday Paradox
+  
+        - title: Neural Networks From Scratch
+          children:
+            - file: ml-ai/nn_tutorial_blog.ipynb
+              title: Understanding Neural Networks: From Pixels to Predictions
+            - file: ml-ai/nn_flexible_network_blog.ipynb
+              title: Building a Flexible Neural Network from Scratch
+            - file: ml-ai/nn_edge_detector_blog.ipynb
+              title: How Neural Networks Learn to See: Building an Edge Detector from Scratch
+
       title: Embeddings at Scale Book
     - file: probability/probability.md
       title: Probability Book
