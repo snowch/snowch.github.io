@@ -43,7 +43,7 @@ project:
 
         - title: Inference & Serving
           children:
-            - file: inference-serving/kv_cache_deep_dive.md
+            - file: ai-eng/inference-serving/kv_cache_deep_dive.md
               title: "IN01 - KV Cache Deep Dive"
 
     - file: embeddings.md
