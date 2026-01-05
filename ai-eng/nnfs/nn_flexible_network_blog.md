@@ -276,8 +276,6 @@ Each layer:
 Let's verify our flexible network works by training it on the same edge detection task.
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 # Create training data (same as before)
 def make_data(n_samples=100):
     X, y = [], []
@@ -306,8 +304,6 @@ print(f"Training: {len(X_train)} samples, Test: {len(X_test)} samples")
 ```
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 # Train with our flexible network!
 # Try different architectures:
 
@@ -381,8 +377,6 @@ The same training code works for all of them!
 Here's the full implementation in ~100 lines:
 
 ```{code-cell} ipython3
-:tags: [remove-input]
-
 """
 Flexible Neural Network from Scratch
 =====================================
