@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L07 - Assembling the GPT: The Grand Finale
+# L07 - Assembling the GPT: The Grand Finale [DRAFT]
 
 *Stacking the blocks to build a complete Decoder-only Transformer*
 
