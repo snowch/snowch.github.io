@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L05 - Normalization & Residuals: The Plumbing of Deep Networks
+# L05 - Normalization & Residuals: The Plumbing of Deep Networks [DRAFT]
 
 *How to stop gradients from vanishing and signals from exploding*
 
