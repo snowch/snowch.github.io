@@ -54,6 +54,8 @@ project:
               title: "L01 - Tokenization: From Scratch"
             - file: ai-eng/llmfs/L02_Embeddings_and_Positional_Encoding.md
               title: "L02 - Embeddings & Positional Encoding"
+            - file: ai-eng/llmfs/L03_The_Attention_Mechanism.md
+              title: "L03 - Self-Attention: Understanding Context"
 
         - title: "Transformers From Scratch"
           children:
