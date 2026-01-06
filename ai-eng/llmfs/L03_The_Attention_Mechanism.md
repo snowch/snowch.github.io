@@ -33,10 +33,17 @@ By the end of this post, you'll understand:
 ```{code-cell} ipython3
 :tags: [remove-input]
 
+import os
+
 import torch
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
+
+os.environ.setdefault("MPLCONFIGDIR", ".matplotlib")
+matplotlib.set_loglevel("error")
+
+import matplotlib.pyplot as plt
 
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
