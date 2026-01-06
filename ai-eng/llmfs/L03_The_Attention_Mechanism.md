@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L03 - Self-Attention: Understanding Context
+# L03 - Self-Attention: Understanding Context [DRAFT]
 
 *Building the "engine" of the Transformer from scratch*
 
