@@ -372,6 +372,16 @@ The same training code works for all of them!
 
 ---
 
+## Next: The PyTorch version
+
+This NumPy implementation is the conceptual foundation. Next, we’ll rebuild the
+exact same flexible network using PyTorch modules and training loops, then use
+that as the base for CNNs, RNNs, and LSTMs.
+
++++
+
+---
+
 ## Complete Code
 
 Here's the full implementation in ~100 lines:
