@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L06 - The Causal Mask: How to Stop Cheating
+# L06 - The Causal Mask: How to Stop Cheating [DRAFT]
 
 *The triangular trick that forces models to predict the future*
 
