@@ -132,6 +132,16 @@ vocab = {
 }
 
 def get_stats(vocab):
+    """Return bigram frequency counts for a tokenized vocabulary.
+
+    Args:
+        vocab: Mapping of space-delimited symbol strings to frequency counts,
+            e.g., {"p u n": 12}.
+
+    Returns:
+        A dict-like mapping from (symbol_a, symbol_b) pairs to the summed
+        frequency across all words where the bigram appears.
+    """
     pairs = collections.defaultdict(int)
     for word, freq in vocab.items():
         symbols = word.split()
@@ -140,6 +150,16 @@ def get_stats(vocab):
     return pairs
 
 def merge_vocab(pair, v_in):
+    """Merge a given symbol pair everywhere it appears in the vocabulary.
+
+    Args:
+        pair: Tuple of two symbols to merge, e.g., ("u", "n").
+        v_in: Mapping of space-delimited symbol strings to frequency counts.
+
+    Returns:
+        A new vocabulary dict where every occurrence of the pair has been
+        merged into a single symbol (e.g., "u n" -> "un").
+    """
     v_out = {}
     bigram = ' '.join(pair)
     replacement = ''.join(pair)
