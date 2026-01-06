@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L09 - Inference & Sampling: Controlling the Creativity
+# L09 - Inference & Sampling: Controlling the Creativity [DRAFT]
 
 *How to talk to a trained brain without it repeating itself*
 
