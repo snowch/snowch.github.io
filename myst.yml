@@ -126,6 +126,7 @@ site:
   template: book-theme
   title: Chris Snow
   options:
+    style: ./custom.css
     favicon: favicon.ico
     logo_text: Chris Snow
     static:
