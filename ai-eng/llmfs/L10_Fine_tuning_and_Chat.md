@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L10 - Fine-tuning: From Completion to Conversation
+# L10 - Fine-tuning: From Completion to Conversation [DRAFT]
 
 *Transforming a base LLM into a helpful Chat Assistant*
 
