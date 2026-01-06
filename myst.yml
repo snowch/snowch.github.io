@@ -60,6 +60,8 @@ project:
               title: "L04 - Multi-Head Attention: Seeing in Parallel"
             - file: ai-eng/llmfs/L05_Normalization_and_Residuals.md
               title: "L05 - Normalization & Residuals"
+            - file: ai-eng/llmfs/L06_The_Causal_Mask.md
+              title: "L06 - The Causal Mask: How to Stop Cheating"
 
         - title: "Transformers From Scratch"
           children:
