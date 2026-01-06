@@ -32,8 +32,16 @@ By the end of this post, you'll understand:
 ```{code-cell} ipython3
 :tags: [remove-input]
 
+import os
+
 import torch
 import torch.nn as nn
+import matplotlib
+import numpy as np
+
+os.environ.setdefault("MPLCONFIGDIR", ".matplotlib")
+matplotlib.set_loglevel("error")
+
 import matplotlib.pyplot as plt
 import numpy as np
 
