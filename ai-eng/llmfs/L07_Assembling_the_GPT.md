@@ -35,13 +35,15 @@ By the end of this post, you'll understand:
 :tags: [remove-input]
 
 import os
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
 
 import torch
 import torch.nn as nn
 import matplotlib
-
-os.environ.setdefault("MPLCONFIGDIR", ".matplotlib")
-matplotlib.set_loglevel("error")
 
 import matplotlib.pyplot as plt
 
