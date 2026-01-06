@@ -47,7 +47,11 @@ project:
           children:
             - file: ai-eng/nnfs/nn_architecture_patterns.md
               title: Architecture Patterns (NA01)
-              
+
+        - title: LLM From Scratch
+          children:
+            - file: ai-eng/llmfs/LL01.md
+              title: LL01
 
         - title: "Transformers From Scratch"
           children:
