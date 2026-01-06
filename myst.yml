@@ -50,8 +50,10 @@ project:
 
         - title: LLM From Scratch
           children:
-            - file: ai-eng/llmfs/LL01.md
-              title: LL01
+            - file: ai-eng/llmfs/L01_Tokenization_From_Scratch.md
+              title: "L01 - Tokenization: From Scratch"
+            - file: ai-eng/llmfs/L02_Embeddings_and_Positional_Encoding.md
+              title: "L02 - Embeddings & Positional Encoding"
 
         - title: "Transformers From Scratch"
           children:
