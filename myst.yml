@@ -27,9 +27,9 @@ project:
       children:
         - title: Probability
           children:
-            - file: probability/inclusion_exclusion_tutorial.ipynb
+            - file: probability/inclusion_exclusion_tutorial.md
               title: Inclusion-Exclusion Principle
-            - file: probability/birthday_tutorial.ipynb
+            - file: probability/birthday_tutorial.md
               title: Birthday Paradox
 
         - title: Neural Networks From Scratch
