@@ -58,6 +58,8 @@ project:
               title: "L03 - Self-Attention: Understanding Context"
             - file: ai-eng/llmfs/L04_Multi_Head_Attention.md
               title: "L04 - Multi-Head Attention: Seeing in Parallel"
+            - file: ai-eng/llmfs/L05_Normalization_and_Residuals.md
+              title: "L05 - Normalization & Residuals"
 
         - title: "Transformers From Scratch"
           children:
