@@ -220,7 +220,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: “architecture patterns”
-In your **flexible network** post, you already treat layers/blocks as composable modules.
+In the {doc}`flexible network post <nn_flexible_network_blog#the-layer-class>`, you treat layers as composable modules.
 
 A residual connection is just another architecture pattern:
 - compute a block output
@@ -279,16 +279,6 @@ You only need this bridge idea:
 That’s why attention looks different from a normal layer, but it’s still linear algebra.
 
 ---
-
-## 7) Roadmap (and how to read the series)
-
-Recommended path:
-
-1) Your NN-from-scratch posts (dense layers, training loop, flexible architectures)
-2) **NN04 (this chapter)**
-3) {doc}`TR00 <../transformer/TR00_attention_and_transformer_architectures>`: attention + transformer architecture map
-4) **TR01–TR04**: implement a tiny decoder-only transformer end-to-end
-5) **IN01**: inference engineering (KV cache, batching, memory)
 
 :::{seealso} Next
 Read {doc}`../transformer/TR00_attention_and_transformer_architectures` next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
