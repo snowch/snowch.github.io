@@ -139,6 +139,29 @@ Here we'll build a **tiny** BPE that still captures the core idea:
 
 We'll represent training text as a dictionary: **word → frequency**.
 
+**Why these particular words?**
+
+This toy corpus is deliberately small, but it’s designed to *force* the BPE learner to discover a few useful subword patterns:
+
+- **High-frequency “everyday” words** (`the`, `fox`)  
+  These simulate common tokens that real tokenizers usually keep as single units.
+
+- **Plural / suffix patterns** (`foxes`, `boxes`, `wishes`)  
+  These share common endings like `es` / `s` / `sh` + `es`. By including several words with the same suffix, we increase the chance BPE learns merges that create reusable “ending” tokens (e.g. `es`).
+
+- **Prefix + root + suffix morphology** (`un`, `able`, `unable`, `believe`, `believable`, `unbelievable`)  
+  This set encourages the tokenizer to learn pieces that behave like morphemes:
+  - prefix: `un`
+  - suffix: `able`
+  - a recurring stem-ish chunk around `believ...`
+
+The key idea: BPE doesn’t “understand” grammar — it only merges frequent adjacent pairs.  
+So we choose words that *repeat the same adjacent patterns* (like `u`→`n`, or `a`→`b`→`l`→`e`) across multiple items, making those merges statistically likely.
+
+```{note}
+This is a clean teaching example. Real tokenizers usually train on vastly larger corpora and often start from bytes, include whitespace markers, and handle punctuation and Unicode carefully.
+```
+
 ```{code-cell} ipython3
 toy_word_counts = {
     # common
@@ -235,6 +258,10 @@ merges, trained_vocab = train_bpe(toy_word_counts, num_merges=16)
 # Show the merge rules we learned
 for i, m in enumerate(merges):
     print(f"{i:02d}: {m[0]} + {m[1]} -> {m[0] + m[1]}")
+```
+
+```{tip}
+After training, you should see merges that form familiar chunks (often `un`, `able`, and sometimes `es`) because those sequences occur across multiple high-frequency words.
 ```
 
 ### 3.3 Tokenizing new words (including "OOV" ones)
