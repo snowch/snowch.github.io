@@ -80,7 +80,7 @@ Let's visualize this "gluing" process:
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.set_xlim(0, 10)
-ax.set_ylim(0, 5)
+ax.set_ylim(-1, 5)
 ax.axis('off')
 
 # Box helper
@@ -170,21 +170,42 @@ In our next blog, these IDs will serve as the row indices for our **Embedding Ma
 tokens = ["The", "quick", "brown", "fox"]
 ids = [464, 2068, 7586, 21831]
 
-fig, ax = plt.subplots(figsize=(12, 3))
+fig, ax = plt.subplots(figsize=(12, 4))
 ax.axis('off')
 
 # Draw the flow
 start_x = 0.5
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 3)
 for i, (txt, tid) in enumerate(zip(tokens, ids)):
     # Text box
-    ax.text(start_x + i*2.5, 2, txt, ha='center', bbox=dict(boxstyle='round', facecolor='white'))
+    ax.text(
+        start_x + i * 2.5,
+        2,
+        txt,
+        ha='center',
+        fontsize=14,
+        bbox=dict(boxstyle='round', facecolor='white'),
+    )
     # Arrow
-    ax.annotate('', xy=(start_x + i*2.5, 0.8), xytext=(start_x + i*2.5, 1.7), arrowprops=dict(arrowstyle='->'))
+    ax.annotate(
+        '',
+        xy=(start_x + i * 2.5, 0.8),
+        xytext=(start_x + i * 2.5, 1.7),
+        arrowprops=dict(arrowstyle='->'),
+    )
     # ID box
-    ax.text(start_x + i*2.5, 0.3, f"ID: {tid}", ha='center', fontweight='bold', 
-            bbox=dict(boxstyle='round', facecolor='lightgray'))
+    ax.text(
+        start_x + i * 2.5,
+        0.3,
+        f"ID: {tid}",
+        ha='center',
+        fontsize=12,
+        fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightgray'),
+    )
 
-ax.set_title("The Final Pipeline: Text → Tokens → Integers (IDs)", fontsize=14, pad=20)
+ax.set_title("The Final Pipeline: Text → Tokens → Integers (IDs)", fontsize=16, pad=20)
 plt.show()
 
 ```
