@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L04 - Multi-Head Attention: Seeing in Parallel
+# L04 - Multi-Head Attention: Seeing in Parallel [DRAFT]
 
 *Why one "eye" isn't enough for complex language*
 
