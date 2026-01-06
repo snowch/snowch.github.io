@@ -40,8 +40,13 @@ project:
               title: "Training an Edge-Detection Neural Network from Scratch"
             - file: ai-eng/nnfs/nn_flexible_network_blog.md
               title: Building a General Neural Network from Scratch
+            - file: ai-eng/nnfs/nn_pytorch_basics.md
+              title: PyTorch Basics (Flexible MLP)
+
+        - title: NN Architectures
+          children:
             - file: ai-eng/nnfs/nn_architecture_patterns.md
-              title: Architecture Patterns
+              title: Architecture Patterns (NA01)
               
 
         - title: "Transformers From Scratch"
