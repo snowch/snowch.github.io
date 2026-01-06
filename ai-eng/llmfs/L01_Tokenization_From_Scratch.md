@@ -17,7 +17,7 @@ kernelspec:
 
 ---
 
-In your previous series, we fed our neural networks pixel values ($0$ to $1$). But how do we feed a model a sentence like **"The quick brown fox"**? 
+In the [Neural Networks from Scratch series](../nnfs/nn_tutorial_blog.md#the-networks-job), we fed our neural networks pixel values ($0$ to $1$). But how do we feed a model a sentence like **"The quick brown fox"**? 
 
 Neural networks don't understand letters, and they don't understand words. They understand **vectors**. To get there, we need a "translator" that turns text into a sequence of integers. This process is called **Tokenization**.
 
