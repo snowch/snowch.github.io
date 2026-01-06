@@ -56,6 +56,8 @@ project:
               title: "L02 - Embeddings & Positional Encoding"
             - file: ai-eng/llmfs/L03_The_Attention_Mechanism.md
               title: "L03 - Self-Attention: Understanding Context"
+            - file: ai-eng/llmfs/L04_Multi_Head_Attention.md
+              title: "L04 - Multi-Head Attention: Seeing in Parallel"
 
         - title: "Transformers From Scratch"
           children:
