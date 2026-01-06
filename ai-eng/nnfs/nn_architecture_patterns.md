@@ -12,14 +12,10 @@ keywords:
 
 # NN04 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
 
-:::{seealso} If you’re coming from your earlier NN-from-scratch posts
-These links should point to the **rendered pages** in your MyST project (not GitHub source).
-
-- NN tutorial (dense → softmax → predictions): {doc}`ai-eng/nnfs/nn_tutorial_blog.md`
-- Flexible architecture (stacking modules cleanly): {doc}`ai-eng/nnfs/nn_flexible_network_blog.md`
-- Edge detector (learned features, visual intuition): {doc}`ai-eng/nnfs/nn_edge_detector_blog.md`
-
-> If your TOC uses notebooks instead (e.g. `ml-ai/nn_tutorial_blog.ipynb`), change the paths above to match your `myst.yml`.
+:::{seealso} Prerequisites
+- NN tutorial (dense → softmax → predictions): {doc}`nn_tutorial_blog`
+- Flexible architecture (stacking modules cleanly): {doc}`nn_flexible_network_blog`
+- Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`
 :::
 
 
@@ -32,6 +28,8 @@ By the end of this chapter you will be able to:
 3. Recognize and implement **residual connections**: `y = x + f(x)`
 4. Explain why transformers use **LayerNorm** (and where it sits in the block)
 5. Understand the preview idea behind attention: **dynamic mixing weights**
+
+This chapter is the **bridge** to transformers. By the end of the series (TR00–TR04), you’ll understand how attention works and how transformer blocks are built end-to-end.
 
 ---
 
@@ -59,16 +57,19 @@ Example: `B=2`, `C=8`:
   (two examples, each with 8 features)
 
 :::{note} Where you’ve seen this before
-In your **NN tutorial blog**, your input matrix is essentially `(B, C)`:
+In the {doc}`NN tutorial blog <nn_tutorial_blog#the-networks-job>`, you gather a batch of input vectors into a matrix, which is essentially `(B, C)`:
 - `B` rows = examples in the batch
 - `C` columns = features per example
 
-Transformers keep this idea, but add one more axis: time / token position.
+In that tutorial, you pass a batch matrix `X` into a dense layer (`Y = X @ W + b`), where each row is one example and each column is a feature.
+
+Transformers keep this exact structure but add one more axis: time / token position.
 :::
 
 ### 1.3 Batch of sequences (transformer default)
 
-Transformers add the sequence dimension:
+Transformers add the sequence dimension because they process **ordered tokens**.  
+The model needs a separate axis to keep track of token position so it can mix information across time.
 
 - shape: `(B, T, C)`
 
@@ -135,7 +136,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: embedding lookup = one-hot × matrix
-In many from-scratch NN setups, you use **one-hot vectors** (a 1 in one position, zeros elsewhere).
+In our NNFS posts, we use **one-hot vectors** (a 1 in one position, zeros elsewhere); see the {doc}`NN tutorial blog <nn_tutorial_blog#part-4-measuring-wrongness---the-loss-function>` for an example.
 
 If `one_hot(id)` is a length-`V` vector, then:
 
@@ -219,7 +220,7 @@ flowchart LR;
 ```
 
 :::{note} Connection to NNFS: “architecture patterns”
-In your **flexible network** post, you already treat layers/blocks as composable modules.
+In the {doc}`flexible network post <nn_flexible_network_blog#the-layer-class>`, you treat layers as composable modules.
 
 A residual connection is just another architecture pattern:
 - compute a block output
@@ -279,16 +280,6 @@ That’s why attention looks different from a normal layer, but it’s still lin
 
 ---
 
-## 7) Roadmap (and how to read the series)
-
-Recommended path:
-
-1) Your NN-from-scratch posts (dense layers, training loop, flexible architectures)
-2) **NN04 (this chapter)**
-3) **TR00**: attention + transformer architecture map
-4) **TR01–TR04**: implement a tiny decoder-only transformer end-to-end
-5) **IN01**: inference engineering (KV cache, batching, memory)
-
 :::{seealso} Next
-Read **TR00** next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
+Read {doc}`../transformer/TR00_attention_and_transformer_architectures` next. It assumes you can read `(B,T,C)` and you know what embeddings / residuals / LayerNorm do.
 :::
