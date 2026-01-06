@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L08 - Training the LLM: Learning to Speak
+# L08 - Training the LLM: Learning to Speak [DRAFT]
 
 *Feeding the model data and watching its "Loss" collapse*
 
