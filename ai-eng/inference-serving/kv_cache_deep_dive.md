@@ -9,7 +9,7 @@ keywords:
   - inference serving
 ---
 
-# IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference
+# IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference [DRAFT]
 
 *The critical optimization that makes LLM inference practical — and the memory tradeoff that comes with it.*
 
