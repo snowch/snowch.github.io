@@ -201,6 +201,8 @@ We have successfully bridged the gap between human language and machine numbers.
 
 ## Related reading
 
+Embeddings at Scale Book:
+
 - [Ch01: The Embedding Revolution](https://snowch.github.io/embeddings-at-scale-book/chapters/ch01_embedding_revolution.html)
 - [Ch02: Similarity & Distance Metrics](https://snowch.github.io/embeddings-at-scale-book/chapters/ch02_similarity_distance_metrics.html)
 - [Ch03: Vector Database Fundamentals](https://snowch.github.io/embeddings-at-scale-book/chapters/ch03_vector_database_fundamentals.html)
