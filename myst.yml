@@ -32,7 +32,7 @@ project:
             - file: probability/birthday_tutorial.ipynb
               title: Birthday Paradox
 
-        - title: Neural Networks From Scratch
+        - title: Neural Network From Scratch
           children:
             - file: ai-eng/nnfs/nn_edge_detector_blog.md
               title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
@@ -43,7 +43,7 @@ project:
             - file: ai-eng/nnfs/nn_pytorch_basics.md
               title: PyTorch Basics (Flexible MLP)
 
-        - title: NN Architectures
+        - title: Neural Network Architectures
           children:
             - file: ai-eng/nnfs/nn_architecture_patterns.md
               title: Architecture Patterns (NA01)
