@@ -62,6 +62,8 @@ project:
               title: "L05 - Normalization & Residuals"
             - file: ai-eng/llmfs/L06_The_Causal_Mask.md
               title: "L06 - The Causal Mask: How to Stop Cheating"
+            - file: ai-eng/llmfs/L07_Assembling_the_GPT.md
+              title: "L07 - Assembling the GPT: The Grand Finale"
 
         - title: "Transformers From Scratch"
           children:
