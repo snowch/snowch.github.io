@@ -17,7 +17,7 @@ kernelspec:
 
 ---
 
-In the [Neural Networks from Scratch series](../nnfs/nn_tutorial_blog.md#the-networks-job), we fed our neural networks pixel values ($0$ to $1$). But how do we feed a model a sentence like **"The quick brown fox"**? 
+In the [Neural Networks from Scratch series](../nnfs/nn_tutorial_blog.md#the-networks-job), we fed our neural networks pixel values ($0$ to $1$). But how do we feed a model a sentence like **"The quick brown fox"**?
 
 Neural networks don't understand letters, and they don't understand words. They understand **vectors**. To get there, we need a "translator" that turns text into a sequence of integers. This process is called **Tokenization**.
 
@@ -38,7 +38,7 @@ warnings.filterwarnings("ignore", message="Matplotlib is building the font cache
 
 import matplotlib
 import numpy as np
-import collections
+from collections import defaultdict
 
 os.environ.setdefault("MPLCONFIGDIR", ".matplotlib")
 matplotlib.set_loglevel("error")
@@ -48,7 +48,6 @@ import matplotlib.pyplot as plt
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
 plt.rcParams['axes.grid'] = False
-
 ```
 
 ---
@@ -69,13 +68,17 @@ To turn text into numbers, we have three choices. Each has a major flaw:
 
 ## Part 2: Byte Pair Encoding (BPE) Intuition
 
+```{note}
+"Byte Pair Encoding" is basically "pair merging": at each step you take the most frequent adjacent pair and *encode it as one unit* by introducing a new token. The "byte" part comes from the original compression algorithm operating on raw bytes; modern NLP BPE tokenizers often start from bytes (or characters) and learn merges that create meaningful subword chunks.
+```
+
 BPE is an iterative algorithm. It starts with a vocabulary of individual characters and slowly "glues" the most frequent adjacent pairs together to create new tokens.
 
-### The Algorithm:
+### The Algorithm
 
 1. **Initialize:** Break words in your training data into character sequences.
-2. **Count:** Find the most frequent pair of adjacent tokens (e.g., 't' and 'h').
-3. **Merge:** Create a new token 'th' and replace all occurrences in the data.
+2. **Count:** Find the most frequent pair of adjacent tokens (e.g., `t` and `h`).
+3. **Merge:** Create a new token `th` and replace all occurrences in the data.
 4. **Repeat:** Stop when you reach a target vocabulary size.
 
 Let's visualize this "gluing" process:
@@ -88,10 +91,13 @@ ax.set_xlim(0, 10)
 ax.set_ylim(-1, 5)
 ax.axis('off')
 
-# Box helper
 def draw_token(x, y, text, color='lightblue'):
     ax.add_patch(plt.Rectangle((x, y), 1.2, 0.8, color=color, ec='black', lw=2))
-    ax.text(x+0.6, y+0.4, text, ha='center', va='center', fontsize=12, family='monospace', fontweight='bold')
+    ax.text(
+        x + 0.6, y + 0.4, text,
+        ha='center', va='center',
+        fontsize=12, family='monospace', fontweight='bold'
+    )
 
 # Before
 ax.text(2, 4, "Step 1: Raw Characters", ha='center', fontweight='bold')
@@ -102,152 +108,257 @@ draw_token(5.0, 2.5, "l")
 draw_token(6.5, 2.5, "o")
 
 # Arrow
-ax.annotate('Merge (l, l)', xy=(4, 1.2), xytext=(4, 2.2),
-            arrowprops=dict(facecolor='black', shrink=0.05, width=2))
+ax.annotate(
+    'Merge (l, l)', xy=(4, 1.2), xytext=(4, 2.2),
+    arrowprops=dict(facecolor='black', shrink=0.05, width=2)
+)
 
 # After
 ax.text(2, 0.5, "Step 2: After 1 Merge", ha='center', fontweight='bold')
 draw_token(0.5, -0.5, "h")
 draw_token(2.0, -0.5, "e")
-draw_token(3.5, -0.5, "ll", color='lightgreen') # Merged
+draw_token(3.5, -0.5, "ll", color='lightgreen')
 draw_token(5.0, -0.5, "o")
 
 plt.show()
-
 ```
 
 ---
 
-## Part 3: Coding the BPE Learner
+## Part 3: Coding a Tiny BPE Tokenizer (End-to-End)
 
-To build this from scratch, we need to treat our text as a "dictionary" of frequencies.
+Real production tokenizers have lots of details (bytes, whitespace markers, Unicode edge cases, normalization, special tokens, etc.).
 
-```python
-# Initial training data: "hug" (10 times), "pug" (5 times), "pun" (12 times)
-vocab = {
-    'h u g': 10,
-    'p u g': 5,
-    'p u n': 12,
-    'b u n': 4
+Here we'll build a **tiny** BPE that still captures the core idea:
+
+- Learn merges from a toy corpus
+- Tokenize **new words** by repeatedly applying those merges
+- Avoid "out of vocabulary" failures by falling back to smaller pieces
+
+### 3.1 Training data
+
+We'll represent training text as a dictionary: **word → frequency**.
+
+```{code-cell} ipython3
+toy_word_counts = {
+    # common
+    "the": 50,
+    "fox": 30,
+
+    # plural patterns (to encourage "es")
+    "foxes": 5,
+    "boxes": 12,
+    "wishes": 8,
+
+    # morpheme-ish patterns (to encourage "un" and "able")
+    "un": 20,
+    "able": 25,
+    "unable": 12,
+
+    # "believ" appears inside believable/unbelievable (note: no second 'e' here)
+    "believe": 18,
+    "believer": 6,
+    "believable": 8,
+    "unbelievable": 3,
 }
 
-def get_stats(vocab):
-    """Return bigram frequency counts for a tokenized vocabulary.
+toy_word_counts
+```
 
-    Args:
-        vocab: Mapping of space-delimited symbol strings to frequency counts,
-            e.g., {"p u n": 12}.
+### 3.2 The BPE training loop
 
-    Returns:
-        A dict-like mapping from (symbol_a, symbol_b) pairs to the summed
-        frequency across all words where the bigram appears.
+We store each word as a **space-delimited sequence of symbols** (initially characters). Then we repeatedly:
 
-        Example:
-            >>> get_stats({"p u n": 12, "b u n": 4})
-            {("p", "u"): 12, ("u", "n"): 16, ("b", "u"): 4}
-    """
-    pairs = collections.defaultdict(int)
+1) count the most frequent adjacent pair  
+2) merge it everywhere  
+3) record that merge rule  
+
+```{code-cell} ipython3
+def build_vocab(word_counts: dict[str, int]) -> dict[str, int]:
+    """Convert {"word": freq} into {"c h a r s": freq}."""
+    return {" ".join(list(word)): freq for word, freq in word_counts.items()}
+
+def get_stats(vocab: dict[str, int]) -> dict[tuple[str, str], int]:
+    """Count adjacent pair frequencies across the vocab, weighted by word frequency."""
+    pairs = defaultdict(int)
     for word, freq in vocab.items():
         symbols = word.split()
-        for i in range(len(symbols)-1):
-            pairs[symbols[i], symbols[i+1]] += freq
+        for i in range(len(symbols) - 1):
+            pairs[(symbols[i], symbols[i + 1])] += freq
     return pairs
 
-def merge_vocab(pair, v_in):
-    """Merge a given symbol pair everywhere it appears in the vocabulary.
+def merge_word(symbols: list[str], pair: tuple[str, str]) -> list[str]:
+    """Merge all occurrences of (a, b) into 'ab' within a single token list."""
+    a, b = pair
+    merged = []
+    i = 0
+    while i < len(symbols):
+        if i < len(symbols) - 1 and symbols[i] == a and symbols[i + 1] == b:
+            merged.append(a + b)
+            i += 2
+        else:
+            merged.append(symbols[i])
+            i += 1
+    return merged
 
-    Args:
-        pair: Tuple of two symbols to merge, e.g., ("u", "n").
-        v_in: Mapping of space-delimited symbol strings to frequency counts.
-
-    Returns:
-        A new vocabulary dict where every occurrence of the pair has been
-        merged into a single symbol (e.g., "u n" -> "un").
-    """
+def merge_vocab(pair: tuple[str, str], v_in: dict[str, int]) -> dict[str, int]:
+    """Apply one merge rule to every word in the vocab."""
     v_out = {}
-    bigram = ' '.join(pair)
-    replacement = ''.join(pair)
-    for word in v_in:
-        w_out = word.replace(bigram, replacement)
-        v_out[w_out] = v_in[word]
+    for word, freq in v_in.items():
+        symbols = word.split()
+        new_symbols = merge_word(symbols, pair)
+        v_out[" ".join(new_symbols)] = freq
     return v_out
 
-# Run 1 merge
-stats = get_stats(vocab)
-best_pair = max(stats, key=stats.get) # In our data, ('u', 'n') is very frequent
-vocab = merge_vocab(best_pair, vocab)
+def train_bpe(word_counts: dict[str, int], num_merges: int = 16) -> tuple[list[tuple[str, str]], dict[str, int]]:
+    """Learn `num_merges` merge rules from a corpus.
 
-print(f"Merged pair: {best_pair}")
-# 'p u n' becomes 'p un'
+    Returns:
+        merges: List of merge pairs in the order learned.
+        vocab:  Final merged vocabulary representation (space-delimited token strings -> freq).
+    """
+    vocab = build_vocab(word_counts)
+    merges: list[tuple[str, str]] = []
 
+    for _ in range(num_merges):
+        stats = get_stats(vocab)
+        if not stats:
+            break
+        best_pair = max(stats, key=stats.get)
+        merges.append(best_pair)
+        vocab = merge_vocab(best_pair, vocab)
+
+    return merges, vocab
+
+merges, trained_vocab = train_bpe(toy_word_counts, num_merges=16)
+
+# Show the merge rules we learned
+for i, m in enumerate(merges):
+    print(f"{i:02d}: {m[0]} + {m[1]} -> {m[0] + m[1]}")
 ```
+
+### 3.3 Tokenizing new words (including "OOV" ones)
+
+Tokenization = start from characters, then apply merges **in the same order** we learned them.
+
+```{code-cell} ipython3
+def bpe_tokenize(word: str, merges: list[tuple[str, str]]) -> list[str]:
+    """Apply BPE merges to a single word."""
+    tokens = list(word)
+    for pair in merges:
+        tokens = merge_word(tokens, pair)
+    return tokens
+
+test_words = [
+    "the",
+    "unbelievable",
+    "believable",
+    "unable",
+    "foxes",
+    "unbelievably",  # not in our toy corpus -> still tokenizes
+]
+
+for w in test_words:
+    print(f"{w:14s} -> {bpe_tokenize(w, merges)}")
+```
+
+> Notice what happened to **unbelievably**: we *didn't* need it in the training vocab.  
+> The tokenizer falls back to smaller pieces automatically.
 
 ---
 
-## Part 4: The Tokenization Pipeline
+## Part 4: The Tokenization Pipeline (Text → Tokens → IDs)
 
-Once we have learned all our merges, we have a **Vocabulary**. Every token in that vocabulary is assigned a unique **ID** (an integer).
+Once we have merges, we can build a **vocabulary**: the set of tokens our tokenizer can produce on this corpus. Then we assign each token a unique integer **ID**.
 
-### Why are IDs important?
+In the next blog, these IDs will be row indices into an **Embedding Matrix**.
 
-In our next blog, these IDs will serve as the row indices for our **Embedding Matrix**. If the word "Cat" has ID `542`, the model will look at the 542nd row of its "dictionary" to find the vector representing "Cat".
+```{code-cell} ipython3
+def build_token2id(vocab: dict[str, int], special_tokens: list[str] | None = None) -> dict[str, int]:
+    """Build a stable token -> ID mapping from the trained vocab."""
+    token_set = set()
+    for word in vocab.keys():
+        token_set.update(word.split())
+
+    special_tokens = special_tokens or ["<pad>", "<unk>"]
+    tokens_sorted = sorted(token_set)
+
+    all_tokens = special_tokens + tokens_sorted
+    return {tok: i for i, tok in enumerate(all_tokens)}
+
+token2id = build_token2id(trained_vocab)
+
+# A sentence that very clearly goes through BPE
+sentence = "The unbelievable foxes"
+words = sentence.lower().split()
+
+tokens = []
+for w in words:
+    tokens.extend(bpe_tokenize(w, merges))
+
+ids = [token2id.get(t, token2id["<unk>"]) for t in tokens]
+
+print("Sentence:", sentence)
+print("Tokens  :", tokens)
+print("IDs     :", ids)
+```
+
+### Visualizing: the final bridge into integers
+
+*(Note: real tokenizers also encode spaces/punctuation carefully — this is the clean "words only" version.)*
 
 ```{code-cell} ipython3
 :tags: [remove-input]
 
-# Visualizing the final pipeline
-tokens = ["The", "quick", "brown", "fox"]
-ids = [464, 2068, 7586, 21831]
-
-fig, ax = plt.subplots(figsize=(12, 4))
+fig, ax = plt.subplots(figsize=(14, 4))
 ax.axis('off')
 
-# Draw the flow
-start_x = 0.5
-ax.set_xlim(0, 10)
+n = len(tokens)
+x0 = 0.7
+dx = 1.8
+
+ax.set_xlim(0, x0 + dx * (n - 1) + 0.7)
 ax.set_ylim(0, 3)
-for i, (txt, tid) in enumerate(zip(tokens, ids)):
-    # Text box
+
+for i, (tok, tid) in enumerate(zip(tokens, ids)):
+    x = x0 + i * dx
+
+    # Token box
     ax.text(
-        start_x + i * 2.5,
-        2,
-        txt,
-        ha='center',
-        fontsize=14,
-        bbox=dict(boxstyle='round', facecolor='white'),
+        x, 2, tok,
+        ha='center', fontsize=14,
+        bbox=dict(boxstyle='round', facecolor='white')
     )
+
     # Arrow
     ax.annotate(
-        '',
-        xy=(start_x + i * 2.5, 0.8),
-        xytext=(start_x + i * 2.5, 1.7),
-        arrowprops=dict(arrowstyle='->'),
+        '', xy=(x, 0.85), xytext=(x, 1.75),
+        arrowprops=dict(arrowstyle='->')
     )
+
     # ID box
     ax.text(
-        start_x + i * 2.5,
-        0.3,
-        f"ID: {tid}",
-        ha='center',
-        fontsize=12,
-        fontweight='bold',
-        bbox=dict(boxstyle='round', facecolor='lightgray'),
+        x, 0.35, f"ID: {tid}",
+        ha='center', fontsize=12, fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightgray')
     )
 
-ax.set_title("The Final Pipeline: Text → Tokens → Integers (IDs)", fontsize=16, pad=20)
+ax.set_title("The Final Pipeline: Text → (BPE) Tokens → Integers (IDs)", fontsize=16, pad=20)
 plt.show()
-
 ```
 
 ---
 
 ## Summary
 
-We have successfully bridged the gap between human language and machine numbers.
+We have successfully bridged the gap between human language and machine numbers:
 
 1. **Tokenization** breaks text into chunks the model can manage.
-2. **BPE** allows us to represent any word, even those we've never seen, by breaking them into sub-units.
-3. **The Vocabulary** is just a lookup table that maps these sub-units to integers.
+2. **BPE** learns a "gluing" recipe that turns characters into useful subwords.
+3. **Out-of-vocabulary words** still work because you can always fall back to smaller pieces.
+4. **Token IDs** are the integers your model uses to look up embeddings.
+
+---
 
 ## Related reading
 
@@ -258,4 +369,5 @@ Embeddings at Scale Book:
 - [Ch03: Vector Database Fundamentals](https://snowch.github.io/embeddings-at-scale-book/chapters/ch03_vector_database_fundamentals.html)
 - [Ch04: Text Embeddings](https://snowch.github.io/embeddings-at-scale-book/chapters/ch04_text_embeddings.html)
 
-**Next Up: L02 – Embeddings & Positional Encoding.** Now that we have IDs, how do we turn them into high-dimensional vectors that capture "meaning"? And how do we tell the model that "The cat ate the mouse" is different from "The mouse ate the cat"?
+**Next Up: L02 – Embeddings & Positional Encoding.**  
+Now that we have IDs, how do we turn them into high-dimensional vectors that capture "meaning"? And how do we tell the model that **"The cat ate the mouse"** is different from **"The mouse ate the cat"**?
