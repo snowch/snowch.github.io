@@ -1,5 +1,5 @@
 ---
-title: "IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference"
+title: "IN01 - KV Cache Deep Dive: Memory Optimization for LLM Inference [DRAFT]"
 description: "Understanding the key-value cache mechanism that makes LLM inference practical: what it speeds up, what it doesn't, why memory explodes, and how disaggregation helps at scale."
 keywords:
   - llm inference
