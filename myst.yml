@@ -50,8 +50,20 @@ project:
 
         - title: LLM From Scratch
           children:
-            - file: ai-eng/llmfs/LL01.md
-              title: LL01
+            - file: ai-eng/llmfs/L01_Tokenization_From_Scratch.md
+              title: "L01 - Tokenization: From Scratch"
+            - file: ai-eng/llmfs/L02_Embeddings_and_Positional_Encoding.md
+              title: "L02 - Embeddings & Positional Encoding"
+            - file: ai-eng/llmfs/L03_The_Attention_Mechanism.md
+              title: "L03 - Self-Attention: Understanding Context"
+            - file: ai-eng/llmfs/L04_Multi_Head_Attention.md
+              title: "L04 - Multi-Head Attention: Seeing in Parallel"
+            - file: ai-eng/llmfs/L05_Normalization_and_Residuals.md
+              title: "L05 - Normalization & Residuals"
+            - file: ai-eng/llmfs/L06_The_Causal_Mask.md
+              title: "L06 - The Causal Mask: How to Stop Cheating"
+            - file: ai-eng/llmfs/L07_Assembling_the_GPT.md
+              title: "L07 - Assembling the GPT: The Grand Finale"
 
         - title: "Transformers From Scratch"
           children:
