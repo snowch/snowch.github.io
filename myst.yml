@@ -32,7 +32,7 @@ project:
             - file: probability/birthday_tutorial.ipynb
               title: Birthday Paradox
 
-        - title: Neural Network From Scratch
+        - title: Neural Networks From Scratch
           children:
             - file: ai-eng/nnfs/nn_edge_detector_blog.md
               title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
