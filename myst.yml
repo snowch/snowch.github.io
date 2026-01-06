@@ -64,6 +64,12 @@ project:
               title: "L06 - The Causal Mask: How to Stop Cheating"
             - file: ai-eng/llmfs/L07_Assembling_the_GPT.md
               title: "L07 - Assembling the GPT: The Grand Finale"
+            - file: ai-eng/llmfs/L08_Training_the_LLM.md
+              title: "L08 - Training the LLM: Learning to Speak"
+            - file: ai-eng/llmfs/L09_Inference_and_Sampling.md
+              title: "L09 - Inference & Sampling: Controlling the Creativity"
+            - file: ai-eng/llmfs/L10_Fine_tuning_and_Chat.md
+              title: "L10 - Fine-tuning: From Completion to Conversation"
 
         # - title: "Transformers From Scratch"
         #   children:
