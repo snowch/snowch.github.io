@@ -8,3 +8,4 @@ scipy
 wavedrom
 graphviz
 PyYAML
+torch
