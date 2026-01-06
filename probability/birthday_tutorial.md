@@ -46,6 +46,12 @@ They can pick any of the 365 days — all options are "safe."
 ```{code-cell}
 :tags: [remove-input]
 
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
