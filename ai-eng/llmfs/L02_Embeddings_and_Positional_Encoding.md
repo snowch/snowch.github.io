@@ -156,7 +156,3 @@ final_input = embeddings + positions
 **Next Up: L03 – The Attention Mechanism.** This is the "Aha!" moment of the entire series. We will build the logic that allows the model to decide which words in a sentence are most relevant to each other.
 
 ---
-
-```
-
-**Would you like me to proceed with L03: The Attention Mechanism?**
