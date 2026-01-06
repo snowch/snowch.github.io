@@ -35,6 +35,7 @@ By the end of this post, you'll understand:
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import numpy as np
 
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
