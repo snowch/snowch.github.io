@@ -141,6 +141,10 @@ def get_stats(vocab):
     Returns:
         A dict-like mapping from (symbol_a, symbol_b) pairs to the summed
         frequency across all words where the bigram appears.
+
+        Example:
+            >>> get_stats({"p u n": 12, "b u n": 4})
+            {("p", "u"): 12, ("u", "n"): 16, ("b", "u"): 4}
     """
     pairs = collections.defaultdict(int)
     for word, freq in vocab.items():
