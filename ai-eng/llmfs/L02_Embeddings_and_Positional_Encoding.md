@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L02 - Embeddings & Positional Encoding: Giving Numbers Meaning
+# L02 - Embeddings & Positional Encoding: Giving Numbers Meaning [DRAFT]
 
 *How words become vectors in space, and how we tell time without a clock*
 
