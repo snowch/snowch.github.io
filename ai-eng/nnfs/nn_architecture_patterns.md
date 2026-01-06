@@ -1,5 +1,5 @@
 ---
-title: "NN05 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)"
+title: "NA01 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)"
 description: "A hands-on bridge from feed-forward networks to transformers: how to think in (B,T,C), how embeddings work, and why residual + LayerNorm are everywhere."
 keywords:
   - neural networks from scratch
@@ -10,7 +10,7 @@ keywords:
   - bridge to transformers
 ---
 
-# NN05 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
+# NA01 — Architecture Patterns: Tensors, Embeddings, Residuals, LayerNorm (Bridge to Transformers)
 
 :::{seealso} Prerequisites
 - Edge detector (learned features, visual intuition): {doc}`nn_edge_detector_blog`

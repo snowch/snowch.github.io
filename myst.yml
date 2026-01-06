@@ -42,8 +42,11 @@ project:
               title: Building a General Neural Network from Scratch
             - file: ai-eng/nnfs/nn_pytorch_basics.md
               title: PyTorch Basics (Flexible MLP)
+
+        - title: NN Architectures
+          children:
             - file: ai-eng/nnfs/nn_architecture_patterns.md
-              title: Architecture Patterns (NN05)
+              title: Architecture Patterns (NA01)
               
 
         - title: "Transformers From Scratch"
