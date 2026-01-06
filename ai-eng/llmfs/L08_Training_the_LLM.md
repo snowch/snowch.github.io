@@ -1,5 +1,4 @@
 ---
----
 jupytext:
   text_representation:
     extension: .md
