@@ -196,23 +196,96 @@ So, Head 1 *can* see the whole input, but the Linear Layer ensures that the info
 
 ---
 
-## Part 2: The Math of Projections
+## Part 2: The Multi-Head Pipeline
 
-In standard Attention, we had sets of weights $W^Q, W^K, W^V$ that transformed our 512-dimensional input into 512-dimensional Queries, Keys, and Values.
+Now that we understand the "why" (Specialization), let's look at the "how" (The Pipeline).
 
-In **Multi-Head Attention**, we slice the model dimension ($d_{model}$) into $h$ heads.
-$$d_k = d_{model} / h$$
+The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
 
-If $d_{model} = 512$ and we have 8 heads, each head works with vectors of size **64**.
+### The 4-Step Process
 
-### The Process
-
-1.  **Linear Projection:** For each head $i$, we have unique weight matrices ($W_i^Q, W_i^K, W_i^V$). We multiply the input $X$ by these weights to get specific Questions, Keys, and Values for that head.
-2.  **Independent Attention:** Each head runs the standard attention formula independently:
+1.  **Linear Projections (The Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
-3.  **Concatenation:** We take the output of all 8 heads and glue them back together side-by-side.
-    $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
-4.  **Final Mix:** We multiply by a final output matrix $W^O$ to blend the insights from the committee back into a unified vector.
+3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
+4.  **Final Linear (The Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
+
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+
+Let's visualize this flow:
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+def plot_mha_pipeline():
+    fig, ax = plt.subplots(figsize=(10, 12))
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, 12)
+    ax.axis('off')
+
+    # --- Styles ---
+    box_props = dict(boxstyle='round,pad=0.3', facecolor='#f0f0f0', edgecolor='black', lw=2)
+    op_props = dict(boxstyle='round,pad=0.3', facecolor='#FFEB99', edgecolor='orange', lw=2) # Yellow for operations
+    head_props = dict(boxstyle='round,pad=0.3', facecolor='#d0e0ff', edgecolor='#0044cc', lw=2) # Blue for heads
+    
+    arrow_props = dict(arrowstyle='->', lw=2, color='#444444')
+    
+    # --- 1. Inputs ---
+    # We start with Q, K, V (usually from the previous layer)
+    ax.text(2, 11, "V", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
+    ax.text(5, 11, "K", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
+    ax.text(8, 11, "Q", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
+
+    # --- 2. Linear Projections (The "Split") ---
+    # We'll show 3 heads to imply 'h' heads
+    head_x = [2, 5, 8]
+    
+    for x in head_x:
+        # Draw Linear layers
+        ax.text(x, 9.5, "Linear", ha='center', va='center', fontsize=10, bbox=op_props)
+        # Arrows from inputs to Linears
+        ax.annotate("", xy=(x, 9.8), xytext=(x, 10.7), arrowprops=arrow_props)
+    
+    ax.text(5, 9.5, "...", ha='center', va='center', fontsize=20, fontweight='bold', zorder=10) # Ellipsis for multiple heads
+
+    # --- 3. Attention Heads ---
+    for i, x in enumerate(head_x):
+        label = f"Scaled Dot-Product\nAttention\n(Head {i+1})"
+        if i == 1: label = "..." # Middle one is ellipsis
+        
+        # Draw Attention Blocks
+        ax.text(x, 7.5, label, ha='center', va='center', fontsize=9, bbox=head_props)
+        # Arrows from Linear to Attn
+        ax.annotate("", xy=(x, 8.0), xytext=(x, 9.2), arrowprops=arrow_props)
+
+    # --- 4. Concatenation ---
+    ax.text(5, 5.5, "Concat", ha='center', va='center', fontsize=12, fontweight='bold', bbox=op_props, zorder=5)
+    
+    # Arrows from Attn to Concat
+    # Left head
+    ax.annotate("", xy=(4.5, 5.8), xytext=(2, 7.0), arrowprops=dict(arrowstyle='->', lw=2, color='#444444', connectionstyle="arc3,rad=0.1"))
+    # Middle
+    ax.annotate("", xy=(5, 5.8), xytext=(5, 7.0), arrowprops=arrow_props)
+    # Right head
+    ax.annotate("", xy=(5.5, 5.8), xytext=(8, 7.0), arrowprops=dict(arrowstyle='->', lw=2, color='#444444', connectionstyle="arc3,rad=-0.1"))
+
+    # --- 5. Final Linear ---
+    ax.text(5, 3.5, "Linear", ha='center', va='center', fontsize=12, fontweight='bold', bbox=op_props)
+    ax.annotate("", xy=(5, 3.8), xytext=(5, 5.2), arrowprops=arrow_props)
+
+    # --- 6. Output ---
+    ax.text(5, 1.5, "Multi-Head Attention\nOutput", ha='center', va='center', fontsize=12, fontweight='bold', bbox=dict(boxstyle='square,pad=0.5', facecolor='#ccffcc', ec='green', lw=2))
+    ax.annotate("", xy=(5, 2.0), xytext=(5, 3.2), arrowprops=arrow_props)
+
+    plt.title("The Multi-Head Attention Pipeline", fontsize=16, pad=20)
+    plt.tight_layout()
+    plt.show()
+
+plot_mha_pipeline()
+:::
 
 ---
 
