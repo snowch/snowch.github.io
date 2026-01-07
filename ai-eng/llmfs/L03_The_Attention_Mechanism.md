@@ -168,46 +168,42 @@ Now look at **K1 (Short)**. It scored **5.0**.
 
 The "Misaligned" vector beat the "Perfectly Aligned" vector simply because it was longer. If we don't fix this, our model will prioritize "loud" signals (large numbers) over "correct" signals (aligned meaning).
 
-We fix this by **Scaling**: we divide the result by the square root of the dimension (). This normalizes the scores so the model focuses on alignment, not magnitude.
+We fix this by **Scaling**: we divide the result by the square root of the dimension ($\sqrt{d_k}$). This normalizes the scores so the model focuses on alignment, not magnitude.
 
 ### The Formula
 
-$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
 Let's break down the equation step-by-step:
 
-1. **The Scores ():** We multiply the Query of the current word by the Keys of *all* words.
-2. **The Scaling ():** We shrink the scores to prevent exploding values.
-3. **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
-4. **The Weighted Sum ():** We multiply the probabilities by the **Values** to get the final context vector.
+1.  **The Scores ($QK^T$):** We multiply the Query of the current word by the Keys of *all* words.
+2.  **The Scaling ($\sqrt{d_k}$):** We shrink the scores to prevent exploding values.
+3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
+4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
 
 ### Example Walkthrough: Crunching the Numbers
 
 Let's trace the math using the **Exact Match** and **Key 3** vectors from the plot above.
-
 * **Query (Q):** `[3, 1]`
 * **Key (Exact Match):** `[3, 1]`
 * **Key 3 (Misaligned):** `[1, 4]`
 
-**Step 1: The Dot Product ()**
+**Step 1: The Dot Product ($QK^T$)**
+* Score (Exact Match): $(3 \times 3) + (1 \times 1) = 10$
+* Score (Misaligned): $(3 \times 1) + (1 \times 4) = 7$
 
-* Score (Exact Match): 
-* Score (Misaligned): 
-
-**Step 2: Scaling ()**
-We divide by .
-
-* Scaled Score (Exact): 
-* Scaled Score (Misaligned): 
+**Step 2: Scaling ($\sqrt{d_k}$)**
+We divide by $\sqrt{2} \approx 1.41$.
+* Scaled Score (Exact): $10 / 1.41 \approx 7.09$
+* Scaled Score (Misaligned): $7 / 1.41 \approx 4.96$
 
 **Step 3: Softmax**
 We exponentiate and normalize to get percentages.
-
-* 
-* 
-* Total: 
-* **Probability (Exact Match):** 
-* **Probability (Misaligned):** 
+* $e^{7.09} \approx 1199$
+* $e^{4.96} \approx 142$
+* Total: $1341$
+* **Probability (Exact Match):** $1199 / 1341 \approx \mathbf{89\%}$
+* **Probability (Misaligned):** $142 / 1341 \approx \mathbf{11\%}$
 
 Notice how the mechanism successfully identified the aligned vector as the important one, giving it 89% of the attention!
 
