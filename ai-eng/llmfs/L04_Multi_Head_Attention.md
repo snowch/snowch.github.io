@@ -74,9 +74,9 @@ Instead, we hire a **Committee of 8 Experts**:
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
 Let's visualize this "filtering" process. In the plot below:
-* **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding.
-* **The Projections (Arrows):** The weights ($W_i$) act as lenses, filtering the information.
-* **The Subspaces (Right):** Each head ends up with a smaller vector containing *only* the info it cares about.
+* **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding ($d=512$).
+* **The Split (Equal Parts):** We project this into 8 **equal-sized** subspaces ($d_k = 64$).
+* **The Result:** Each head gets a vector that is 1/8th the size of the original, containing only the specific info it needs.
 
 :::{code-cell} ipython3
 :tags: [remove-input]
@@ -86,84 +86,94 @@ import matplotlib.patches as patches
 import numpy as np
 
 def plot_multihead_projection_concept():
-    fig, ax = plt.subplots(figsize=(12, 7))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 8)
+    fig, ax = plt.subplots(figsize=(14, 8)) # Increased size slightly
+    ax.set_xlim(0, 14)
+    ax.set_ylim(0, 9)
     ax.axis('off')
 
-    # --- Define locations ---
+    # --- Configuration ---
     input_x = 1
-    proj_start_x = 2.5
-    proj_end_x = 6.5
-    output_x = 8
+    output_x = 10
     
-    y_centers = [6, 4, 2] # Vertical centers for 3 example heads
-    colors = ['#FF9999', '#99FF99', '#9999FF'] # Red, Green, Blue themes
-    labels = ["Head 1: Grammar", "Head 2: Tense", "Head 3: Meaning"]
+    # Coordinates for the "Heads" (Outputs)
+    # We show them essentially "stacking up" to equal the total concept, 
+    # but separated to show independence.
+    y_positions = [7, 4.5, 2] 
+    colors = ['#FF9999', '#99FF99', '#9999FF'] 
+    labels = ["Head 1\nGrammar", "Head 2\nTense", "Head 3\nMeaning"]
+
+    # FONT SIZES
+    font_title = 20
+    font_label = 16
+    font_math = 14
+    font_annot = 14
 
     # --- 1. Draw Input Vector (The "General Report") ---
-    # Represented as a stack of mixed colors showing all info is blended
-    height = 5
-    width = 1.2
+    height = 6
+    width = 1.5
     base_y = 1.5
     
-    # Draw the main container outline
-    input_rect = patches.Rectangle((input_x, base_y), width, height, linewidth=2, edgecolor='black', facecolor='none', zorder=5)
+    # Container
+    input_rect = patches.Rectangle((input_x, base_y), width, height, linewidth=3, edgecolor='black', facecolor='none', zorder=5)
     ax.add_patch(input_rect)
     
-    # Fill with mixed "information" segments
+    # "Mixed Info" bands
     num_segments = 20
     seg_height = height / num_segments
     np.random.seed(42) 
-    
-    # FIX: Updated from plt.cm.get_cmap to plt.get_cmap to avoid deprecation warning
     segment_colors = plt.get_cmap('tab20').colors
-    
     for i in range(num_segments):
         color = segment_colors[i % len(segment_colors)]
         rect = patches.Rectangle((input_x, base_y + i*seg_height), width, seg_height, facecolor=color, alpha=0.7, edgecolor='none')
         ax.add_patch(rect)
 
-    ax.text(input_x + width/2, base_y - 0.5, "Input Embedding\n($d_{model}=512$)\n'Mixed Info'", ha='center', va='top', fontweight='bold')
+    # Label Input
+    ax.text(input_x + width/2, base_y - 0.6, "Input Embedding\n($d_{model}=512$)", ha='center', va='top', fontweight='bold', fontsize=font_label)
 
-    # --- Loop through heads to draw Projections and Subspaces ---
+    # --- 2. Draw The Projections (Arrows & Matrices) ---
     
-    for i, (y_c, color, label) in enumerate(zip(y_centers, colors, labels)):
-        # A. Draw Projection Arrows (The "Lenses")
+    proj_start_x = input_x + width + 0.2
+    proj_end_x = output_x - 0.2
+    
+    for i, (y_c, color, label) in enumerate(zip(y_positions, colors, labels)):
+        # A. Arrow from Input Center to Head Center
         arrow = patches.FancyArrowPatch(
-            (proj_start_x, 4), (proj_end_x, y_c),
-            arrowstyle='-|>,head_width=0.4,head_length=0.8',
-            connectionstyle=f"arc3,rad={(i-1)*-0.2}", # Curve the outer arrows
-            color=color, lw=3, zorder=2
+            (proj_start_x, base_y + height/2), (proj_end_x, y_c),
+            arrowstyle='-|>,head_width=0.6,head_length=1.0',
+            connectionstyle=f"arc3,rad={(i-1)*-0.15}", 
+            color=color, lw=4, zorder=2, alpha=0.8
         )
         ax.add_patch(arrow)
         
-        # B. Draw the Linear Weight Matrix Icon (The transformation mechanism)
-        # Calculate midpoint for the matrix icon along the curve
+        # B. Matrix Box (The "Lens")
         mid_x = (proj_start_x + proj_end_x) / 2
-        # Simple linear interpolation for y midpoint (good enough for visualization)
-        mid_y = (4 + y_c) / 2 + (i-1)*0.5 
+        mid_y = (base_y + height/2 + y_c) / 2 + (i-1)*0.5 # Slight offset for visual separation
         
-        matrix_box = patches.Rectangle((mid_x - 0.4, mid_y - 0.4), 0.8, 0.8, facecolor='white', edgecolor=color, lw=2, zorder=3)
-        ax.add_patch(matrix_box)
-        ax.text(mid_x, mid_y, "$W_{i}$", ha='center', va='center', color=color, fontweight='bold', zorder=4)
+        # Matrix Label
+        ax.text(mid_x, mid_y + 0.6, f"$W_{i}$", ha='center', va='center', color=color, fontweight='bold', fontsize=font_label, zorder=6)
 
-        # C. Draw Output Subspaces (The "Specialized" Vectors)
-        # Smaller, monochromatic bars
-        out_h = 1.5
-        out_w = 0.8
-        out_rect = patches.Rectangle((output_x, y_c - out_h/2), out_w, out_h, facecolor=color, edgecolor='black', lw=2, alpha=0.8)
+        # C. Output Subspace Blocks
+        # Make them look identical in size
+        out_h = 1.8
+        out_w = 1.5
+        out_rect = patches.Rectangle((output_x, y_c - out_h/2), out_w, out_h, facecolor=color, edgecolor='black', lw=2, alpha=0.9)
         ax.add_patch(out_rect)
         
-        # Add labels for specialization
-        ax.text(output_x + out_w + 0.2, y_c, label + f"\n($d_k=64$)", ha='left', va='center', fontsize=10, color='black')
+        # Label each head
+        ax.text(output_x + out_w + 0.3, y_c, label, ha='left', va='center', fontsize=font_label, color='black')
+        # Math label showing the split
+        ax.text(output_x + out_w + 0.3, y_c - 0.6, "($d_k=64$)", ha='left', va='center', fontsize=font_math, color='#555')
 
-    # --- Final Annotations ---
-    ax.text(input_x + width + 0.2, 4, "Split &\nProject", ha='left', va='center', fontsize=12, style='italic')
-    ax.text(mid_x, 7.5, "Linear Projections\n(Filtering Information)", ha='center', va='center', fontsize=12, fontweight='bold')
-    ax.text(output_x + out_w/2, 0.5, "Projected Subspaces\n'Specialized Views'", ha='center', va='top', fontweight='bold')
+    # --- 3. Final Annotations describing the Split ---
+    
+    # Title
+    ax.text(7, 8.5, "Multi-Head Projection: Dividing the Work", ha='center', va='center', fontsize=font_title, fontweight='bold')
+    
+    # Explanation of the split
+    ax.text(7, 0.5, "Total Dimensions (512) $\\div$ Heads (8) = 64 dims per Head", 
+            ha='center', va='center', fontsize=font_label, fontweight='bold', 
+            bbox=dict(facecolor='#f0f0f0', edgecolor='gray', boxstyle='round,pad=0.5'))
 
-    plt.title("Visualizing Multi-Head Projection: Specialization via Subspaces", fontsize=14, pad=20)
     plt.tight_layout()
     plt.show()
 
