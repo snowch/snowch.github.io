@@ -60,9 +60,7 @@ Now, the vector for "Sky" is no longer just "Sky"; it is "Sky + a little bit of 
 
 ## Part 2: The Math of Similarity
 
-How do we mathematically calculate "similarity" between a Query and a Key? We use the **Dot Product**.
-
-To determine which words are relevant to each other, we use the **Dot Product**. This operation measures alignment: if two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative.
+In transformers, to determine which words are relevant to each other, we use the **Dot Product**. This operation measures alignment: if two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative.
 
 ### Visualizing the "Magnitude Problem"
 
