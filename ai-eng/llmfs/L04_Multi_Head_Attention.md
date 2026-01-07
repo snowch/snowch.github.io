@@ -37,7 +37,7 @@ By the end of this post, you'll understand:
 - Why we project vectors into different **Subspaces**.
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
-```{code-cell} ipython3
+:::{code-cell} ipython3
 :tags: [remove-input]
 
 import os
@@ -55,7 +55,7 @@ import numpy as np
 
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
-```
+:::
 
 ---
 
@@ -70,6 +70,8 @@ Instead, we hire a **Committee of 8 Experts**:
 * **Head 2 (The Historian):** Looks for past/present tense consistency.
 * **Head 3 (The Translator):** Looks for definitions and synonyms.
 * ...
+
+
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
@@ -106,7 +108,7 @@ Let's visualize how two different heads might analyze the same sentence.
 
 Notice how they highlight completely different parts of the matrix.
 
-```{code-cell} ipython3
+:::{code-cell} ipython3
 :tags: [remove-input]
 
 tokens = ["The", "cat", "sat", "on", "the", "mat", "because", "it", "was", "soft"]
@@ -151,7 +153,7 @@ ax2.grid(False)
 
 plt.tight_layout()
 plt.show()
-```
+:::
 
 ---
 
@@ -168,7 +170,7 @@ The shape transformation looks like this:
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
-```python
+:::{code-cell} ipython3
 import math
 import torch
 import torch.nn as nn
@@ -199,7 +201,7 @@ class MultiHeadAttention(nn.Module):
         K = self.W_k(k).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
         V = self.W_v(v).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
         
-        # 2. Scaled Dot-Product Attention (re-using logic from [L03_The_Attention_Mechanism.md])
+        # 2. Scaled Dot-Product Attention (re-using logic from L03)
         # Scores shape: [Batch, Heads, Seq, Seq]
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
@@ -219,12 +221,12 @@ class MultiHeadAttention(nn.Module):
         
         # 4. Final Projection (The "Mix")
         return self.W_o(attn_output)
-```
+:::
 
-```{note}
+:::{note}
 **Why `.contiguous()`?**
 When we `transpose` a tensor in PyTorch, we aren't actually moving data in memory; we are just changing the "stride" (how the computer steps through memory). `view` requires the data to be contiguous in memory. Calling `.contiguous()` creates a fresh copy of the data with the correct memory layout, preventing runtime errors.
-```
+:::
 
 ---
 
