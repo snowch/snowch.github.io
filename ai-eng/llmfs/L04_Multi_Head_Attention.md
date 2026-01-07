@@ -199,7 +199,7 @@ class MultiHeadAttention(nn.Module):
         K = self.W_k(k).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
         V = self.W_v(v).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
         
-        # 2. Scaled Dot-Product Attention (re-using logic from L03)
+        # 2. Scaled Dot-Product Attention (re-using logic from [L03_The_Attention_Mechanism.md])
         # Scores shape: [Batch, Heads, Seq, Seq]
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
         
