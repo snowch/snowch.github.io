@@ -100,16 +100,63 @@ We fix this by adding **Positional Encodings**.
 
 ## Part 3: Positional Encoding (The Sine/Cosine Trick)
 
-Instead of just giving the model the word vector, we add a **position signal** to it. Concretely, we build a vector for each position where **each dimension is a sine or cosine value** at a specific frequency. Then we **add that position vector** to the token embedding so the model can tell "same word, different place" apart.
+This is often the most confusing part of the Transformer architecture, so let's derive it from scratch.
 
-We use sine and cosine waves at different frequencies (typically alternating sin and cos across dimensions). This gives us two useful properties:
-1. **Every position is distinct.** Low-frequency waves change slowly, high-frequency waves change quickly, and their combination yields a unique signature per position.
-2. **Relative distance is easy to learn.** A shifted sine/cosine pair can be expressed as a linear function of the original pair, which makes it easier for attention layers to infer how far apart two tokens are.
+We need to give every word a unique ID for its position (). But we have constraints:
+
+1. **Values must be bounded:** Neural networks hate large numbers. If we just use integers (), the values for the 500th word will explode the gradients.
+2. **Steps must be consistent:** The "distance" between position 1 and 2 should be the same as between position 4 and 5.
+3. **Deterministic:** We need to calculate this on the fly for any sentence length.
+
+### The Intuition: The "Binary Clock"
+
+How can we represent large numbers using only s and s? **Binary.**
+
+Look at how bits change as we count up:
+
+| Number | Bit 3 (Slow) | Bit 2 (Medium) | Bit 1 (Fast) |
+| --- | --- | --- | --- |
+| **0** | 0 | 0 | 0 |
+| **1** | 0 | 0 | 1 |
+| **2** | 0 | 1 | 0 |
+| **3** | 0 | 1 | 1 |
+| **4** | 1 | 0 | 0 |
+
+Notice the pattern?
+
+* The **Least Significant Bit (Fast)** alternates every single step:  (High Frequency).
+* The **Next Bit (Medium)** alternates every two steps:  (Lower Frequency).
+* The **Most Significant Bit (Slow)** alternates every four steps (Lowest Frequency).
+
+Each column oscillates at a different frequency. Together, they create a unique combination for every row.
+
+### From Binary to Continuous (Sine & Cosine)
+
+Transformers use this exact logic, but instead of discrete bits (), we use **continuous waves** ( to ) using Sine and Cosine.
+
+* **Dimension 0** of our position vector is like the "fast bit": it wiggles up and down very quickly as you move along the sentence.
+* **Dimension 100** is like the "slow bit": it wiggles up and down very slowly.
+
+By combining these different "wiggles," every single position gets a unique fingerprint vector.
 
 ### The Formula
 
 For a position  and dimension :
 
+Don't let the scary  scare you. It’s just a knob that controls the **wavelength**:
+
+* When  is low (low dimension index), the denominator is small  **High Frequency wave.**
+* When  is high (high dimension index), the denominator is huge ()  **Low Frequency wave.**
+
+### Visualization
+
+Let's generate the matrix. In the plot below:
+
+* **X-axis:** The Embedding Dimensions (0 to 128).
+* **Y-axis:** The Position in the sentence (0 to 50).
+* **Color:** The value (Blue is negative, Red is positive).
+
+Notice the "barber pole" pattern? That is the frequencies getting slower as you move to the right (higher dimensions).
 
 ```{code-cell} ipython3
 :tags: [remove-input]
@@ -131,15 +178,30 @@ plt.figure(figsize=(10, 6))
 plt.imshow(pe, cmap='RdBu', aspect='auto')
 plt.colorbar(label='Encoding Value')
 plt.title("Positional Encoding Matrix (Sine & Cosine)")
-plt.xlabel("Embedding Dimension")
-plt.ylabel("Position in Sentence")
+plt.xlabel("Embedding Dimension (Frequency decreases →)")
+plt.ylabel("Position in Sentence (Time ↓)")
 plt.show()
+
 
 ```
 
-This heatmap shows the **positional encoding matrix** itself: each row is a position, and each column is an embedding dimension filled with sine/cosine values.
+### The "Why Addition?" Question
 
-To make the “add the position signal” step concrete, here’s a tiny toy example showing the **embedding**, the **positional encoding**, and the **sum**:
+A common question is: *Why do we ADD this to the word embedding? Won't that ruin the word's meaning?*
+
+Imagine our embedding space is a giant 512-dimensional room.
+
+1. **Word Embedding:** "King" moves us to a specific coordinate in that room.
+2. **Positional Encoding:** Moves us a *tiny* nudge in a specific direction based on position.
+
+Because the space is so high-dimensional (512, 1024, or even 12288 dimensions in GPT-3), the "nudge" for position doesn't overwrite the meaning. It just "colors" it.
+
+* "King" at pos 1  "King" + slight blue tint.
+* "King" at pos 99  "King" + slight red tint.
+
+The model learns to distinguish the "King-ness" (meaning) from the "Red-ness" (position).
+
+Here is the visual proof:
 
 ```{code-cell} ipython3
 :tags: [remove-input]
@@ -154,16 +216,17 @@ toy_sum = toy_embeddings + toy_positions
 
 fig, axes = plt.subplots(1, 3, figsize=(12, 3))
 axes[0].imshow(toy_embeddings, aspect="auto", cmap="viridis")
-axes[0].set_title("Token Embeddings")
+axes[0].set_title("1. Token Embeddings (Meaning)")
 axes[1].imshow(toy_positions, aspect="auto", cmap="RdBu")
-axes[1].set_title("Positional Encodings")
+axes[1].set_title("2. Positional Encodings (Order)")
 axes[2].imshow(toy_sum, aspect="auto", cmap="viridis")
-axes[2].set_title("Embeddings + Positions")
+axes[2].set_title("3. Sum (Input to Model)")
 for ax in axes:
     ax.set_xlabel("Embedding Dimension")
     ax.set_ylabel("Token Position")
 plt.tight_layout()
 plt.show()
+
 
 ```
 
