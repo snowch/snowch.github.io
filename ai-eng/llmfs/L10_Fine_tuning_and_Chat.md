@@ -17,7 +17,7 @@ kernelspec:
 
 ---
 
-We have reached the finish line. In [L09_Inference_and_Sampling.md], we saw that our model can complete text. However, if you ask a "Base" model: *"What is the capital of France?"*, it might respond with: *"...and what is the capital of Germany?"*
+We have reached the finish line. In [L09 Inference and Sampling](L09_Inference_and_Sampling.md), we saw that our model can complete text. However, if you ask a "Base" model: *"What is the capital of France?"*, it might respond with: *"...and what is the capital of Germany?"*
 
 This final post concludes the journey by explaining how we transition from a model that simply "predicts the next word" to a model that can actually follow instructions and act as a helpful assistant.
 
@@ -128,7 +128,7 @@ You now have the blueprints to build, train, and talk to your own neural network
 
 ---
 
-**What's next for you?** You could take the code from [L07_Assembling_the_GPT.md] and train it on a small dataset like **TinyShakespeare** or **OpenWebText**. Or, you could explore **Quantization** to make these models run faster on your laptop.
+**What's next for you?** You could take the code from [L07 Assembling the GPT](L07_Assembling_the_GPT.md) and train it on a small dataset like **TinyShakespeare** or **OpenWebText**. Or, you could explore **Quantization** to make these models run faster on your laptop.
 
 Thank you for following this "From Scratch" series!
 
