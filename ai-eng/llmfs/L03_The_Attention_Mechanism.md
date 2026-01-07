@@ -76,13 +76,14 @@ In the plot below, we compare a **Query (Blue)** against three different **Keys*
 ```{code-cell} ipython3
 :tags: [remove-input]
 
-import matplotlib.pyplot as plt
 import numpy as np
 import logging
 import warnings
 
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
+import matplotlib.pyplot as plt
 
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
