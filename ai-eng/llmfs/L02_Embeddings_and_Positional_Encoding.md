@@ -21,7 +21,7 @@ In [L01 - Tokenization](L01_Tokenization_From_Scratch.md), we turned text into I
 
 In this post, we solve two problems:
 1. **Meaning:** How do we represent words so that "King" is mathematically closer to "Queen" than it is to "Toaster"?
-2. **Order:** Since Transformers process all tokens at once, how do we tell them that "The dog bit the man" is different from "The man bit the dog"?
+2. **Order:** Since the attention-based model we’ll build in the next lesson processes all tokens at once, how do we tell it that "The dog bit the man" is different from "The man bit the dog"?
 
 By the end of this post, you'll understand:
 - The intuition of **Embedding Spaces**.
@@ -90,9 +90,9 @@ plt.show()
 
 ## Part 2: The Problem of Order
 
-Standard Neural Networks (like the MLPs we built) process data in a specific order. Transformers are different: they are **parallel**. They look at every word in a sentence at the exact same time.
+Standard Neural Networks (like the MLPs we built in the [LLM from Scratch series](https://snowch.github.io/ai-eng/llmfs/)) process data in a specific order. The attention mechanism we’ll introduce next is **parallel**. It looks at every word in a sentence at the exact same time.
 
-Without help, the Transformer sees the sentence "The dog bit the man" as a **bag of words**. It has no idea which word came first.
+Without help, the attention-based model sees the sentence "The dog bit the man" as a **bag of words**. It has no idea which word came first.
 
 We fix this by adding **Positional Encodings**.
 
