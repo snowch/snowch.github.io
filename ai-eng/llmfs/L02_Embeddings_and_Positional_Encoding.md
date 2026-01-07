@@ -100,9 +100,11 @@ We fix this by adding **Positional Encodings**.
 
 ## Part 3: Positional Encoding (The Sine/Cosine Trick)
 
-Instead of just giving the model the word vector, we add a "signal" to it that represents its position.
+Instead of just giving the model the word vector, we add a **position signal** to it. Concretely, we build a vector for each position where **each dimension is a sine or cosine value** at a specific frequency. Then we **add that position vector** to the token embedding so the model can tell "same word, different place" apart.
 
-We use Sine and Cosine functions of different frequencies. Why? Because the relationship between positions becomes a linear function that the model can easily learn to "attend" to.
+We use sine and cosine waves at different frequencies (typically alternating sin and cos across dimensions). This gives us two useful properties:
+1. **Every position is distinct.** Low-frequency waves change slowly, high-frequency waves change quickly, and their combination yields a unique signature per position.
+2. **Relative distance is easy to learn.** A shifted sine/cosine pair can be expressed as a linear function of the original pair, which makes it easier for attention layers to infer how far apart two tokens are.
 
 ### The Formula
 
@@ -131,6 +133,36 @@ plt.colorbar(label='Encoding Value')
 plt.title("Positional Encoding Matrix (Sine & Cosine)")
 plt.xlabel("Embedding Dimension")
 plt.ylabel("Position in Sentence")
+plt.show()
+
+```
+
+This heatmap shows the **positional encoding matrix** itself: each row is a position, and each column is an embedding dimension filled with sine/cosine values.
+
+To make the “add the position signal” step concrete, here’s a tiny toy example showing the **embedding**, the **positional encoding**, and the **sum**:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+# Toy example: 5 tokens, 8 dimensions
+toy_len = 5
+toy_dim = 8
+
+toy_embeddings = np.random.randn(toy_len, toy_dim)
+toy_positions = get_positional_encoding(toy_len, toy_dim)
+toy_sum = toy_embeddings + toy_positions
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 3))
+axes[0].imshow(toy_embeddings, aspect="auto", cmap="viridis")
+axes[0].set_title("Token Embeddings")
+axes[1].imshow(toy_positions, aspect="auto", cmap="RdBu")
+axes[1].set_title("Positional Encodings")
+axes[2].imshow(toy_sum, aspect="auto", cmap="viridis")
+axes[2].set_title("Embeddings + Positions")
+for ax in axes:
+    ax.set_xlabel("Embedding Dimension")
+    ax.set_ylabel("Token Position")
+plt.tight_layout()
 plt.show()
 
 ```
