@@ -176,6 +176,18 @@ $$\text{Denominator} = 10000^{510/512} \approx 10000$$
 
 This pair acts like the **"Hour Hand"** (Long-term Context). It takes ~62,800 words to complete one cycle!
 
+```{note}
+**Wait, aren't all embedding dimensions supposed to be equal?**
+
+In a standard embedding (like `word2vec`), yes—Dimension 0 and Dimension 511 are just arbitrary "buckets" for numbers. They start equal.
+
+**Positional Encoding changes this.** By adding these fixed waves, we are strictly enforcing a hierarchy onto the dimensions:
+* **Low Dimensions** become the "High Frequency / Precision" channels.
+* **High Dimensions** become the "Low Frequency / Context" channels.
+
+The model is smart enough to adapt to this. During training, it learns to store semantic information in a way that doesn't get destroyed by these specific frequencies, effectively "riding the waves" to understand both meaning and order simultaneously.
+```
+
 ### Visualization
 
 Let's generate the matrix. In the plot below:
