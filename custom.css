@@ -1,9 +1,10 @@
-/* Fenced code blocks + {code} directive output */
+/* Fenced code blocks + {code} directive output + Stream/Print outputs */
 pre.myst-code,
 .myst-code pre,
 pre.myst-code code,
-.myst-code code {
-  font-size: 0.9em;   /* tweak: 0.85em–1em */
+.myst-code code,
+.myst-jp-stream-output pre {
+  font-size: 0.9em;
   line-height: 1.4;
 }
 
