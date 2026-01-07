@@ -134,14 +134,13 @@ Notice the pattern?
 
 Each column oscillates at a different frequency. Together, they create a unique combination for every row, using only $0$s and $1$s.
 
-### From Binary to Continuous (Sine & Cosine)
+### From Binary to Continuous (The Spectrum)
 
-Transformers use this exact logic. But instead of discrete bits ($0/1$), we use **continuous waves** ($-1$ to $1$) using **Sine and Cosine**.
+Transformers adapt this binary idea using **continuous waves** (Sine and Cosine). But instead of just "fast" and "slow," we have a smooth spectrum of frequencies across the embedding dimensions.
 
-* **Dimension 0** of our position vector is like the "fast bit": it wiggles up and down very quickly ($High$ $Frequency$).
-* **Dimension 100** is like the "slow bit": it wiggles up and down very slowly ($Low$ $Frequency$).
-
-By combining these different "wiggles," every single position gets a unique fingerprint vector.
+* **Dimension 0 (The Seconds Hand):** The wave wiggles extremely fast. A small change in position causes a huge change in value. This gives the model **precision** (distinguishing word #5 from #6).
+* **Dimension 100...:** The frequency gradually slows down.
+* **Dimension 512 (The Hour Hand):** The wave wiggles extremely slowly. This gives the model **long-term context** (distinguishing word #5 from #5000).
 
 
 
@@ -150,11 +149,24 @@ By combining these different "wiggles," every single position gets a unique fing
 For a position $pos$ and dimension $i$:
 
 $$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
-$$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
 
-Don't let the scary $10000^{...}$ term scare you. It is just a knob that controls the **wavelength**:
-* When $i$ is low (low dimension index), the denominator is small $\rightarrow$ **High Frequency wave.**
-* When $i$ is high (high dimension index), the denominator is huge ($10000$) $\rightarrow$ **Low Frequency wave.**
+Don't let the $10000^{...}$ term scare you. It is just a "wavelength knob." Let's plug in some real numbers to see it in action.
+
+**Example: Plugging in the Numbers**
+
+Imagine we have a model with $d_{model} = 512$.
+
+**Case 1: Low Dimension ($i=0$)**
+We are at the very start of the vector. The exponent becomes $0$ (since $2*0/512 = 0$).
+$$\text{Denominator} = 10000^0 = 1$$
+$$PE = \sin\left(\frac{pos}{1}\right) = \sin(pos)$$
+The value cycles fully every $2\pi$ ($\approx 6$) words. This is our **"Fast Bit"**.
+
+**Case 2: High Dimension ($i=256$)**
+We are at the end of the vector. The exponent becomes $1$ (since $2*256/512 = 1$).
+$$\text{Denominator} = 10000^1 = 10000$$
+$$PE = \sin\left(\frac{pos}{10000}\right)$$
+The input to the sine function is tiny! It will take $2\pi * 10000$ ($\approx 62,800$) words for this wave to complete just one cycle. This is our **"Slow Bit"**.
 
 ### Visualization
 
