@@ -162,6 +162,15 @@ final_input = embeddings + positions
 2. **Positional Encodings** inject a sense of order into a model that otherwise sees everything at once.
 3. **Addition:** We simply add these two vectors together. The model learns to separate the "meaning" signal from the "position" signal during training.
 
+## Related reading
+
+Embeddings at Scale Book:
+
+- [Ch01: The Embedding Revolution](https://snowch.github.io/embeddings-at-scale-book/chapters/ch01_embedding_revolution.html)
+- [Ch02: Similarity & Distance Metrics](https://snowch.github.io/embeddings-at-scale-book/chapters/ch02_similarity_distance_metrics.html)
+- [Ch03: Vector Database Fundamentals](https://snowch.github.io/embeddings-at-scale-book/chapters/ch03_vector_database_fundamentals.html)
+- [Ch04: Text Embeddings](https://snowch.github.io/embeddings-at-scale-book/chapters/ch04_text_embeddings.html)
+
 **Next Up: L03 – The Attention Mechanism.** This is the "Aha!" moment of the entire series. We will build the logic that allows the model to decide which words in a sentence are most relevant to each other.
 
 ---
