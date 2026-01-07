@@ -180,6 +180,20 @@ def plot_multihead_projection_concept():
 plot_multihead_projection_concept()
 :::
 
+:::{important} Technical Note: What actually gets split?
+
+You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input?"*
+
+**No.** That would be disastrous, because the first 64 numbers of the embedding might not contain the specific grammar information Head 1 needs.
+
+The process happens in two specific steps:
+
+1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by the weight matrix ($W$). This operation has access to the **entire** input vector. It blends all the information together.
+2.  **The Split (Reshape):** The *result* of that multiplication is a new 512-dimensional vector. **This new vector** is what gets chopped into 8 chunks of 64.
+
+So, Head 1 *can* see the whole input, but the Linear Layer ensures that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
+:::
+
 ---
 
 ## Part 2: The Math of Projections
