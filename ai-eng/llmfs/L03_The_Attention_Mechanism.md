@@ -62,11 +62,11 @@ Now, the vector for "Sky" is no longer just "Sky"; it is "Sky + a little bit of 
 
 How do we mathematically calculate "similarity" between a Query and a Key? We use the **Dot Product**.
 
-If two vectors point in the same direction, their dot product is large (positive). If they point in opposite directions, it is negative.
+To determine which words are relevant to each other, we use the **Dot Product**. This operation measures alignment: if two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative.
 
 ### Visualizing the "Magnitude Problem"
 
-Before we look at the formula, let's look at why the standard dot product is dangerous for Neural Networks.
+However, there is a catch. The dot product captures both alignment *and* magnitude. Before we look at the formula, let's visualize why this is dangerous for neural networks.
 
 In the plot below, we compare a **Query (Blue)** against three different **Keys**.
 * **K1 (Short):** Perfectly aligned with Q, but small.
