@@ -17,11 +17,14 @@ kernelspec:
 
 ---
 
-In the [Neural Networks from Scratch series](../nnfs/nn_tutorial_blog.md#the-networks-job), we fed our neural networks pixel values ($0$ to $1$). But how do we feed a model a sentence like **"The quick brown fox"**?
+In this series, we are building a **Generative Pre-trained Transformer (GPT)** from scratch—the exact architecture behind systems like ChatGPT and Llama.
 
-Neural networks don't understand letters, and they don't understand words. They understand **vectors**. To get there, we need a "translator" that turns text into a sequence of integers. This process is called **Tokenization**.
+But before we can build the brain (the Transformer), we need to teach it to read. A Transformer generally doesn't understand letters or words; it understands **numbers**. To bridge this gap, we need a "translator" that converts human text into a sequence of integers.
+
+This process is called **Tokenization**. It is the very first step in the pipeline.
 
 By the end of this post, you'll understand:
+
 - Why we don't just use characters or whole words.
 - The intuition behind **Byte Pair Encoding (BPE)**.
 - How to build a BPE tokenizer from scratch that handles "Out of Vocabulary" words.
@@ -62,7 +65,10 @@ To turn text into numbers, we have three choices. Each has a major flaw:
 | **Word-level** | `cat` | Massive (50k+) | Can't handle "cats" if it only saw "cat". |
 | **Subword-level** | `play`, `##ing` | Medium (32k-50k) | **Just right.** Meaningful and flexible. |
 
-**Subword tokenization** (like BPE) is the industry standard. It ensures that common words are one unit, while rare words are broken into chunks like `un` + `believ` + `able`.
+**Subword tokenization (specifically BPE)** is the industry standard used by almost every modern Large Language Model (GPT-4, Llama 3, Claude). It strikes the perfect balance:
+
+ - It keeps common words (like "apple") as single integers for efficiency.
+ - It breaks rare words (like "unbelievable") into meaningful chunks (`un`, `believ`, `able`) so the model can understand words it has never seen before.
 
 ---
 
@@ -298,7 +304,9 @@ for w in test_words:
 
 Once we have merges, we can build a **vocabulary**: the set of tokens our tokenizer can produce on this corpus. Then we assign each token a unique integer **ID**.
 
-In the next blog, these IDs will be row indices into an **Embedding Matrix**.
+This list of integers (ids) is the actual input to our GPT. When we build the training loop in [L08_Training_the_LLM.md, we won't be feeding it English sentences; we will be feeding it these exact lists of numbers.
+
+In the next blog, we will see how the model turns these simple integers into rich, high-dimensional vectors.
 
 ```{code-cell} ipython3
 def build_token2id(vocab: dict[str, int], special_tokens: list[str] | None = None) -> dict[str, int]:
@@ -380,10 +388,10 @@ plt.show()
 
 We have successfully bridged the gap between human language and machine numbers:
 
-1. **Tokenization** breaks text into chunks the model can manage.
-2. **BPE** learns a "gluing" recipe that turns characters into useful subwords.
-3. **Out-of-vocabulary words** still work because you can always fall back to smaller pieces.
-4. **Token IDs** are the integers your model uses to look up embeddings.
+1. **The Goal**: To build a GPT, we first need to convert text into numbers.
+2. **BPE**: We use Byte Pair Encoding to learn a "gluing" recipe that efficiently compresses text into useful subwords.
+3. **Robustness**: This method ensures our model never crashes on unknown words—it just breaks them down into smaller, known pieces.
+4. **Next Step**: We now have our **Token IDs**. In the next lesson, we will give these numbers meaning.
 
 ---
 
