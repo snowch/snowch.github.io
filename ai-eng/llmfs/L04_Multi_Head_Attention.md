@@ -214,77 +214,40 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)
 
 Let's visualize this flow:
 
-:::{code-cell} ipython3
-:tags: [remove-input]
+:::{mermaid}
+graph TD
+    subgraph Inputs
+        Q(Query)
+        K(Key)
+        V(Value)
+    end
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+    Q --> LQ[1. Linear Projections]
+    K --> LK[1. Linear Projections]
+    V --> LV[1. Linear Projections]
 
-def plot_mha_pipeline():
-    fig, ax = plt.subplots(figsize=(10, 12))
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 12)
-    ax.axis('off')
+    LQ --> H1[2. Head 1 Attention]
+    LK --> H1
+    LV --> H1
 
-    # --- Styles ---
-    box_props = dict(boxstyle='round,pad=0.3', facecolor='#f0f0f0', edgecolor='black', lw=2)
-    op_props = dict(boxstyle='round,pad=0.3', facecolor='#FFEB99', edgecolor='orange', lw=2) # Yellow for operations
-    head_props = dict(boxstyle='round,pad=0.3', facecolor='#d0e0ff', edgecolor='#0044cc', lw=2) # Blue for heads
-    
-    arrow_props = dict(arrowstyle='->', lw=2, color='#444444')
-    
-    # --- 1. Inputs ---
-    # We start with Q, K, V (usually from the previous layer)
-    ax.text(2, 11, "V", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
-    ax.text(5, 11, "K", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
-    ax.text(8, 11, "Q", ha='center', va='center', fontsize=16, fontweight='bold', bbox=dict(boxstyle='circle', facecolor='white', ec='black'))
+    LQ --> H2[2. Head ... Attention]
+    LK --> H2
+    LV --> H2
 
-    # --- 2. Linear Projections (The "Split") ---
-    # We'll show 3 heads to imply 'h' heads
-    head_x = [2, 5, 8]
-    
-    for x in head_x:
-        # Draw Linear layers
-        ax.text(x, 9.5, "Linear", ha='center', va='center', fontsize=10, bbox=op_props)
-        # Arrows from inputs to Linears
-        ax.annotate("", xy=(x, 9.8), xytext=(x, 10.7), arrowprops=arrow_props)
-    
-    ax.text(5, 9.5, "...", ha='center', va='center', fontsize=20, fontweight='bold', zorder=10) # Ellipsis for multiple heads
+    LQ --> H8[2. Head 8 Attention]
+    LK --> H8
+    LV --> H8
 
-    # --- 3. Attention Heads ---
-    for i, x in enumerate(head_x):
-        label = f"Scaled Dot-Product\nAttention\n(Head {i+1})"
-        if i == 1: label = "..." # Middle one is ellipsis
-        
-        # Draw Attention Blocks
-        ax.text(x, 7.5, label, ha='center', va='center', fontsize=9, bbox=head_props)
-        # Arrows from Linear to Attn
-        ax.annotate("", xy=(x, 8.0), xytext=(x, 9.2), arrowprops=arrow_props)
+    H1 --> C[3. Concatenate]
+    H2 --> C
+    H8 --> C
 
-    # --- 4. Concatenation ---
-    ax.text(5, 5.5, "Concat", ha='center', va='center', fontsize=12, fontweight='bold', bbox=op_props, zorder=5)
-    
-    # Arrows from Attn to Concat
-    # Left head
-    ax.annotate("", xy=(4.5, 5.8), xytext=(2, 7.0), arrowprops=dict(arrowstyle='->', lw=2, color='#444444', connectionstyle="arc3,rad=0.1"))
-    # Middle
-    ax.annotate("", xy=(5, 5.8), xytext=(5, 7.0), arrowprops=arrow_props)
-    # Right head
-    ax.annotate("", xy=(5.5, 5.8), xytext=(8, 7.0), arrowprops=dict(arrowstyle='->', lw=2, color='#444444', connectionstyle="arc3,rad=-0.1"))
+    C --> O[4. Final Linear Transform]
+    O --> Out[Multi-Head Output]
 
-    # --- 5. Final Linear ---
-    ax.text(5, 3.5, "Linear", ha='center', va='center', fontsize=12, fontweight='bold', bbox=op_props)
-    ax.annotate("", xy=(5, 3.8), xytext=(5, 5.2), arrowprops=arrow_props)
-
-    # --- 6. Output ---
-    ax.text(5, 1.5, "Multi-Head Attention\nOutput", ha='center', va='center', fontsize=12, fontweight='bold', bbox=dict(boxstyle='square,pad=0.5', facecolor='#ccffcc', ec='green', lw=2))
-    ax.annotate("", xy=(5, 2.0), xytext=(5, 3.2), arrowprops=arrow_props)
-
-    plt.title("The Multi-Head Attention Pipeline", fontsize=16, pad=20)
-    plt.tight_layout()
-    plt.show()
-
-plot_mha_pipeline()
+    style C fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style O fill:#ffecb3,stroke:#ff6f00,stroke-width:2px
+    style Out fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
 :::
 
 ---
