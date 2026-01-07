@@ -71,9 +71,101 @@ Instead, we hire a **Committee of 8 Experts**:
 * **Head 3 (The Translator):** Looks for definitions and synonyms.
 * ...
 
-
-
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
+
+Let's visualize this "filtering" process. In the plot below:
+* **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding.
+* **The Projections (Arrows):** The weights ($W_i$) act as lenses, filtering the information.
+* **The Subspaces (Right):** Each head ends up with a smaller vector containing *only* the info it cares about.
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
+
+def plot_multihead_projection_concept():
+    fig, ax = plt.subplots(figsize=(12, 7))
+    ax.set_xlim(0, 12)
+    ax.set_ylim(0, 8)
+    ax.axis('off')
+
+    # --- Define locations ---
+    input_x = 1
+    proj_start_x = 2.5
+    proj_end_x = 6.5
+    output_x = 8
+    
+    y_centers = [6, 4, 2] # Vertical centers for 3 example heads
+    colors = ['#FF9999', '#99FF99', '#9999FF'] # Red, Green, Blue themes
+    labels = ["Head 1: Grammar", "Head 2: Tense", "Head 3: Meaning"]
+
+    # --- 1. Draw Input Vector (The "General Report") ---
+    # Represented as a stack of mixed colors showing all info is blended
+    height = 5
+    width = 1.2
+    base_y = 1.5
+    
+    # Draw the main container outline
+    input_rect = patches.Rectangle((input_x, base_y), width, height, linewidth=2, edgecolor='black', facecolor='none', zorder=5)
+    ax.add_patch(input_rect)
+    
+    # Fill with mixed "information" segments
+    num_segments = 20
+    seg_height = height / num_segments
+    np.random.seed(42) 
+    segment_colors = plt.cm.get_cmap('tab20').colors
+    for i in range(num_segments):
+        color = segment_colors[i % len(segment_colors)]
+        rect = patches.Rectangle((input_x, base_y + i*seg_height), width, seg_height, facecolor=color, alpha=0.7, edgecolor='none')
+        ax.add_patch(rect)
+
+    ax.text(input_x + width/2, base_y - 0.5, "Input Embedding\n($d_{model}=512$)\n'Mixed Info'", ha='center', va='top', fontweight='bold')
+
+    # --- Loop through heads to draw Projections and Subspaces ---
+    
+    for i, (y_c, color, label) in enumerate(zip(y_centers, colors, labels)):
+        # A. Draw Projection Arrows (The "Lenses")
+        arrow = patches.FancyArrowPatch(
+            (proj_start_x, 4), (proj_end_x, y_c),
+            arrowstyle='-|>,head_width=0.4,head_length=0.8',
+            connectionstyle=f"arc3,rad={(i-1)*-0.2}", # Curve the outer arrows
+            color=color, lw=3, zorder=2
+        )
+        ax.add_patch(arrow)
+        
+        # B. Draw the Linear Weight Matrix Icon (The transformation mechanism)
+        # Calculate midpoint for the matrix icon along the curve
+        mid_x = (proj_start_x + proj_end_x) / 2
+        # Simple linear interpolation for y midpoint (good enough for visualization)
+        mid_y = (4 + y_c) / 2 + (i-1)*0.5 
+        
+        matrix_box = patches.Rectangle((mid_x - 0.4, mid_y - 0.4), 0.8, 0.8, facecolor='white', edgecolor=color, lw=2, zorder=3)
+        ax.add_patch(matrix_box)
+        ax.text(mid_x, mid_y, "$W_{i}$", ha='center', va='center', color=color, fontweight='bold', zorder=4)
+
+        # C. Draw Output Subspaces (The "Specialized" Vectors)
+        # Smaller, monochromatic bars
+        out_h = 1.5
+        out_w = 0.8
+        out_rect = patches.Rectangle((output_x, y_c - out_h/2), out_w, out_h, facecolor=color, edgecolor='black', lw=2, alpha=0.8)
+        ax.add_patch(out_rect)
+        
+        # Add labels for specialization
+        ax.text(output_x + out_w + 0.2, y_c, label + f"\n($d_k=64$)", ha='left', va='center', fontsize=10, color='black')
+
+    # --- Final Annotations ---
+    ax.text(input_x + width + 0.2, 4, "Split &\nProject", ha='left', va='center', fontsize=12, style='italic')
+    ax.text(mid_x, 7.5, "Linear Projections\n(Filtering Information)", ha='center', va='center', fontsize=12, fontweight='bold')
+    ax.text(output_x + out_w/2, 0.5, "Projected Subspaces\n'Specialized Views'", ha='center', va='top', fontweight='bold')
+
+    plt.title("Visualizing Multi-Head Projection: Specialization via Subspaces", fontsize=14, pad=20)
+    plt.tight_layout()
+    plt.show()
+
+plot_multihead_projection_concept()
+:::
 
 ---
 
