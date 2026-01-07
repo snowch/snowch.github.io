@@ -60,15 +60,64 @@ We literally **add the input back to the output**.
 
 **Why?**
 
-Imagine you are trying to describe a complex concept. If you only give the "transformed" explanation, you might lose the original context. By adding  back, we provide a "highway" for the original signal to travel through. This makes it much easier for the gradient to flow backwards during training.
+Imagine you are trying to describe a complex concept. If you only give the "transformed" explanation, you might lose the original context. By adding the input back, we provide a "highway" for the original signal to travel through.
+
+```{important}
+**The Gradient Flow Advantage**
+
+The real magic of residual connections becomes clear during backpropagation. Consider a deep network with 100 layers:
+
+**Without Residuals:**
+- The gradient must flow through: Layer 100 → Layer 99 → ... → Layer 1
+- Each layer multiplies the gradient by its weight matrix derivatives
+- After 100 multiplications, the gradient often becomes vanishingly small (gradient vanishing) or explodes
+
+**With Residuals:** $y = x + F(x)$
+- The derivative is: $\frac{dy}{dx} = 1 + \frac{dF}{dx}$
+- The "+1" term creates a **direct path** for gradients to flow backward
+- Even if $\frac{dF}{dx}$ is tiny, the gradient still has magnitude ~1 from the identity path
+- This allows training of networks with 100+ layers successfully
+
+**Analogy:** It's like having both local roads (the transformation layers) and a highway (the skip connection). If local roads get congested, traffic can still flow via the highway.
+
+This is why ResNets, Transformers, and other modern architectures can be so deep—residual connections solved the vanishing gradient problem that plagued earlier deep networks.
+```
 
 ---
 
 ## Part 2: Layer Normalization (The Leveler)
 
-LayerNorm ensures that for every token, the mean of its features is  and the standard deviation is . This prevents any single feature or layer from dominating the calculation.
+LayerNorm ensures that for every token, the mean of its features is 0 and the standard deviation is 1. This prevents any single feature or layer from dominating the calculation.
 
 Unlike **BatchNorm** (common in CNNs), **LayerNorm** calculates statistics across the features of a single token. This makes it perfect for sequences of varying lengths.
+
+### LayerNorm vs. BatchNorm: What's the Difference?
+
+Both normalization techniques aim to stabilize training, but they compute statistics over different dimensions:
+
+| Aspect | BatchNorm | LayerNorm |
+| --- | --- | --- |
+| **Normalizes across** | Batch dimension (across examples) | Feature dimension (within each example) |
+| **Input shape** | `[Batch, Features]` or `[Batch, Channels, Height, Width]` | `[Batch, Seq_Len, Features]` |
+| **Statistics computed** | Mean/Std for each feature across all examples in batch | Mean/Std for each example across all features |
+| **Dependencies** | Requires large batches to get good statistics | Works with batch size = 1 |
+| **Typical use** | CNNs (image tasks) | Transformers, RNNs (sequence tasks) |
+
+**Why LayerNorm for Transformers?**
+- **Variable sequence lengths:** Different sentences have different lengths. BatchNorm would struggle with varying dimensions.
+- **Batch independence:** Each example can be normalized independently, making it work even with tiny batches (e.g., batch_size=1 during inference).
+- **Recurrent/sequential nature:** In sequences, we care about the distribution of features within each token, not across different tokens in a batch.
+
+**Visual Comparison:**
+```
+BatchNorm (shape [4, 512]):          LayerNorm (shape [4, 512]):
+┌─────────────────┐                  ┌─────────────────┐
+│ Example 1       │                  │ Example 1       │ ← Normalize these 512 values
+│ Example 2       │ ↑                │ Example 2       │ ← Normalize these 512 values
+│ Example 3       │ │ Normalize      │ Example 3       │ ← Normalize these 512 values
+│ Example 4       │ │ each column    │ Example 4       │ ← Normalize these 512 values
+└─────────────────┘ ↓                └─────────────────┘
+```
 
 **The Formula**
 
@@ -141,11 +190,84 @@ class LayerNorm(nn.Module):
 
 ---
 
+---
+
+## Part 5: Pre-Norm vs. Post-Norm - Where to Place LayerNorm?
+
+There are two ways to combine residuals and normalization in a Transformer block, and the choice has significant training implications:
+
+### Post-Norm (Original Transformer)
+```
+x = LayerNorm(x + Attention(x))
+x = LayerNorm(x + FeedForward(x))
+```
+
+**How it works:**
+1. Apply the transformation (Attention or FFN)
+2. Add the residual
+3. Normalize the result
+
+**Characteristics:**
+- Used in the original "Attention is All You Need" paper
+- Gradients can still be large early in training
+- Often requires learning rate warmup and careful tuning
+
+### Pre-Norm (Modern Standard)
+```
+x = x + Attention(LayerNorm(x))
+x = x + FeedForward(LayerNorm(x))
+```
+
+**How it works:**
+1. Normalize the input first
+2. Apply the transformation
+3. Add the residual
+
+**Characteristics:**
+- Used by GPT-2, GPT-3, and most modern LLMs
+- More stable gradients throughout training
+- Easier to train (less sensitive to hyperparameters)
+- The residual path stays "clean" (unnormalized)
+
+### Visual Comparison
+
+```
+Post-Norm:                       Pre-Norm:
+┌─────────┐                      ┌─────────┐
+│  Input  │                      │  Input  │
+└────┬────┘                      └────┬────┘
+     │                                │
+     ├──────────┐                     ├──────────┐
+     │          │                     │          │
+     ▼          │                     │          ▼
+┌─────────┐    │                     │    ┌──────────┐
+│Attention│    │                     │    │LayerNorm │
+└────┬────┘    │                     │    └────┬─────┘
+     │         │                     │         │
+     ▼         │                     │         ▼
+   ( + )◄──────┘                     │    ┌─────────┐
+     │                               │    │Attention│
+     ▼                               │    └────┬────┘
+┌──────────┐                         │         │
+│LayerNorm │                         │         ▼
+└────┬─────┘                         │       ( + )◄─┘
+     │                               │         │
+     ▼                               ▼         ▼
+  Output                          Output    Output
+```
+
+**Why Pre-Norm Won:**
+- Empirically, Pre-Norm is more stable and easier to optimize
+- The gradient flowing through the residual connection doesn't pass through LayerNorm
+- Works better for very deep networks (100+ layers)
+
+---
+
 ## Summary
 
-1. **Residual Connections** create a "high-speed rail" for the signal, preventing the vanishing gradient problem.
-2. **LayerNorm** re-centers the data at every step, keeping the optimization process stable.
-3. **The Pattern:** In a Transformer block, we follow the "Norm then Sub-layer" (Pre-Norm) or "Sub-layer then Norm" (Post-Norm) pattern. Most modern LLMs use **Pre-Norm** because it's more stable to train.
+1. **Residual Connections** create a "high-speed rail" for the signal, preventing the vanishing gradient problem through the "+1" term in gradients.
+2. **LayerNorm** re-centers the data at every step, keeping the optimization process stable by normalizing across features rather than across batches.
+3. **Pre-Norm vs. Post-Norm:** Most modern LLMs use **Pre-Norm** (normalize before the sub-layer) because it's more stable to train and less sensitive to hyperparameters.
 
 **Next Up: L06 – The Causal Mask.** When training a model to predict the next word, how do we stop it from "cheating" by looking at the answer? We'll build the triangular mask that hides the future.
 

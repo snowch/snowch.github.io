@@ -112,6 +112,32 @@ We only look at the top **K** most likely words and ignore everything else. This
 
 Instead of a fixed number of words, we pick the smallest set of words whose cumulative probability adds up to **P** (e.g., 0.9). This is more dynamic; if the model is very sure, it might only look at 2 words. If it's unsure, it might look at 20.
 
+**Concrete Example:**
+
+Suppose after applying temperature=1.0 to our logits and running softmax, we get these probabilities:
+
+| Token | Probability | Cumulative Probability |
+| --- | --- | --- |
+| "the" | 0.40 | 0.40 |
+| "a" | 0.30 | 0.70 |
+| "this" | 0.20 | 0.90 ← **Cutoff at p=0.9** |
+| "that" | 0.05 | 0.95 |
+| "my" | 0.03 | 0.98 |
+| "your" | 0.02 | 1.00 |
+
+**With `top_p = 0.9`:**
+1. Sort tokens by probability (already sorted above)
+2. Add probabilities until we reach 0.9: "the" (0.40) + "a" (0.30) + "this" (0.20) = 0.90
+3. Keep only these 3 tokens: `["the", "a", "this"]`
+4. Renormalize: divide each by the sum (0.90) to get a proper probability distribution
+5. Sample from this smaller set
+
+**Result:** The model can only choose from "the", "a", or "this"—cutting off the unlikely tokens "that", "my", and "your."
+
+**Why it's better than top-k:**
+- **Adaptive:** When the model is confident (one token has 0.95 probability), nucleus might only keep that 1 token. When uncertain (many tokens around 0.1 each), it keeps more options.
+- **Quality-based:** Cuts based on probability mass, not arbitrary count
+
 ---
 
 ## Part 4: The Inference Code
@@ -151,11 +177,102 @@ def generate(model, idx, max_new_tokens, temperature=1.0, top_k=None):
 
 ---
 
+## Part 5: Advanced Sampling Techniques
+
+### max_new_tokens - Controlling Generation Length
+
+The `max_new_tokens` parameter determines how many tokens the model will generate:
+
+```python
+generated = generate(model, prompt, max_new_tokens=50)
+```
+
+**What it does:**
+- Limits the generation loop to exactly 50 iterations
+- After 50 tokens, generation stops regardless of content
+- Prevents infinite loops and controls costs (API calls are often priced per token)
+
+**How models know when to stop naturally:**
+- Models learn to generate special end-of-sequence tokens (like `<|endoftext|>`)
+- When the model generates this token, we can stop early (before hitting max_new_tokens)
+- During training, these tokens appear at document boundaries
+
+**Typical values:**
+- Chatbots: 512-2048 tokens (one response)
+- Code completion: 100-500 tokens (one function)
+- Creative writing: 1000-4096 tokens (longer passages)
+
+### Repetition Penalty - Preventing Loops
+
+A common problem: models get stuck repeating the same phrase:
+
+```
+"The cat sat on the mat. The cat sat on the mat. The cat sat on..."
+```
+
+**Solution: Repetition Penalty**
+```python
+def apply_repetition_penalty(logits, previous_tokens, penalty=1.2):
+    for token in set(previous_tokens):
+        # Divide logit by penalty (reduces probability)
+        logits[token] /= penalty
+    return logits
+```
+
+**How it works:**
+- Track all previously generated tokens
+- Before sampling, reduce the logits of tokens that already appeared
+- `penalty > 1.0` makes repetition less likely
+- `penalty = 1.0` means no penalty (default behavior)
+
+**Typical values:**
+- `penalty = 1.0`: No penalty (may repeat)
+- `penalty = 1.2`: Mild discouragement of repetition (balanced)
+- `penalty = 1.5`: Strong avoidance (may sound unnatural)
+
+### Beam Search - Deterministic Exploration
+
+All the sampling methods above are **stochastic** (random). **Beam Search** is a deterministic alternative:
+
+**How it works:**
+1. Instead of sampling 1 token, keep the top `beam_width` candidates
+2. For each candidate, generate the next token
+3. Evaluate all `beam_width²` possibilities
+4. Keep only the top `beam_width` sequences by total probability
+5. Repeat until done
+
+**Example with beam_width=2:**
+```
+Start: "The"
+Step 1: Keep ["The cat" (prob=0.8), "The dog" (prob=0.7)]
+Step 2: Expand both → ["The cat sat" (0.64), "The cat ran" (0.56),
+                       "The dog sat" (0.49), "The dog ran" (0.42)]
+        Keep top 2 → ["The cat sat", "The cat ran"]
+... continue ...
+```
+
+**Beam Search vs. Sampling:**
+| Aspect | Beam Search | Sampling (Top-P/Top-K) |
+| --- | --- | --- |
+| **Determinism** | Always same output | Different every time |
+| **Quality** | Finds high-probability sequences | More diverse, creative |
+| **Use cases** | Translation, summarization | Creative writing, chat |
+| **Speed** | Slower (beam_width parallel paths) | Faster (single path) |
+
+**When to use:**
+- **Beam search:** When you want the "safest" or most likely output (translation, factual Q&A)
+- **Sampling:** When you want variety and creativity (storytelling, brainstorming)
+
+---
+
 ## Summary
 
 1. **Inference** is a loop where the model's output becomes its next input.
-2. **Temperature** controls how much the model deviates from its most likely guess.
+2. **Temperature** controls how much the model deviates from its most likely guess (sharpness of distribution).
 3. **Sampling Strategies** (Top-K/Top-P) prune the "long tail" of unlikely words to maintain coherence.
+4. **max_new_tokens** controls generation length and prevents runaway generation.
+5. **Repetition Penalty** prevents the model from getting stuck in loops by penalizing already-used tokens.
+6. **Beam Search** offers a deterministic alternative to sampling, finding high-probability sequences for tasks requiring consistency.
 
 **Next Up: L10 – Fine-tuning (RLHF & Chat).** We have a model that can complete sentences. But how do we turn it into a helpful assistant that answers questions? We'll look at the final step: taking a "Base" model and turning it into a "Chat" model.
 

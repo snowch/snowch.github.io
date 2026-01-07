@@ -115,22 +115,25 @@ If we want to represent the order of words, the simplest idea is to just assign 
 
 ### The Intuition: The "Binary Clock"
 
-So, how do we represent numbers that get bigger and bigger without using huge values? We use **patterns**. Think of how binary numbers work:
+So, how do we represent numbers that get bigger and bigger without using huge values? We use **patterns**. Think of how binary numbers work.
 
-| Number | Bit 3 (Slow) | Bit 2 (Medium) | Bit 1 (Fast) |
-| :--- | :---: | :---: | :---: |
-| **0** | 0 | 0 | 0 |
-| **1** | 0 | 0 | 1 |
-| **2** | 0 | 1 | 0 |
-| **3** | 0 | 1 | 1 |
-| **4** | 1 | 0 | 0 |
+Let's start with a simple 3-bit binary counter to see the pattern clearly:
 
-
+| Position | Bit 2 (Slow) | Bit 1 (Medium) | Bit 0 (Fast) | Binary |
+| :---: | :---: | :---: | :---: | :---: |
+| **0** | 0 | 0 | 0 | `000` |
+| **1** | 0 | 0 | 1 | `001` |
+| **2** | 0 | 1 | 0 | `010` |
+| **3** | 0 | 1 | 1 | `011` |
+| **4** | 1 | 0 | 0 | `100` |
+| **5** | 1 | 0 | 1 | `101` |
+| **6** | 1 | 1 | 0 | `110` |
+| **7** | 1 | 1 | 1 | `111` |
 
 Notice the pattern?
-* The **Least Significant Bit (Fast)** alternates every single step: $0, 1, 0, 1 \dots$ (High Frequency).
-* The **Next Bit (Medium)** alternates every two steps: $0, 0, 1, 1 \dots$ (Lower Frequency).
-* The **Most Significant Bit (Slow)** alternates every four steps (Lowest Frequency).
+* **Bit 0 (Fast)** alternates every single step: $0, 1, 0, 1, 0, 1, 0, 1$ (High Frequency).
+* **Bit 1 (Medium)** alternates every two steps: $0, 0, 1, 1, 0, 0, 1, 1$ (Lower Frequency).
+* **Bit 2 (Slow)** alternates every four steps: $0, 0, 0, 0, 1, 1, 1, 1$ (Lowest Frequency).
 
 Each column oscillates at a different frequency. Together, they create a unique combination for every row, using only $0$s and $1$s.
 
@@ -182,10 +185,13 @@ This pair acts like the **"Hour Hand"** (Long-term Context). It takes ~62,800 wo
 In a standard embedding (like `word2vec`), yes—Dimension 0 and Dimension 511 are just arbitrary "buckets" for numbers. They start equal.
 
 **Positional Encoding changes this.** By adding these fixed waves, we are strictly enforcing a hierarchy onto the dimensions:
-* **Low Dimensions** become the "High Frequency / Precision" channels.
-* **High Dimensions** become the "Low Frequency / Context" channels.
+* **Low Dimensions (0-63)** become the "High Frequency / Precision" channels. They change rapidly with position, helping the model distinguish adjacent words.
+* **Middle Dimensions (64-255)** capture medium-range patterns, useful for understanding phrases and clauses.
+* **High Dimensions (256-511)** become the "Low Frequency / Context" channels, encoding long-range dependencies across sentences or paragraphs.
 
-The model is smart enough to adapt to this. During training, it learns to store semantic information in a way that doesn't get destroyed by these specific frequencies, effectively "riding the waves" to understand both meaning and order simultaneously.
+The model is smart enough to adapt to this structure. During training, it learns to store semantic information in a way that complements these positional frequencies. Think of it like this: the embedding provides the "what" (word meaning), while the positional encoding provides the "when" (word position), and the model learns to separate and use both signals effectively.
+
+**Example:** The word "bank" might have similar embeddings at positions 5 and 50, but the positional encoding ensures the model knows these are different tokens in the sequence. The high-frequency dimensions will differ significantly, while low-frequency dimensions might be similar for nearby positions.
 ```
 
 ### Visualization
@@ -220,6 +226,28 @@ plt.title("Positional Encoding Matrix (Sine & Cosine)")
 plt.xlabel("Embedding Dimension (Frequency decreases →)")
 plt.ylabel("Position in Sentence (Time ↓)")
 plt.show()
+```
+
+```{tip}
+**Alternative Approach: Learned Positional Embeddings**
+
+While sinusoidal positional encoding is elegant and works well, many models (like GPT-2 and BERT) use **learned positional embeddings** instead. Rather than using a fixed mathematical formula, these models treat positional encodings as trainable parameters—just like word embeddings.
+
+**Advantages:**
+- The model can learn the optimal positional representation for the specific task
+- Simpler implementation (just another embedding table)
+- Often works slightly better in practice
+
+**Disadvantages:**
+- Fixed maximum sequence length (sinusoidal can theoretically extrapolate to longer sequences)
+- Requires learning during training (more parameters)
+
+In code, this looks like:
+```python
+self.pos_embedding = nn.Embedding(max_seq_len, d_model)
+```
+
+Both approaches are valid, and the choice often comes down to implementation preference and specific use case requirements.
 ```
 
 ---

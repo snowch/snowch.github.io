@@ -67,8 +67,25 @@ This produces a square matrix where every row  represents a word, and every colu
 
 To "mask" the future, we want to make the scores for any  effectively zero. But we don't just set them to 0; we set them to .
 
-**Why ?** Because we apply a **Softmax** immediately after.
- is . By setting the "future" scores to a very large negative number, the Softmax will assign them a probability of exactly .
+**Why a large negative number (like $-\infty$ or $-10^9$)?** Because we apply a **Softmax** immediately after.
+
+$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$$
+
+When $x_i = -\infty$, then $e^{-\infty} = 0$. By setting the "future" scores to a very large negative number, the Softmax will assign them a probability of exactly 0.
+
+### Why -1e9 Instead of -inf?
+
+You might wonder: "Why use `-1e9` instead of `-float('inf')`?"
+
+**The practical reasons:**
+1. **Numerical Stability:** In some cases, having actual infinity values can cause NaN (Not a Number) issues during backpropagation. While `-inf` works in many cases, `-1e9` is safer.
+2. **Mixed Precision Training:** When using FP16 (16-bit floating point), infinity values can behave unexpectedly. A large finite number like `-1e9` avoids these edge cases.
+3. **Debugging:** Finite values make it easier to debug—you can inspect the actual numbers rather than seeing `inf` everywhere.
+
+**Why it works:**
+- $e^{-1000000000} \approx 0$ for all practical purposes
+- After softmax, this becomes effectively 0.0 in the probability distribution
+- The difference between $e^{-1e9}$ and $e^{-\infty}$ is negligible (both round to 0)
 
 ---
 
@@ -101,7 +118,66 @@ plt.show()
 
 ---
 
-## Part 4: Implementation from Scratch
+## Part 4: Training vs. Inference - Why the Difference?
+
+A common question: **"Why do we need the causal mask during training but not during inference?"**
+
+The answer lies in how the model processes sequences in these two scenarios:
+
+### During Training (Parallel Processing)
+```
+Input:  "The cat sat on the"
+Target: "cat sat on the mat"
+```
+
+**What happens:**
+- The entire sequence is fed to the model **at once** (parallel processing for efficiency)
+- At position 0, the model predicts "cat"
+- At position 1, the model predicts "sat"
+- At position 2, the model predicts "on"
+- ...all simultaneously in one forward pass
+
+**The problem:** Without masking, when predicting position 2 ("on"), the model can see positions 3, 4, 5 ("the mat"). It would just copy the answer!
+
+**Solution:** The causal mask prevents position $i$ from attending to positions $> i$, forcing the model to learn to predict from context alone.
+
+### During Inference (Sequential Generation)
+```
+Prompt: "The cat sat"
+Step 1: Generate "on"   → "The cat sat on"
+Step 2: Generate "the"  → "The cat sat on the"
+Step 3: Generate "mat"  → "The cat sat on the mat"
+```
+
+**What happens:**
+- The model generates **one token at a time**
+- When generating token $t$, tokens $t+1, t+2, ...$ literally don't exist yet
+- We feed the growing sequence back into the model for each new token
+
+**Why no mask needed:** The "future" tokens aren't in the input at all—they haven't been generated yet! The sequential nature of generation provides implicit causality.
+
+**Technical note:** Some inference implementations still apply the mask for code simplicity and consistency with training, but it's technically redundant since future positions are absent.
+
+### Visual Comparison
+
+```
+Training (Parallel):                  Inference (Sequential):
+Input: "The cat sat on the mat"      Step 1: Input: "The cat"
+                                             Output: "sat"
+Position 0: sees only "The"
+Position 1: sees "The cat"           Step 2: Input: "The cat sat"
+Position 2: sees "The cat sat"               Output: "on"
+... (all computed at once)
+                                      Step 3: Input: "The cat sat on"
+↑ MASK REQUIRED                              Output: "the"
+  (otherwise cheating!)
+                                      ↑ NO MASK NEEDED
+                                        (future tokens don't exist!)
+```
+
+---
+
+## Part 5: Implementation from Scratch
 
 In PyTorch, we use `torch.tril` (triangular lower) to create this mask. We then use `masked_fill` to inject the negative infinities.
 

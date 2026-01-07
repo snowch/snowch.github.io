@@ -63,17 +63,108 @@ A single block in a GPT model has two main sections:
 
 Each section is wrapped in a **Residual Connection** and **Layer Normalization**.
 
+### The Feed-Forward Network (FFN) - The "Thinking Step"
+
+After tokens gather context from each other via attention, each token needs to **process** that information independently. This is where the FFN comes in.
+
+**Structure:**
+```python
+nn.Sequential(
+    nn.Linear(d_model, 4 * d_model),  # Expand
+    nn.ReLU(),                         # Non-linearity
+    nn.Linear(4 * d_model, d_model),  # Compress
+)
+```
+
+**Why the 4× expansion?**
+- The middle layer has **4 times** more neurons than the input (e.g., 512 → 2048 → 512)
+- This creates a "bottleneck" architecture: expand → process → compress
+- The expansion gives the network more "space" to compute complex transformations
+- Think of it as giving each token a larger "working memory" for its computations
+
+**Purpose:**
+- **Attention** is about gathering information (communication between tokens)
+- **FFN** is about processing that information (independent computation per token)
+- The FFN applies the same transformation to each position independently—no interaction between tokens
+
+**Intuition:** After attention, each token has updated its representation based on context. The FFN is like saying: "Now that you know what's around you, think deeply about what you've learned and update your representation accordingly."
+
 ---
 
-## Part 2: The Final Architecture
+## Part 2: The Complete Architecture - Layer by Layer
 
-If we look at the model from top to bottom, it looks like a factory assembly line:
+If we look at the model from top to bottom, it looks like a factory assembly line. Here's the complete data flow:
 
-1. **Input:** Token IDs.
-2. **Embedding Layer:** Turns IDs into vectors.
-3. **Positional Encoding:** Adds the "time" signal.
-4. ** Blocks:** The sequence passes through multiple Transformer blocks, becoming more "abstract" and "context-aware" at each step.
-5. **Output Head:** A Linear layer that takes the final vector and scores it against every possible word in the vocabulary.
+### The Full GPT Architecture
+
+```
+                    Input Token IDs
+                    [batch, seq_len]
+                          │
+                          ▼
+            ┌─────────────────────────┐
+            │  Token Embedding Table  │
+            │   [vocab_size, d_model] │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │ Positional Encoding     │
+            │   [max_len, d_model]    │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+                  [batch, seq, d_model]
+                        │
+        ┌───────────────┴───────────────┐
+        │   Transformer Block 1         │
+        │   ┌─────────────────────┐     │
+        │   │  LayerNorm          │     │
+        │   │  MultiHeadAttention │     │
+        │   │  Residual Add       │     │
+        │   └──────────┬──────────┘     │
+        │   ┌──────────▼──────────┐     │
+        │   │  LayerNorm          │     │
+        │   │  FeedForward (FFN)  │     │
+        │   │  Residual Add       │     │
+        │   └─────────────────────┘     │
+        └───────────────┬───────────────┘
+                        │
+        ┌───────────────▼───────────────┐
+        │   Transformer Block 2         │
+        │   (same structure...)         │
+        └───────────────┬───────────────┘
+                        │
+                       ...
+                        │
+        ┌───────────────▼───────────────┐
+        │   Transformer Block N         │
+        │   (same structure...)         │
+        └───────────────┬───────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │  Final LayerNorm        │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │  Language Model Head    │
+            │  Linear: d_model→vocab  │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+                  Logits/Predictions
+              [batch, seq, vocab_size]
+```
+
+### Key Components Explained:
+
+1. **Token Embedding:** Converts integer IDs into dense vectors
+2. **Positional Encoding:** Adds position information (either sinusoidal or learned)
+3. **N Transformer Blocks:** Each block refines the representation (typical N = 12, 24, or 96)
+4. **Final LayerNorm:** One last normalization before prediction
+5. **LM Head:** Projects back to vocabulary space to predict next token
 
 ---
 
@@ -103,6 +194,29 @@ plt.tight_layout()
 plt.show()
 
 ```
+
+### Understanding the Magnitude Decrease
+
+Notice in the visualization above how the values become smaller (less variance) as we move through deeper layers. This isn't a bug—it's an expected and important phenomenon!
+
+**Why does magnitude decrease?**
+
+1. **Layer Normalization:** Each LayerNorm operation (used twice per block) forces the mean to 0 and standard deviation to 1. Across many layers, this has a dampening effect on extreme values.
+
+2. **Residual Connections:** While they help with gradient flow, they also mean that changes accumulate gradually rather than dramatically. Each layer adds a small delta to the input.
+
+3. **Attention Smoothing:** The softmax in attention creates weighted averages. Averaging tends to reduce extreme values and create smoother distributions.
+
+**Is this good or bad?**
+
+**Good!** This is actually desirable:
+- **Stability:** Bounded values prevent numerical overflow/underflow
+- **Generalization:** The model learns robust, stable representations rather than memorizing with extreme activations
+- **Training:** Gradients remain in a reasonable range, making optimization more stable
+
+**The key insight:** The final LayerNorm before the LM head rescales these values appropriately before making predictions. The model learns to work within this normalized regime.
+
+**What to watch for:** If magnitudes approach zero or if all activations look identical, that could indicate a problem (dead neurons, vanishing gradients). But gradual decrease with maintained structure is healthy.
 
 ---
 

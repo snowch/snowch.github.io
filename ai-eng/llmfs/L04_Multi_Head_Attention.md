@@ -325,6 +325,23 @@ The shape transformation looks like this:
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
+### Shape Transformation Table
+
+Let's trace the exact tensor shapes through a concrete example with **batch=2, seq=10, d_model=512, heads=8**:
+
+| Operation | Shape | Description |
+| --- | --- | --- |
+| **Input** `x` | `[2, 10, 512]` | Raw input: 2 sequences, each with 10 tokens, 512-dim embeddings |
+| **After** `W_q(x)` | `[2, 10, 512]` | Linear projection (still flat) |
+| **After** `.view(2, 10, 8, 64)` | `[2, 10, 8, 64]` | Reshape: Split 512 dims into 8 heads × 64 dims each |
+| **After** `.transpose(1, 2)` | `[2, 8, 10, 64]` | Swap seq and heads: Now we have 8 "parallel attention mechanisms" |
+| **Attention computation** | `[2, 8, 10, 64]` | Each head computes attention independently |
+| **After** `.transpose(1, 2)` | `[2, 10, 8, 64]` | Swap back: Prepare for concatenation |
+| **After** `.contiguous().view(2, 10, 512)` | `[2, 10, 512]` | Flatten: Merge 8 heads back into single 512-dim vector |
+| **After** `W_o(x)` | `[2, 10, 512]` | Final projection |
+
+The key insight: dimensions 1 and 2 get swapped twice—once to parallelize the heads, and once to merge them back together.
+
 :::{code-cell} ipython3
 import math
 import torch
@@ -379,8 +396,30 @@ class MultiHeadAttention(nn.Module):
 :::
 
 :::{note}
-**Why `.contiguous()`?**
-When we `transpose` a tensor in PyTorch, we aren't actually moving data in memory; we are just changing the "stride" (how the computer steps through memory). `view` requires the data to be contiguous in memory. Calling `.contiguous()` creates a fresh copy of the data with the correct memory layout, preventing runtime errors.
+**Why `.contiguous()`? Understanding Memory Layout**
+
+When we `transpose` a tensor in PyTorch, we aren't actually moving data in memory; we are just changing the "stride" (how the computer steps through memory).
+
+**Memory Layout Explanation:**
+- Tensors are stored as 1D arrays in memory. Multi-dimensional tensors use "strides" to map from indices to memory locations.
+- When you call `.transpose()`, PyTorch creates a new **view** with different strides, but the underlying data stays in the same physical order in memory.
+- The `view()` operation requires the data to be laid out in a specific order in memory (row-major, also called C-contiguous).
+- If the tensor isn't contiguous after transpose, calling `.view()` would give incorrect results or raise an error.
+
+**What `.contiguous()` does:**
+- Creates a new tensor with data physically rearranged in memory to match the current logical shape.
+- This is a **copy operation**, so it has a performance cost, but it's necessary to ensure correctness.
+
+**Example:**
+```python
+x = torch.randn(2, 3, 4)
+x_t = x.transpose(1, 2)  # Creates a view, not contiguous
+print(x_t.is_contiguous())  # False
+x_c = x_t.contiguous()      # Creates a contiguous copy
+print(x_c.is_contiguous())  # True
+```
+
+This is a PyTorch implementation detail; the math doesn't care about memory layout, but the computer does!
 :::
 
 ---

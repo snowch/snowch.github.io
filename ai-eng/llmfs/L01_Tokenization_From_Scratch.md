@@ -62,8 +62,8 @@ To turn text into numbers, we have three choices. Each has a major flaw:
 | Method | Example | Vocab Size | Problem |
 | --- | --- | --- | --- |
 | **Character-level** | `c`, `a`, `t` | Tiny (~100) | Characters have no meaning. Sequences get too long. |
-| **Word-level** | `cat` | Massive (50k+) | Can't handle "cats" if it only saw "cat". |
-| **Subword-level** | `play`, `##ing` | Medium (32k-50k) | **Just right.** Meaningful and flexible. |
+| **Word-level** | `cat` | Massive (50k+) | Can't handle "cats" if it only saw "cat". Vocabulary explosion: "play", "plays", "played", "playing" = 4 separate entries. |
+| **Subword-level** | `play`, `##ing` | Medium (32k-50k) | **Just right.** Meaningful and flexible. "play" + "##ing" = just 2 tokens for all variants. |
 
 **Subword tokenization (specifically BPE)** is the industry standard used by almost every modern Large Language Model (GPT-4, Llama 3, Claude). It strikes the perfect balance:
 
@@ -75,7 +75,9 @@ To turn text into numbers, we have three choices. Each has a major flaw:
 ## Part 2: Byte Pair Encoding (BPE) Intuition
 
 ```{note}
-"Byte Pair Encoding" is basically "pair merging": at each step you take the most frequent adjacent pair and *encode it as one unit* by introducing a new token. The "byte" part comes from the original compression algorithm operating on raw bytes; modern NLP BPE tokenizers often start from bytes (or characters) and learn merges that create meaningful subword chunks.
+"Byte Pair Encoding" is basically "pair merging": at each step you take the most frequent adjacent pair and *encode it as one unit* by introducing a new token. The "byte" part comes from the original compression algorithm operating on raw bytes.
+
+**Modern Byte-Level BPE:** Production tokenizers (like GPT-4's) often start from **bytes** rather than characters. This means they begin with 256 possible values (one for each byte: 0-255) instead of just the characters in your alphabet. Why? Because it handles **any Unicode character** naturally—emojis, Chinese characters, Arabic script—without ever encountering an "unknown" symbol. Every possible text input can be represented as bytes.
 ```
 
 BPE is an iterative algorithm. It starts with a vocabulary of individual characters and slowly "glues" the most frequent adjacent pairs together to create new tokens.
@@ -381,6 +383,23 @@ for i, (tok, tid) in enumerate(zip(tokens, ids)):
 ax.set_title("The Final Pipeline: Text → (BPE) Tokens → Integers (IDs)", fontsize=16, pad=20)
 plt.show()
 ```
+
+---
+
+## Part 5: Special Tokens - The Control Signals
+
+Production tokenizers include **special tokens** that aren't regular words but serve as control signals for the model:
+
+| Token | Purpose | Example Use |
+| --- | --- | --- |
+| `<pad>` | Padding | Fill shorter sequences to match batch size |
+| `<unk>` | Unknown | Fallback for truly unknown tokens (rare in BPE) |
+| `<|endoftext|>` | Document boundary | Signals the end of a document in training data |
+| `<|im_start|>`, `<|im_end|>` | Chat formatting | Marks the start/end of chat messages (user/assistant) |
+
+These tokens are added to the vocabulary **before** training begins and are never broken down into smaller pieces. They act like "keywords" that tell the model about document structure and conversation flow.
+
+**Why they matter:** When fine-tuning for chat (as we'll see in L10), the model learns to generate `<|im_end|>` when it's done responding, telling the system to stop generating and return control to the user.
 
 ---
 
