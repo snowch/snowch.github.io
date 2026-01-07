@@ -115,7 +115,10 @@ def plot_multihead_projection_concept():
     num_segments = 20
     seg_height = height / num_segments
     np.random.seed(42) 
-    segment_colors = plt.cm.get_cmap('tab20').colors
+    
+    # FIX: Updated from plt.cm.get_cmap to plt.get_cmap to avoid deprecation warning
+    segment_colors = plt.get_cmap('tab20').colors
+    
     for i in range(num_segments):
         color = segment_colors[i % len(segment_colors)]
         rect = patches.Rectangle((input_x, base_y + i*seg_height), width, seg_height, facecolor=color, alpha=0.7, edgecolor='none')
