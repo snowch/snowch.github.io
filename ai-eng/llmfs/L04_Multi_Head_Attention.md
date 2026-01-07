@@ -202,7 +202,7 @@ Now that we understand the "why" (Specialization), let's look at the "how" (The 
 
 The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
 
-### The 4-Step Process
+**The 4-Step Process**
 
 1.  **Linear Projections (The Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
