@@ -102,56 +102,63 @@ We fix this by adding **Positional Encodings**.
 
 This is often the most confusing part of the Transformer architecture, so let's derive it from scratch.
 
-We need to give every word a unique ID for its position (). But we have constraints:
+### The Problem: Why not just count?
 
-1. **Values must be bounded:** Neural networks hate large numbers. If we just use integers (), the values for the 500th word will explode the gradients.
-2. **Steps must be consistent:** The "distance" between position 1 and 2 should be the same as between position 4 and 5.
-3. **Deterministic:** We need to calculate this on the fly for any sentence length.
+If we want to represent the order of words, the simplest idea is to just assign an integer to each position:
+* "The" $\rightarrow$ $1$
+* "Dog" $\rightarrow$ $2$
+* "Bit" $\rightarrow$ $3$
+
+**Why this fails:**
+1.  **Exploding Values:** For a long document, the 5,000th word would have the value $5000$. Neural networks hate large, unbounded numbers; they cause gradients to explode and training to become unstable.
+2.  **Inconsistent Steps (if normalized):** You might try dividing by the total length (e.g., $0.0, 0.5, 1.0$ for a 3-word sentence). But then the "time distance" between words changes depending on the sentence length. We need a method where the step size is **bounded** and **consistent**.
 
 ### The Intuition: The "Binary Clock"
 
-How can we represent large numbers using only s and s? **Binary.**
-
-Look at how bits change as we count up:
+So, how do we represent numbers that get bigger and bigger without using huge values? We use **patterns**. Think of how binary numbers work:
 
 | Number | Bit 3 (Slow) | Bit 2 (Medium) | Bit 1 (Fast) |
-| --- | --- | --- | --- |
+| :--- | :---: | :---: | :---: |
 | **0** | 0 | 0 | 0 |
 | **1** | 0 | 0 | 1 |
 | **2** | 0 | 1 | 0 |
 | **3** | 0 | 1 | 1 |
 | **4** | 1 | 0 | 0 |
 
-Notice the pattern?
 
-* The **Least Significant Bit (Fast)** alternates every single step:  (High Frequency).
-* The **Next Bit (Medium)** alternates every two steps:  (Lower Frequency).
+
+Notice the pattern?
+* The **Least Significant Bit (Fast)** alternates every single step: $0, 1, 0, 1 \dots$ (High Frequency).
+* The **Next Bit (Medium)** alternates every two steps: $0, 0, 1, 1 \dots$ (Lower Frequency).
 * The **Most Significant Bit (Slow)** alternates every four steps (Lowest Frequency).
 
-Each column oscillates at a different frequency. Together, they create a unique combination for every row.
+Each column oscillates at a different frequency. Together, they create a unique combination for every row, using only $0$s and $1$s.
 
 ### From Binary to Continuous (Sine & Cosine)
 
-Transformers use this exact logic, but instead of discrete bits (), we use **continuous waves** ( to ) using Sine and Cosine.
+Transformers use this exact logic. But instead of discrete bits ($0/1$), we use **continuous waves** ($-1$ to $1$) using **Sine and Cosine**.
 
-* **Dimension 0** of our position vector is like the "fast bit": it wiggles up and down very quickly as you move along the sentence.
-* **Dimension 100** is like the "slow bit": it wiggles up and down very slowly.
+* **Dimension 0** of our position vector is like the "fast bit": it wiggles up and down very quickly ($High$ $Frequency$).
+* **Dimension 100** is like the "slow bit": it wiggles up and down very slowly ($Low$ $Frequency$).
 
 By combining these different "wiggles," every single position gets a unique fingerprint vector.
 
+
+
 ### The Formula
 
-For a position  and dimension :
+For a position $pos$ and dimension $i$:
 
-Don't let the scary  scare you. It’s just a knob that controls the **wavelength**:
+$$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+$$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
 
-* When  is low (low dimension index), the denominator is small  **High Frequency wave.**
-* When  is high (high dimension index), the denominator is huge ()  **Low Frequency wave.**
+Don't let the scary $10000^{...}$ term scare you. It is just a knob that controls the **wavelength**:
+* When $i$ is low (low dimension index), the denominator is small $\rightarrow$ **High Frequency wave.**
+* When $i$ is high (high dimension index), the denominator is huge ($10000$) $\rightarrow$ **Low Frequency wave.**
 
 ### Visualization
 
 Let's generate the matrix. In the plot below:
-
 * **X-axis:** The Embedding Dimensions (0 to 128).
 * **Y-axis:** The Position in the sentence (0 to 50).
 * **Color:** The value (Blue is negative, Red is positive).
@@ -181,53 +188,6 @@ plt.title("Positional Encoding Matrix (Sine & Cosine)")
 plt.xlabel("Embedding Dimension (Frequency decreases →)")
 plt.ylabel("Position in Sentence (Time ↓)")
 plt.show()
-
-
-```
-
-### The "Why Addition?" Question
-
-A common question is: *Why do we ADD this to the word embedding? Won't that ruin the word's meaning?*
-
-Imagine our embedding space is a giant 512-dimensional room.
-
-1. **Word Embedding:** "King" moves us to a specific coordinate in that room.
-2. **Positional Encoding:** Moves us a *tiny* nudge in a specific direction based on position.
-
-Because the space is so high-dimensional (512, 1024, or even 12288 dimensions in GPT-3), the "nudge" for position doesn't overwrite the meaning. It just "colors" it.
-
-* "King" at pos 1  "King" + slight blue tint.
-* "King" at pos 99  "King" + slight red tint.
-
-The model learns to distinguish the "King-ness" (meaning) from the "Red-ness" (position).
-
-Here is the visual proof:
-
-```{code-cell} ipython3
-:tags: [remove-input]
-
-# Toy example: 5 tokens, 8 dimensions
-toy_len = 5
-toy_dim = 8
-
-toy_embeddings = np.random.randn(toy_len, toy_dim)
-toy_positions = get_positional_encoding(toy_len, toy_dim)
-toy_sum = toy_embeddings + toy_positions
-
-fig, axes = plt.subplots(1, 3, figsize=(12, 3))
-axes[0].imshow(toy_embeddings, aspect="auto", cmap="viridis")
-axes[0].set_title("1. Token Embeddings (Meaning)")
-axes[1].imshow(toy_positions, aspect="auto", cmap="RdBu")
-axes[1].set_title("2. Positional Encodings (Order)")
-axes[2].imshow(toy_sum, aspect="auto", cmap="viridis")
-axes[2].set_title("3. Sum (Input to Model)")
-for ax in axes:
-    ax.set_xlabel("Embedding Dimension")
-    ax.set_ylabel("Token Position")
-plt.tight_layout()
-plt.show()
-
-
 ```
 
 ---
