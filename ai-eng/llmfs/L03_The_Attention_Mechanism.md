@@ -175,10 +175,10 @@ We fix this by **Scaling**: we divide the result by the square root of the dimen
 
 Let's break down the equation step-by-step:
 
-1. ** (The Scores):** We multiply the Query of the current word by the Keys of *all* words.
-2. ** (The Scaling):** We shrink the scores to prevent exploding values.
+1. **The Scores:** We multiply the Query of the current word by the Keys of *all* words.
+2. **The Scaling:** We shrink the scores to prevent exploding values.
 3. **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
-4. ** (The Weighted Sum):** We multiply the probabilities by the **Values** to get the final context vector.
+4. **The Weighted Sum:** We multiply the probabilities by the **Values** to get the final context vector.
 
 ---
 
