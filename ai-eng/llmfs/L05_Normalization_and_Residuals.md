@@ -58,7 +58,7 @@ In a Transformer, we do this: .
 
 We literally **add the input back to the output**.
 
-### Why?
+**Why?**
 
 Imagine you are trying to describe a complex concept. If you only give the "transformed" explanation, you might lose the original context. By adding  back, we provide a "highway" for the original signal to travel through. This makes it much easier for the gradient to flow backwards during training.
 
@@ -70,7 +70,7 @@ LayerNorm ensures that for every token, the mean of its features is  and the sta
 
 Unlike **BatchNorm** (common in CNNs), **LayerNorm** calculates statistics across the features of a single token. This makes it perfect for sequences of varying lengths.
 
-### The Formula
+**The Formula**
 
 For a vector :
 $$ \hat{x} = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \cdot \gamma + \beta $$
