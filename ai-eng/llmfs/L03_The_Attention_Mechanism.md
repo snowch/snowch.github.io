@@ -11,82 +11,92 @@ kernelspec:
   name: python3
 ---
 
-# L03 - Self-Attention: Understanding Context [DRAFT]
+# L03 - Self-Attention: The Search Engine of Language
 
-*Building the "engine" of the Transformer from scratch*
+*Building the "brain" of the Transformer: How words talk to each other.*
 
 ---
 
-In our previous post, we turned words into vectors and gave them a "stamp" of their position. But the model still doesn't understand context. 
+In [L02 - Embeddings](L02_Embeddings_and_Positional_Encoding.md), we turned words into vectors and gave them positions. But there is still a fatal flaw: our model treats every word in isolation.
 
-Consider the word **"bank"** in these two sentences:
-1. "I went to the **bank** to deposit money."
-2. "I sat on the river **bank**."
+Consider the word **"Bank"**.
+1. "The **bank** of the river." (Nature)
+2. "The **bank** approved the loan." (Finance)
 
-The embedding for "bank" is the same in both. **Self-Attention** is the mechanism that allows the model to look at the surrounding words ("money" vs "river") and update the vector for "bank" to reflect its current meaning.
+In a static embedding layer (like `word2vec`), the vector for "bank" is identical in both sentences. But to understand language, the meaning of "bank" must shift based on its neighbors ("river" vs. "loan").
+
+**Self-Attention** is the mechanism that allows words to look at their neighbors and "update" their meaning based on context. It is the difference between a dictionary definition (static) and reading comprehension (dynamic).
 
 By the end of this post, you'll understand:
-- The intuition of **Queries, Keys, and Values**.
-- How to compute **Attention Scores**.
-- How to implement **Scaled Dot-Product Attention** in PyTorch.
-
-```{code-cell} ipython3
-:tags: [remove-input]
-
-import os
-import logging
-import warnings
-
-logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
-
-import torch
-import torch.nn.functional as F
-import matplotlib
-import numpy as np
-
-import matplotlib.pyplot as plt
-
-plt.rcParams['figure.facecolor'] = 'white'
-plt.rcParams['axes.facecolor'] = 'white'
-
-```
+- The **Query, Key, Value** analogy (it's just a database lookup!).
+- Why we need to **scale** our dot products.
+- How to implement the famous `softmax(QK^T / sqrt(d))` equation from scratch.
 
 ---
 
 ## Part 1: The Intuition (The Filing Cabinet)
 
-Think of Self-Attention like a filing cabinet system:
+The math of Attention can look scary, but the concept is simple. It is a **Soft Database Lookup**.
 
-1. **Query ():** "What am I looking for?" (The word currently being processed).
-2. **Key ():** "What do I contain?" (A label on the outside of every other word's folder).
-3. **Value ():** "What information do I actually hold?" (The content inside the folder).
+Imagine every word in the sentence is a folder in a filing cabinet. To facilitate a search, every word produces three vectors:
 
-To update the meaning of a word, we compare its **Query** against the **Keys** of every other word. If they match well, we take a large portion of that word's **Value**.
+| Vector | Name | Role | Analogy |
+| :--- | :--- | :--- | :--- |
+| **Q** | **Query** | What I am looking for? | A sticky note I hold up: *"I am looking for adjectives describing me."* |
+| **K** | **Key** | What do I contain? | The label on the folder: *"I am an adjective."* |
+| **V** | **Value** | The content | The actual document inside the folder: *"Blue."* |
+
+### The Search Process
+1. The word "Sky" holds up its **Query** ("Looking for adjectives").
+2. It compares this Query against every other word's **Key**.
+3. It finds a high match with the word "Blue."
+4. It extracts the **Value** from "Blue" and adds it to its own representation.
+
+Now, the vector for "Sky" is no longer just "Sky"; it is "Sky + a little bit of Blue".
 
 ---
 
-## Part 2: The Math of Attention
+## Part 2: The Math of Similarity
 
-We compute how much two words should "attend" to each other using the **Dot Product**. A high dot product means the vectors are aligned (relevant).
+How do we mathematically calculate "similarity" between a Query and a Key? We use the **Dot Product**.
+
+If two vectors point in the same direction, their dot product is large (positive). If they point in opposite directions, it is negative. If they are perpendicular (unrelated), it is zero.
 
 ### The Formula
 
-$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
-1. ****: Compute scores between all pairs of words.
-2. ****: Scale the scores so the gradients don't explode (very important for deep networks!).
-3. **Softmax**: Turn scores into probabilities that sum to 1.
-4. ****: Multiply the probabilities by the Values to get the weighted average.
+Let's break down the "Magic Formula" step-by-step:
+
+1.  **$QK^T$ (The Scores):** We multiply the Query of the current word by the Keys of *all* words. This creates a score matrix (e.g., How much does "Bank" care about "River"?).
+2.  **$\sqrt{d_k}$ (The Scaling):** If our vectors are large (e.g., dimension 512), the dot products can become huge numbers. Large numbers kill gradients in neural networks (causing the "vanishing gradient" problem). We shrink the scores back to a stable range by dividing by the square root of the dimension size.
+3.  **Softmax (The Probability):** We convert raw scores into probabilities. If "Bank" scores 90 with "River" and 10 with "The", Softmax ensures these sum to 1.0 (e.g., 0.95 vs 0.05).
+4.  **$V$ (The Weighted Sum):** Finally, we multiply these probabilities by the **Values**. We keep 95% of the "River" value and only 5% of the "The" value.
 
 ---
 
 ## Part 3: Visualizing the Attention Map
 
-Let's look at what the "Scores" matrix actually looks like for a sample sentence.
+When we train these models, we can actually *see* these relationships form. In the heatmap below, brighter colors mean a higher attention score.
+
+Notice the structure:
+* **Diagonals:** Words usually attend to themselves heavily.
+* **Relationships:** The pronoun "it" attends to "animal", resolving the ambiguity.
 
 ```{code-cell} ipython3
 :tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import numpy as np
+import logging
+import warnings
+
+# Suppress matplotlib font warnings
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
+plt.rcParams['figure.facecolor'] = 'white'
+plt.rcParams['axes.facecolor'] = 'white'
 
 # Mock attention matrix for "The animal didn't cross the street because it was too tired"
 tokens = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "tired"]
@@ -95,52 +105,70 @@ data = np.zeros((len(tokens), len(tokens)))
 # Highlighting that "it" attends strongly to "animal"
 it_idx = tokens.index("it")
 animal_idx = tokens.index("animal")
-data[it_idx, animal_idx] = 0.8
-data[it_idx, it_idx] = 0.2
+street_idx = tokens.index("street")
 
-# Random noise for other relations
+# "it" refers to "animal", not "street"
+data[it_idx, animal_idx] = 0.85
+data[it_idx, street_idx] = 0.05
+data[it_idx, it_idx] = 0.1
+
+# Random noise for other relations to simulate a real learned map
 np.random.seed(42)
-data += np.random.rand(len(tokens), len(tokens)) * 0.1
+background_noise = np.random.rand(len(tokens), len(tokens)) * 0.05
+data += background_noise
+
+# Normalize rows to sum to 1 (like Softmax)
+row_sums = data.sum(axis=1)
+data = data / row_sums[:, np.newaxis]
 
 plt.figure(figsize=(10, 8))
 plt.imshow(data, cmap='Blues')
 plt.xticks(range(len(tokens)), tokens, rotation=45)
 plt.yticks(range(len(tokens)), tokens)
-plt.title("Self-Attention Map: Where is the model 'looking'?")
-plt.colorbar(label='Attention Score')
+plt.title("Self-Attention Map: Visualizing Context\n(Notice 'it' focusing on 'animal')")
+plt.xlabel("Key (Source Information)")
+plt.ylabel("Query (Current Word Focus)")
+plt.colorbar(label='Attention Probability')
+plt.tight_layout()
 plt.show()
 
 ```
 
 ---
 
-## Part 4: Building it in PyTorch
+## Part 4: Implementation in PyTorch
 
-We can implement this entire mechanism in just a few lines of code.
+We can implement this entire mechanism—the heart of the Transformer—in fewer than 20 lines of code.
+
+Note the use of `transpose` to flip the K matrix for the dot product, and `masked_fill` which we will use in [L06](https://www.google.com/search?q=L06_The_Causal_Mask.md) to prevent cheating.
 
 ```python
 import torch
 import torch.nn as nn
+import math
 
 class ScaledDotProductAttention(nn.Module):
     def __init__(self, d_k):
         super().__init__()
-        self.scale = torch.sqrt(torch.tensor(d_k))
+        self.d_k = d_k
 
-    def forward(self, Q, K, V, mask=None):
-        # 1. Dot product Q and K
-        # Q: [batch, heads, seq_len, d_k], K: [batch, heads, seq_len, d_k]
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / self.scale
+    def forward(self, q, k, v, mask=None):
+        # 1. Calculate the Dot Product (Scores)
+        # q: [batch, heads, seq, d_k]
+        # k.transpose: [batch, heads, d_k, seq]
+        # scores shape: [batch, heads, seq, seq]
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
         
-        # 2. Apply Mask (optional - we'll cover this in L06!)
+        # 2. Apply Mask (Optional - vital for GPT!)
         if mask is not None:
             scores = scores.masked_fill(mask == 0, -1e9)
         
-        # 3. Softmax to get weights
+        # 3. Softmax to get probabilities (0.0 to 1.0)
         attn_weights = torch.softmax(scores, dim=-1)
         
-        # 4. Multiply weights by V
-        output = torch.matmul(attn_weights, V)
+        # 4. Multiply by Values to get the weighted context
+        output = torch.matmul(attn_weights, v)
+        
         return output, attn_weights
 
 ```
@@ -149,11 +177,10 @@ class ScaledDotProductAttention(nn.Module):
 
 ## Summary
 
-1. **Self-Attention** allows tokens to "talk" to each other and share context.
-2. **** are linear transformations of our input embeddings.
-3. **Dot Product** measures the compatibility between tokens.
-4. **Contextual Embeddings:** After this layer, the vector for "bank" is no longer generic—it has been mixed with the vectors of nearby words.
+1. **Context Matters:** Standard embeddings are static. Attention makes them dynamic.
+2. **Q, K, V:** We project our input into "Queries" (Searches), "Keys" (Labels), and "Values" (Content).
+3. **The Mechanism:** We measure similarity between Queries and Keys to create a weighted average of Values.
 
-**Next Up: L04 – Multi-Head Attention.** Why have one "search" query when you can have eight? We'll learn how to allow the model to focus on different aspects of a sentence simultaneously (e.g., grammar, logic, and entity relationships).
+**Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it"  "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
 
 ---
