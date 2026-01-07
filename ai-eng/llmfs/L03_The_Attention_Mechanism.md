@@ -198,10 +198,12 @@ We divide by $\sqrt{2} \approx 1.41$.
 * Scaled Score (Misaligned): $7 / 1.41 \approx 4.96$
 
 **Step 3: Softmax**
-We exponentiate and normalize to get percentages.
+We exponentiate and normalize to get percentages using the formula:
+$$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
+
 * $e^{7.09} \approx 1199$
 * $e^{4.96} \approx 142$
-* Total: $1341$
+* Total: $1199 + 142 = 1341$
 * **Probability (Exact Match):** $1199 / 1341 \approx \mathbf{89\%}$
 * **Probability (Misaligned):** $142 / 1341 \approx \mathbf{11\%}$
 
