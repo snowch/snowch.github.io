@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L02 - Embeddings & Positional Encoding: Giving Numbers Meaning [DRAFT]
+# L02 - Embeddings & Positional Encoding: Giving Numbers Meaning
 
 *How words become vectors in space, and how we tell time without a clock*
 
@@ -142,31 +142,39 @@ Transformers adapt this binary idea using **continuous waves** (Sine and Cosine)
 * **Dimension 100...:** The frequency gradually slows down.
 * **Dimension 512 (The Hour Hand):** The wave wiggles extremely slowly. This gives the model **long-term context** (distinguishing word #5 from #5000).
 
-
-
 ### The Formula
 
-For a position $pos$ and dimension $i$:
+For a position $pos$ and dimension index $j$:
+
+* **Even dimensions** ($2i$) use Sine.
+* **Odd dimensions** ($2i+1$) use Cosine.
 
 $$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+$$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
 
 Don't let the $10000^{...}$ term scare you. It is just a "wavelength knob." Let's plug in some real numbers to see it in action.
 
 **Example: Plugging in the Numbers**
 
-Imagine we have a model with $d_{model} = 512$.
+Imagine we have a model with $d_{model} = 512$. This means we have 256 pairs of Sine/Cosine waves.
 
-**Case 1: Low Dimension ($i=0$)**
-We are at the very start of the vector. The exponent becomes $0$ (since $2*0/512 = 0$).
+**Case 1: The "Fast" Pair (Dimensions 0 & 1)**
+We are at the start of the vector ($i=0$).
 $$\text{Denominator} = 10000^0 = 1$$
-$$PE = \sin\left(\frac{pos}{1}\right) = \sin(pos)$$
-The value cycles fully every $2\pi$ ($\approx 6$) words. This is our **"Fast Bit"**.
 
-**Case 2: High Dimension ($i=256$)**
-We are at the end of the vector. The exponent becomes $1$ (since $2*256/512 = 1$).
-$$\text{Denominator} = 10000^1 = 10000$$
-$$PE = \sin\left(\frac{pos}{10000}\right)$$
-The input to the sine function is tiny! It will take $2\pi * 10000$ ($\approx 62,800$) words for this wave to complete just one cycle. This is our **"Slow Bit"**.
+* **Dim 0:** $\sin(pos/1)$ $\rightarrow$ Wiggles every ~6 words.
+* **Dim 1:** $\cos(pos/1)$ $\rightarrow$ Same speed, just shifted.
+
+This pair acts like the **"Seconds Hand"** (High Precision).
+
+**Case 2: The "Slow" Pair (Dimensions 510 & 511)**
+We are at the end of the vector ($i=255$).
+$$\text{Denominator} = 10000^{510/512} \approx 10000$$
+
+* **Dim 510:** $\sin(pos/10000)$
+* **Dim 511:** $\cos(pos/10000)$
+
+This pair acts like the **"Hour Hand"** (Long-term Context). It takes ~62,800 words to complete one cycle!
 
 ### Visualization
 
