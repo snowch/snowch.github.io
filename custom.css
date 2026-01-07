@@ -1,14 +1,10 @@
-/* Fenced code blocks + {code} directive output + Stream/Print outputs */
-pre.myst-code,
-.myst-code pre,
-pre.myst-code code,
-.myst-code code,
-.myst-jp-stream-output pre {
-  font-size: 0.9em;
+pre.myst-jp-stream-output {
+  font-size: 0.9em !important;  /* Overrides 'text-sm' */
+  font-weight: normal !important; /* Overrides 'font-thin' */
   line-height: 1.4;
 }
 
-/* Inline code like `foo` (optional) */
-:not(pre) > code {
-  font-size: 0.95em;
+/* Ensure the code element inside doesn't shrink further */
+pre.myst-jp-stream-output code {
+  font-size: 100%;
 }
