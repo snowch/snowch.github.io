@@ -170,6 +170,14 @@ The "Misaligned" vector beat the "Perfectly Aligned" vector simply because it wa
 
 We fix this by **Scaling**: we divide the result by the square root of the dimension ($\sqrt{d_k}$). This normalizes the scores so the model focuses on alignment, not magnitude.
 
+```{important}
+**Why $\sqrt{d_k}$ Specifically?**
+
+The scaling factor isn't arbitrary. As dimension $d_k$ increases, dot products between random vectors grow proportionally to $d_k$. By dividing by $\sqrt{d_k}$, we keep the variance of the scores roughly constant regardless of dimensionality.
+
+More importantly, without this scaling, large dot products push the softmax function into regions where gradients are tiny (the "saturation" problem). When scores like 50 or 100 go into softmax, it becomes almost deterministic—one weight approaches 1.0, all others approach 0.0. This prevents the softmax from saturating, keeping gradients flowing during training and allowing the model to attend to multiple positions when needed.
+```
+
 ### The Formula
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
@@ -188,9 +196,13 @@ Let's trace the math using the **Exact Match** and **Key 3** vectors from the pl
 * **Key (Exact Match):** `[3, 1]`
 * **Key 3 (Misaligned):** `[1, 4]`
 
-**Step 1: The Dot Product ($QK^T$)**
+**Step 1: The Dot Product ($QK^T$)** - Computing Raw Scores
 * Score (Exact Match): $(3 \times 3) + (1 \times 1) = 10$
 * Score (Misaligned): $(3 \times 1) + (1 \times 4) = 7$
+
+```{note}
+**Scaling to Real Models:** We used 2D vectors for easy visualization, but in practice, attention operates in **much higher dimensions** (typically 512D or more). The good news? The math is identical—we're still just computing dot products to measure alignment. The key difference is that in 512 dimensions, we're comparing 512-element vectors. The dot product still measures alignment, but now across hundreds of dimensions simultaneously, allowing the model to capture much richer relationships between words.
+```
 
 **Step 2: Scaling ($\sqrt{d_k}$)**
 We divide by $\sqrt{2} \approx 1.41$.
@@ -209,6 +221,18 @@ $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
     $$P_2 = \frac{e^{4.96}}{e^{7.09} + e^{4.96}} \approx \frac{142}{1341} \approx \mathbf{11\%}$$
 
 Notice how the mechanism successfully identified the aligned vector as the important one, giving it 89% of the attention!
+
+```{important}
+**Terminology: Scores vs. Weights**
+
+It's crucial to understand the distinction between these two terms that are often confused:
+
+- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation. These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small). In our example: 7.09 and 4.96.
+
+- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation. These always sum to 1.0 and represent the percentage of "attention" each position receives. In our example: 89% and 11%.
+
+When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
+```
 
 ---
 
