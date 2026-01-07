@@ -161,6 +161,7 @@ def plot_refined_dot_product_v2():
 
 plot_refined_dot_product_v2()
 
+
 ```
 
 **Why this is a problem:**
@@ -173,12 +174,14 @@ We fix this by **Scaling**: we divide the result by the square root of the dimen
 
 ### The Formula
 
+$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V $$
+
 Let's break down the equation step-by-step:
 
-1. **The Scores:** We multiply the Query of the current word by the Keys of *all* words.
-2. **The Scaling:** We shrink the scores to prevent exploding values.
-3. **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
-4. **The Weighted Sum:** We multiply the probabilities by the **Values** to get the final context vector.
+1.  **The Scores ($QK^T$):** We multiply the Query of the current word by the Keys of *all* words.
+2.  **The Scaling ($\sqrt{d_k}$):** We shrink the scores to prevent exploding values.
+3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
+4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
 
 ---
 
@@ -225,6 +228,7 @@ plt.colorbar(label='Attention Probability')
 plt.tight_layout()
 plt.show()
 
+
 ```
 
 ---
@@ -265,6 +269,7 @@ class ScaledDotProductAttention(nn.Module):
         
         return output, attn_weights
 
+
 ```
 
 ---
@@ -278,4 +283,3 @@ class ScaledDotProductAttention(nn.Module):
 **Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it"  "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
 
 ---
-
