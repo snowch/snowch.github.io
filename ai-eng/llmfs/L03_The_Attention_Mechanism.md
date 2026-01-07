@@ -140,7 +140,7 @@ plt.show()
 
 We can implement this entire mechanism—the heart of the Transformer—in fewer than 20 lines of code.
 
-Note the use of `transpose` to flip the K matrix for the dot product, and `masked_fill` which we will use in [L06](https://www.google.com/search?q=L06_The_Causal_Mask.md) to prevent cheating.
+Note the use of `transpose` to flip the K matrix for the dot product, and `masked_fill` which we will use in [L06_The_Causal_Mask.md) to prevent cheating.
 
 ```python
 import torch
