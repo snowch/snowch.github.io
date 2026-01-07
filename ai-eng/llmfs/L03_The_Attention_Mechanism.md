@@ -170,7 +170,7 @@ Now look at **K1 (Short)**. It scored **5.0**.
 
 The "Misaligned" vector beat the "Perfectly Aligned" vector simply because it was longer. If we don't fix this, our model will prioritize "loud" signals (large numbers) over "correct" signals (aligned meaning).
 
-We fix this by **Scaling**: we divide the result by the square root of the dimension (). This normalizes the scores so the model focuses on alignment, not magnitude.
+We fix this by **Scaling**: we divide the result by the square root of the dimension ($\sqrt{d_k}$). This normalizes the scores so the model focuses on alignment, not magnitude.
 
 ### The Formula
 
