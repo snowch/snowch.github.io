@@ -181,6 +181,32 @@ Let's break down the equation step-by-step:
 3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
 4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
 
+### Example Walkthrough: Crunching the Numbers
+
+Let's trace the math with real numbers using the vectors from our plot above.
+* **Query (Q):** `[3, 1]`
+* **Key 1 (Aligned):** `[3, 1]`
+* **Key 2 (Misaligned):** `[1, 4]`
+
+**Step 1: The Dot Product ($QK^T$)**
+* Score 1 (Aligned): $(3 \times 3) + (1 \times 1) = 10$
+* Score 2 (Misaligned): $(3 \times 1) + (1 \times 4) = 7$
+
+**Step 2: Scaling ($\sqrt{d_k}$)**
+We divide by $\sqrt{2} \approx 1.41$.
+* Scaled Score 1: $10 / 1.41 \approx 7.09$
+* Scaled Score 2: $7 / 1.41 \approx 4.96$
+
+**Step 3: Softmax**
+We exponentiate and normalize to get percentages.
+* $e^{7.09} \approx 1199$
+* $e^{4.96} \approx 142$
+* Total: $1341$
+* **Probability 1 (Aligned):** $1199 / 1341 \approx \mathbf{89\%}$
+* **Probability 2 (Misaligned):** $142 / 1341 \approx \mathbf{11\%}$
+
+Notice how the mechanism successfully identified the aligned vector as the important one, giving it 89% of the attention!
+
 ---
 
 ## Part 3: Visualizing the Attention Map
