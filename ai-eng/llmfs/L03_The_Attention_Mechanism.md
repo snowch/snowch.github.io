@@ -213,8 +213,8 @@ RNNs maintain a "hidden state"—a vector that **accumulates information** from 
 
 ```
 Input: "The bank approved the loan because it was well-capitalized"
-        ↑                                  ↑
-      word 1                             word 8
+        ↑    ↑                              ↑
+      word 1  word 2                       word 7
 
 Step 1: "The"      → hidden_state_1 = f(embedding("The"))
                       ↓ Contains: [info about "The"]
@@ -227,23 +227,27 @@ Step 3: "approved" → hidden_state_3 = f(embedding("approved"), hidden_state_2)
 
 ...
 
-Step 8: "it"       → hidden_state_8 = f(embedding("it"), hidden_state_7)
-                      ↓ Contains: [ALL 8 words] compressed into a fixed-size vector
+Step 7: "it"       → hidden_state_7 = f(embedding("it"), hidden_state_6)
+                      ↓ Contains: [ALL 7 words] compressed into a fixed-size vector
 
-Problem: To understand what "it" refers to, the model must rely on information
-about "bank" (word 2) that has been compressed through 5 mixing operations:
-  1. Mixed with info about "The" → hidden_state_2
-  2. Then mixed with "approved" → hidden_state_3
-  3. Then mixed with "the" → hidden_state_4
-  4. Then mixed with "loan" → hidden_state_5
-  5. Then mixed with "because" → hidden_state_6
-  6. Finally mixed with "it" → hidden_state_7
+Problem: To understand what "it" refers to, information about "bank" (word 2)
+must pass through a chain of compressions before reaching "it" (word 7):
 
-Each step compresses ALL previous information into a fixed-size vector. The more
-steps between "bank" and "it", the more diluted the information becomes.
+  hidden_state_2 (contains "bank" info)
+    ↓ compressed with "approved"
+  hidden_state_3
+    ↓ compressed with "the"
+  hidden_state_4
+    ↓ compressed with "loan"
+  hidden_state_5
+    ↓ compressed with "because"
+  hidden_state_6 (used by "it" at step 7)
+
+Information about "bank" has been compressed through 4 intermediate mixing steps.
+The more steps between "bank" and "it", the more diluted the information becomes.
 This is the "vanishing gradient" problem.
 
-Total: 8 sequential steps (MUST run one-by-one)
+Total: 7 sequential steps (MUST run one-by-one)
 ```
 
 **The Hidden State Bottleneck:**
