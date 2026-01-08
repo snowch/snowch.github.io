@@ -292,7 +292,10 @@ x = x + FeedForward(LayerNorm(x))
 
 ### Visual Comparison
 
-**Post-Norm Architecture:**
+::::{grid} 2
+:gutter: 3
+
+:::{grid-item-card} Post-Norm Architecture
 ```{mermaid}
 flowchart TB
     Input1["Input"]
@@ -312,8 +315,9 @@ flowchart TB
     style LN1 fill:#fff4e1
     style Add1 fill:#ffe1f5
 ```
+:::
 
-**Pre-Norm Architecture:**
+:::{grid-item-card} Pre-Norm Architecture
 ```{mermaid}
 flowchart TB
     Input2["Input"]
@@ -333,6 +337,9 @@ flowchart TB
     style LN2 fill:#fff4e1
     style Add2 fill:#ffe1f5
 ```
+:::
+
+::::
 
 **Why Pre-Norm Won:**
 - Empirically, Pre-Norm is more stable and easier to optimize
