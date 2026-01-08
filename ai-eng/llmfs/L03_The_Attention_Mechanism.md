@@ -213,8 +213,8 @@ RNNs maintain a "hidden state"—a vector that gets updated as each word is proc
 
 ```
 Input: "The bank approved the loan because it was well-capitalized"
-        ↑                               ↑
-      word 1                          word 8
+        ↑                                  ↑
+      word 1                             word 8
 
 Step 1: "The"      → hidden_state_1 = f(embedding("The"))
 Step 2: "bank"     → hidden_state_2 = f(embedding("bank"), hidden_state_1)
