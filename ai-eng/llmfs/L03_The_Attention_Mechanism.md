@@ -23,95 +23,127 @@ Consider the word **"Bank"**.
 1. "The **bank** of the river." (Nature)
 2. "The **bank** approved the loan." (Finance)
 
-In a static embedding layer (a simple lookup table), the vector for "bank" is **identical** in both sentences. The embedding doesn't know about "river" or "loan"—it just maps token ID → vector. But to understand language, the meaning of "bank" must shift based on its neighbors.
+In a static embedding layer (a simple lookup table), the vector for "bank" is **identical** in both sentences. The model sees the same token ID → same vector, regardless of whether "bank" appears near "river" or "loan".
 
 ```{code-cell} ipython3
 :tags: [remove-input]
 
 import numpy as np
-
-import logging
-import warnings
-
-logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
-
 import matplotlib.pyplot as plt
 
-# 2D embedding space visualization
-fig, ax = plt.subplots(1, 1, figsize=(12, 7))
+# Create side-by-side comparison
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-# Nature/Geography cluster (spread out more)
-nature_words = {
-    'river': [-2.5, 1.2],
-    'water': [-2.2, 1.8],
-    'shore': [-2.8, 0.8],
-    'stream': [-2.0, 1.4]
-}
+# Define semantic clusters (same for both subplots)
+nature_words = {'river': [-2.5, 1.5], 'water': [-2.2, 2.0], 'shore': [-2.8, 1.0]}
+finance_words = {'loan': [2.5, 1.5], 'money': [2.2, 2.0], 'account': [2.8, 1.0]}
 
-# Finance cluster (spread out more)
-finance_words = {
-    'loan': [2.5, 1.2],
-    'money': [2.2, 1.8],
-    'account': [2.8, 0.8],
-    'deposit': [2.0, 1.4]
-}
+# Static embedding position for "bank" (same in both contexts!)
+bank_static_pos = [0, 1.5]
 
-# The problem: "bank" is stuck in the middle
-bank_pos = [0, 1.2]
+# Where "bank" SHOULD move with attention
+bank_nature_pos = [-1.5, 1.4]   # Shifted toward nature cluster
+bank_finance_pos = [1.5, 1.4]   # Shifted toward finance cluster
 
-# Plot nature cluster (green) - labels below points
+# --- LEFT PLOT: "The bank of the river" ---
+ax1.set_title('Sentence: "The bank of the river"', fontsize=13, fontweight='bold', pad=10)
+
+# Plot nature cluster (highlighted with thicker border)
 for word, pos in nature_words.items():
-    ax.scatter(pos[0], pos[1], c='green', s=100, alpha=0.5, edgecolors='darkgreen', linewidth=2.5, zorder=2)
-    ax.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkgreen')
+    ax1.scatter(pos[0], pos[1], c='green', s=400, alpha=0.6, edgecolors='darkgreen', linewidth=3, zorder=2)
+    ax1.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkgreen')
 
-# Plot finance cluster (blue) - labels below points
+# Plot finance cluster (faded)
 for word, pos in finance_words.items():
-    ax.scatter(pos[0], pos[1], c='blue', s=100, alpha=0.5, edgecolors='darkblue', linewidth=2.5, zorder=2)
-    ax.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkblue')
+    ax1.scatter(pos[0], pos[1], c='lightgray', s=400, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
+    ax1.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, color='gray')
 
-# Plot "bank" in the middle (red, larger) - label below
-ax.scatter(bank_pos[0], bank_pos[1], c='red', s=600, alpha=0.7, edgecolors='darkred', linewidth=3, zorder=3)
-ax.text(bank_pos[0], bank_pos[1]-0.45, 'bank', ha='center', va='top', fontsize=14, fontweight='bold', color='darkred')
+# Static "bank" (red, same position as right plot)
+ax1.scatter(bank_static_pos[0], bank_static_pos[1], c='red', s=600, alpha=0.8,
+           edgecolors='darkred', linewidth=3, zorder=3, marker='s')
+ax1.text(bank_static_pos[0], bank_static_pos[1]-0.5, 'bank\n(static)', ha='center', va='top',
+        fontsize=12, fontweight='bold', color='darkred')
 
-# Add clearer arrows showing the problem
-ax.annotate('', xy=[-1.6, 1.2], xytext=[bank_pos[0]-0.1, bank_pos[1]],
-            arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
-ax.annotate('', xy=[1.6, 1.2], xytext=[bank_pos[0]+0.1, bank_pos[1]],
-            arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
+# Where it SHOULD be with attention (green ghost)
+ax1.scatter(bank_nature_pos[0], bank_nature_pos[1], c='lightgreen', s=600, alpha=0.5,
+           edgecolors='green', linewidth=3, linestyle='--', zorder=2, marker='s')
+ax1.text(bank_nature_pos[0], bank_nature_pos[1]-0.5, 'bank\n(with attention)', ha='center', va='top',
+        fontsize=10, color='green', style='italic')
 
-# Add context labels with better positioning
-ax.text(-2.5, 2.6, 'Nature/Geography\nContext', ha='center', fontsize=13, color='darkgreen', fontweight='bold',
-        bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.5, edgecolor='darkgreen', linewidth=2))
-ax.text(2.5, 2.6, 'Finance/Banking\nContext', ha='center', fontsize=13, color='darkblue', fontweight='bold',
-        bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.5, edgecolor='darkblue', linewidth=2))
+# Arrow showing desired shift
+ax1.annotate('', xy=bank_nature_pos, xytext=bank_static_pos,
+            arrowprops=dict(arrowstyle='->', color='green', lw=2.5, linestyle='dashed'))
 
-# Add the problem statement at bottom
-ax.text(0, -0.7, '⚠️  Static Embedding Problem', ha='center', fontsize=14, color='red', fontweight='bold')
-ax.text(0, -1.1, '"bank" is frozen at ONE location—can\'t shift meaning based on context',
-        ha='center', fontsize=11, style='italic', color='darkred')
+ax1.set_xlim(-3.5, 3.5)
+ax1.set_ylim(-0.5, 3)
+ax1.set_xlabel('Embedding Dimension 1', fontsize=11)
+ax1.set_ylabel('Embedding Dimension 2', fontsize=11)
+ax1.grid(True, alpha=0.2)
+ax1.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
+ax1.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
 
-# Add labels for what the arrows mean
-ax.text(-0.9, 0.6, 'Should move\nhere for "river"?', ha='center', fontsize=12, color='red', style='italic')
-ax.text(0.9, 0.6, 'Should move\nhere for "loan"?', ha='center', fontsize=12, color='red', style='italic')
+# --- RIGHT PLOT: "The bank approved the loan" ---
+ax2.set_title('Sentence: "The bank approved the loan"', fontsize=13, fontweight='bold', pad=10)
 
-ax.set_xlim(-3.5, 3.5)
-ax.set_ylim(-1.5, 3.2)
-ax.set_xlabel('Embedding Dimension 1', fontsize=12, fontweight='bold')
-ax.set_ylabel('Embedding Dimension 2', fontsize=12, fontweight='bold')
-ax.set_title('Static Embeddings: The "Bank" Problem\n(Same vector whether next to "river" or "loan")',
-             fontsize=14, fontweight='bold', pad=15)
-ax.grid(True, alpha=0.2, linestyle='--')
-ax.axhline(y=0, color='k', linewidth=0.8, alpha=0.3)
-ax.axvline(x=0, color='k', linewidth=0.8, alpha=0.3)
+# Plot finance cluster (highlighted)
+for word, pos in finance_words.items():
+    ax2.scatter(pos[0], pos[1], c='blue', s=400, alpha=0.6, edgecolors='darkblue', linewidth=3, zorder=2)
+    ax2.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkblue')
+
+# Plot nature cluster (faded)
+for word, pos in nature_words.items():
+    ax2.scatter(pos[0], pos[1], c='lightgray', s=400, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
+    ax2.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, color='gray')
+
+# Static "bank" (red, SAME position as left plot!)
+ax2.scatter(bank_static_pos[0], bank_static_pos[1], c='red', s=600, alpha=0.8,
+           edgecolors='darkred', linewidth=3, zorder=3, marker='s')
+ax2.text(bank_static_pos[0], bank_static_pos[1]-0.5, 'bank\n(static)', ha='center', va='top',
+        fontsize=12, fontweight='bold', color='darkred')
+
+# Where it SHOULD be with attention (blue ghost)
+ax2.scatter(bank_finance_pos[0], bank_finance_pos[1], c='lightblue', s=600, alpha=0.5,
+           edgecolors='blue', linewidth=3, linestyle='--', zorder=2, marker='s')
+ax2.text(bank_finance_pos[0], bank_finance_pos[1]-0.5, 'bank\n(with attention)', ha='center', va='top',
+        fontsize=10, color='blue', style='italic')
+
+# Arrow showing desired shift
+ax2.annotate('', xy=bank_finance_pos, xytext=bank_static_pos,
+            arrowprops=dict(arrowstyle='->', color='blue', lw=2.5, linestyle='dashed'))
+
+ax2.set_xlim(-3.5, 3.5)
+ax2.set_ylim(-0.5, 3)
+ax2.set_xlabel('Embedding Dimension 1', fontsize=11)
+ax2.set_ylabel('Embedding Dimension 2', fontsize=11)
+ax2.grid(True, alpha=0.2)
+ax2.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
+ax2.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
+
+# Overall title
+fig.suptitle('⚠️  The Static Embedding Problem: Same Word, Different Context, SAME Vector',
+            fontsize=14, fontweight='bold', color='darkred', y=0.98)
 
 plt.tight_layout()
 plt.show()
 ```
 
-**The Problem:** In static embeddings, "bank" is frozen at one location in the embedding space. It can't move toward "river" in one sentence and toward "loan" in another. The vector is context-independent.
+**The Problem Visualized:**
 
-**Self-Attention** is the mechanism that allows words to look at their neighbors and "update" their meaning based on context.
+Notice the red square labeled "bank (static)" is at the **EXACT SAME POSITION** in both plots. Whether "bank" appears in a sentence about rivers or loans, the static embedding lookup table returns the identical vector.
+
+```{note}
+**Why is "bank" positioned in the middle?**
+
+Static embeddings like Word2Vec DO learn from context during training! Because "bank" co-occurs with both nature words ("river", "shore") and finance words ("loan", "money"), the training process positions it between both clusters—it's somewhat similar to BOTH.
+
+This is actually a strength: the embedding captures that "bank" is polysemous (multiple meanings). The problem isn't the training—it's **inference time**. Once trained, the embedding is frozen. The model can't disambiguate which meaning is active in the current sentence because it always returns the same compromise vector.
+```
+
+**What We Need (shown by dashed arrows):**
+- **Left:** In "The **bank** of the river", we want "bank" to shift toward the nature cluster (green)
+- **Right:** In "The **bank** approved the loan", we want "bank" to shift toward the finance cluster (blue)
+
+**Self-Attention** is the mechanism that enables this context-dependent shift—it allows "bank" to dynamically adjust its representation based on surrounding words.
 
 By the end of this post, you'll understand:
 - The **Query, Key, Value** analogy (it's just a database lookup!).
