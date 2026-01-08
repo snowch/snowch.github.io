@@ -29,6 +29,13 @@ In a static embedding layer (a simple lookup table), the vector for "bank" is **
 :tags: [remove-input]
 
 import numpy as np
+
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
 import matplotlib.pyplot as plt
 
 # 2D embedding space visualization
