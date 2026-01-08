@@ -231,14 +231,13 @@ Step 8: "it"       → hidden_state_8 = f(embedding("it"), hidden_state_7)
                       ↓ Contains: [ALL 8 words] compressed into a fixed-size vector
 
 Problem: To understand what "it" refers to, the model must rely on information
-about "bank" (word 2) that has been:
+about "bank" (word 2) that has been compressed through 5 mixing operations:
   1. Mixed with info about "The" → hidden_state_2
   2. Then mixed with "approved" → hidden_state_3
   3. Then mixed with "the" → hidden_state_4
   4. Then mixed with "loan" → hidden_state_5
   5. Then mixed with "because" → hidden_state_6
-  6. Then mixed with "it" → hidden_state_7
-  7. Then mixed with "was" → hidden_state_8
+  6. Finally mixed with "it" → hidden_state_7
 
 Each step compresses ALL previous information into a fixed-size vector. The more
 steps between "bank" and "it", the more diluted the information becomes.
