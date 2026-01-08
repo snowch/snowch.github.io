@@ -209,7 +209,7 @@ This is the **breakthrough** that makes Transformers faster AND better at unders
 
 **How RNNs Process a Sentence (Sequential):**
 
-RNNs maintain a "hidden state"—a vector that gets updated as each word is processed. Information from earlier words must flow through this hidden state to reach later words.
+RNNs maintain a "hidden state"—a vector that **accumulates information** from all previous words. At each step, the hidden state combines the current word with everything seen so far.
 
 ```
 Input: "The bank approved the loan because it was well-capitalized"
@@ -217,22 +217,43 @@ Input: "The bank approved the loan because it was well-capitalized"
       word 1                             word 8
 
 Step 1: "The"      → hidden_state_1 = f(embedding("The"))
+                      ↓ Contains: [info about "The"]
+
 Step 2: "bank"     → hidden_state_2 = f(embedding("bank"), hidden_state_1)
+                      ↓ Contains: [info about "The", "bank"] compressed into one vector
+
 Step 3: "approved" → hidden_state_3 = f(embedding("approved"), hidden_state_2)
+                      ↓ Contains: [info about "The", "bank", "approved"] compressed
+
 ...
+
 Step 8: "it"       → hidden_state_8 = f(embedding("it"), hidden_state_7)
+                      ↓ Contains: [ALL 8 words] compressed into a fixed-size vector
 
-Problem: To understand what "it" refers to (word 8), the model must rely on
-information about "bank" (word 2) that has been compressed through 6 sequential
-transformations: hidden_state_2 → 3 → 4 → 5 → 6 → 7 → 8
+Problem: To understand what "it" refers to, the model must rely on information
+about "bank" (word 2) that has been:
+  1. Mixed with info about "The" → hidden_state_2
+  2. Then mixed with "approved" → hidden_state_3
+  3. Then mixed with "the" → hidden_state_4
+  4. Then mixed with "loan" → hidden_state_5
+  5. Then mixed with "because" → hidden_state_6
+  6. Then mixed with "it" → hidden_state_7
+  7. Then mixed with "was" → hidden_state_8
 
-Each step risks losing information (the "vanishing gradient" problem).
+Each step compresses ALL previous information into a fixed-size vector. The more
+steps between "bank" and "it", the more diluted the information becomes.
+This is the "vanishing gradient" problem.
+
 Total: 8 sequential steps (MUST run one-by-one)
 ```
 
 **The Hidden State Bottleneck:**
 
-Think of the hidden state like a game of telephone. By the time information from "bank" reaches "it" through 6 intermediate updates, subtle details may have faded. The model is forced to compress everything important about the entire sentence history into a single fixed-size vector at each step.
+The hidden state is **accumulative** (it tries to remember everything), but it achieves this through **compression** into a fixed-size vector (typically 512 or 1024 dimensions).
+
+Think of it like this: After reading "The bank approved the loan because it", the RNN must squeeze all understanding of these 7 words—their meanings, relationships, syntactic roles—into a single vector of fixed size. Then it must use this compressed summary to process "was" and "well-capitalized".
+
+It's like trying to fit an entire Wikipedia article into a tweet, then using only that tweet to write the next paragraph. Some information inevitably gets lost or diluted.
 
 **How Attention Processes the Same Sentence (Parallel):**
 
