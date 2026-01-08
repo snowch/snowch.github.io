@@ -256,6 +256,7 @@ Both approaches are valid, and the choice often comes down to implementation pre
 
 The final input to our model is:
 
+$$\text{Input} = \text{Embedding}(w) + \text{PositionalEncoding}(pos)$$
 
 Now, the vector for "dog" at position 2 is slightly different from the vector for "dog" at position 5. The "meaning" is the same, but the "stamp" of its location is unique.
 
