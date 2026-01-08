@@ -17,13 +17,13 @@ kernelspec:
 
 ---
 
-In [L02 - Embeddings](L02_Embeddings_and_Positional_Encoding.md), we turned words into vectors and gave them positions. But there is still a fatal flaw: our model treats every word in isolation.
+In [L02 - Embeddings](L02_Embeddings_and_Positional_Encoding.md), we turned words into vectors and gave them positions. But there is still a fatal flaw: **each word gets the same vector every time**, regardless of context.
 
 Consider the word **"Bank"**.
 1. "The **bank** of the river." (Nature)
 2. "The **bank** approved the loan." (Finance)
 
-In a static embedding layer, the vector for "bank" is identical in both sentences. But to understand language, the meaning of "bank" must shift based on its neighbors ("river" vs. "loan").
+In a static embedding layer (a simple lookup table), the vector for "bank" is **identical** in both sentences. The embedding doesn't know about "river" or "loan"—it just maps token ID → vector. But to understand language, the meaning of "bank" must shift based on its neighbors.
 
 **Self-Attention** is the mechanism that allows words to look at their neighbors and "update" their meaning based on context.
 

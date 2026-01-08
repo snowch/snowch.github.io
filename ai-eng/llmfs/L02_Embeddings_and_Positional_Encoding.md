@@ -54,7 +54,13 @@ plt.rcParams['axes.facecolor'] = 'white'
 
 Imagine every word is a point in a high-dimensional room. Words with similar meanings are "clumped" together. This is an **Embedding Space**.
 
-An **Embedding Layer** is simply a big lookup table. If our vocabulary size is 10,000 and we want each word to be represented by a vector of 512 numbers, our table is a  matrix.
+An **Embedding Layer** is simply a big lookup table. If our vocabulary size is 10,000 and we want each word to be represented by a vector of 512 numbers, our table is a $10,000 \times 512$ matrix.
+
+```{note}
+**How are embeddings created?**
+
+In this tutorial, we treat embeddings as a given—a learned lookup table. But how do models learn these representations? For a deep dive into embedding fundamentals and how models like Word2Vec and BERT learn to create meaningful vector representations, see the [Related reading](#related-reading) section at the end of this lesson, which links to detailed chapters on the embedding revolution and text embedding techniques.
+```
 
 ### The Lookup Operation
 
