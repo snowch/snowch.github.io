@@ -270,6 +270,33 @@ final_input = embeddings + positions
 
 ```
 
+### Concrete Example: What the Numbers Look Like
+
+Let's see what these vectors actually contain (showing just the first 8 dimensions out of 512):
+
+```python
+# Token: "The" (position 0)
+embedding_The = [ 0.21,  0.15, -0.33,  0.08, -0.12,  0.19,  0.05, -0.28, ...]  # Learned
+pos_encoding_0 = [ 0.00,  1.00,  0.00,  1.00,  0.00,  1.00,  0.00,  1.00, ...]  # Fixed (sin/cos)
+final_input_0  = [ 0.21,  1.15, -0.33,  1.08, -0.12,  1.19,  0.05,  0.72, ...]  # Sum
+
+# Token: "quick" (position 1)
+embedding_quick = [-0.18,  0.42,  0.11, -0.25,  0.37, -0.14,  0.22,  0.09, ...]  # Learned
+pos_encoding_1  = [ 0.84,  0.54,  0.10,  0.99,  0.01,  1.00,  0.00,  1.00, ...]  # Fixed (sin/cos)
+final_input_1   = [ 0.66,  0.96,  0.21,  0.74,  0.38,  0.86,  0.22,  1.09, ...]  # Sum
+
+# Token: "brown" (position 2)
+embedding_brown = [ 0.09, -0.31,  0.44,  0.17, -0.08,  0.26, -0.13,  0.35, ...]  # Learned
+pos_encoding_2  = [ 0.91, -0.42,  0.20,  0.98,  0.02,  1.00,  0.00,  1.00, ...]  # Fixed (sin/cos)
+final_input_2   = [ 1.00, -0.73,  0.64,  1.15, -0.06,  1.26, -0.13,  1.35, ...]  # Sum
+```
+
+**Key observations:**
+1. **Embeddings** have learned values (positive and negative) that capture word meaning
+2. **Positional encodings** follow the sin/cos pattern (notice the periodic structure)
+3. **Final input** is simply the element-wise sum of the two
+4. Same word at different positions gets different final vectors (different PE added)
+
 ---
 
 ## Summary
