@@ -56,13 +56,13 @@ ax1.set_title('Sentence: "The bank of the river"', fontsize=13, fontweight='bold
 
 # Plot nature cluster (highlighted with thicker border)
 for word, pos in nature_words.items():
-    ax1.scatter(pos[0], pos[1], c='green', s=400, alpha=0.6, edgecolors='darkgreen', linewidth=3, zorder=2)
-    ax1.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkgreen')
+    ax1.scatter(pos[0], pos[1], c='green', s=100, alpha=0.6, edgecolors='darkgreen', linewidth=3, zorder=2)
+    ax1.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkgreen')
 
 # Plot finance cluster (faded)
 for word, pos in finance_words.items():
-    ax1.scatter(pos[0], pos[1], c='lightgray', s=400, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
-    ax1.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, color='gray')
+    ax1.scatter(pos[0], pos[1], c='lightgray', s=100, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
+    ax1.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=11, color='gray')
 
 # Static "bank" (red, same position as right plot)
 ax1.scatter(bank_static_pos[0], bank_static_pos[1], c='red', s=600, alpha=0.8,
@@ -93,13 +93,13 @@ ax2.set_title('Sentence: "The bank approved the loan"', fontsize=13, fontweight=
 
 # Plot finance cluster (highlighted)
 for word, pos in finance_words.items():
-    ax2.scatter(pos[0], pos[1], c='blue', s=400, alpha=0.6, edgecolors='darkblue', linewidth=3, zorder=2)
-    ax2.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkblue')
+    ax2.scatter(pos[0], pos[1], c='blue', s=100, alpha=0.6, edgecolors='darkblue', linewidth=3, zorder=2)
+    ax2.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=11, fontweight='bold', color='darkblue')
 
 # Plot nature cluster (faded)
 for word, pos in nature_words.items():
-    ax2.scatter(pos[0], pos[1], c='lightgray', s=400, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
-    ax2.text(pos[0], pos[1]-0.4, word, ha='center', va='top', fontsize=11, color='gray')
+    ax2.scatter(pos[0], pos[1], c='lightgray', s=100, alpha=0.3, edgecolors='gray', linewidth=1.5, zorder=1)
+    ax2.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=11, color='gray')
 
 # Static "bank" (red, SAME position as left plot!)
 ax2.scatter(bank_static_pos[0], bank_static_pos[1], c='red', s=600, alpha=0.8,
