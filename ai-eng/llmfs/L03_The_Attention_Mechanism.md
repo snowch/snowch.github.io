@@ -131,11 +131,19 @@ plt.show()
 
 Notice the red square labeled "bank (static)" is at the **EXACT SAME POSITION** in both plots. Whether "bank" appears in a sentence about rivers or loans, the static embedding lookup table returns the identical vector.
 
+```{note}
+**Why is "bank" positioned in the middle?**
+
+Static embeddings like Word2Vec DO learn from context during training! Because "bank" co-occurs with both nature words ("river", "shore") and finance words ("loan", "money"), the training process positions it between both clusters—it's somewhat similar to BOTH.
+
+This is actually a strength: the embedding captures that "bank" is polysemous (multiple meanings). The problem isn't the training—it's **inference time**. Once trained, the embedding is frozen. The model can't disambiguate which meaning is active in the current sentence because it always returns the same compromise vector.
+```
+
 **What We Need (shown by dashed arrows):**
 - **Left:** In "The **bank** of the river", we want "bank" to shift toward the nature cluster (green)
 - **Right:** In "The **bank** approved the loan", we want "bank" to shift toward the finance cluster (blue)
 
-**Self-Attention** is the mechanism that enables this context-dependent shift.
+**Self-Attention** is the mechanism that enables this context-dependent shift—it allows "bank" to dynamically adjust its representation based on surrounding words.
 
 By the end of this post, you'll understand:
 - The **Query, Key, Value** analogy (it's just a database lookup!).
