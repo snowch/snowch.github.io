@@ -52,7 +52,7 @@ project:
         #     - file: ai-eng/nnfs/nn_architecture_patterns.md
         #       title: Architecture Patterns (NA01)
 
-        - title: LLM From Scratch
+        - title: "LLM From Scratch: Foundations"
           children:
             - file: ai-eng/llmfs/index.md
               title: "Introduction: Building GPT From First Principles"
