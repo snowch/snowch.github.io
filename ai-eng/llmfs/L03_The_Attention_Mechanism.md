@@ -211,6 +211,8 @@ This is the **breakthrough** that makes Transformers faster AND better at unders
 
 RNNs maintain a "hidden state"—a vector that **accumulates information** from all previous words. At each step, the hidden state combines the current word with everything seen so far.
 
+Let's trace a concrete example: **pronoun resolution**. When the model processes "it", how does it figure out that "it" refers to "bank"? We'll follow how information flows through the hidden states.
+
 ```
 Input: "The bank approved the loan because it was well-capitalized"
         ↑    ↑                              ↑
@@ -260,6 +262,8 @@ It's like trying to fit an entire Wikipedia article into a tweet, then using onl
 
 **How Attention Processes the Same Sentence (Parallel):**
 
+Now let's see how attention solves **the same pronoun resolution task**: when "it" needs to figure out what it refers to.
+
 Instead of passing information through a chain of hidden states, attention allows **direct connections** between any two words.
 
 ```
@@ -267,7 +271,7 @@ Input: "The bank approved the loan because it was well-capitalized"
 
 Single Step: ALL words computed simultaneously via matrix operations:
 
-"it" (word 8) compares its Query directly against ALL Keys:
+"it" (word 7) compares its Query directly against ALL Keys:
   Q("it") · K("The")      = 0.05  → Low attention weight
   Q("it") · K("bank")     = 0.82  → HIGH attention weight! ✓
   Q("it") · K("approved") = 0.08  → Low attention weight
