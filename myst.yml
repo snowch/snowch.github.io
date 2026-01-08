@@ -27,6 +27,8 @@ project:
       children:
         - title: Probability
           children:
+            - file: probability/index.md
+              title: "Introduction: Probability Tutorials & Notes"
             - file: probability/inclusion_exclusion_tutorial.md
               title: Inclusion-Exclusion Principle
             - file: probability/birthday_tutorial.md
