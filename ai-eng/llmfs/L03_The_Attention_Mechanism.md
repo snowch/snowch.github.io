@@ -25,6 +25,81 @@ Consider the word **"Bank"**.
 
 In a static embedding layer (a simple lookup table), the vector for "bank" is **identical** in both sentences. The embedding doesn't know about "river" or "loan"—it just maps token ID → vector. But to understand language, the meaning of "bank" must shift based on its neighbors.
 
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 2D embedding space visualization
+fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+# Nature/Geography cluster
+nature_words = {
+    'river': [-2, 1.5],
+    'water': [-1.8, 1.8],
+    'shore': [-2.2, 1.3],
+    'stream': [-1.6, 1.6]
+}
+
+# Finance cluster
+finance_words = {
+    'loan': [2, 1.5],
+    'money': [1.8, 1.8],
+    'account': [2.2, 1.3],
+    'deposit': [1.9, 1.6]
+}
+
+# The problem: "bank" is stuck in the middle
+bank_pos = [0, 1.5]
+
+# Plot nature cluster (green)
+for word, pos in nature_words.items():
+    ax.scatter(pos[0], pos[1], c='green', s=200, alpha=0.6, edgecolors='darkgreen', linewidth=2)
+    ax.text(pos[0], pos[1], word, ha='center', va='center', fontsize=11, fontweight='bold')
+
+# Plot finance cluster (blue)
+for word, pos in finance_words.items():
+    ax.scatter(pos[0], pos[1], c='blue', s=200, alpha=0.6, edgecolors='darkblue', linewidth=2)
+    ax.text(pos[0], pos[1], word, ha='center', va='center', fontsize=11, fontweight='bold')
+
+# Plot "bank" in the middle (red, larger)
+ax.scatter(bank_pos[0], bank_pos[1], c='red', s=300, alpha=0.8, edgecolors='darkred', linewidth=3)
+ax.text(bank_pos[0], bank_pos[1], 'bank', ha='center', va='center', fontsize=13, fontweight='bold', color='white')
+
+# Add arrows showing the problem
+ax.annotate('', xy=[-1.5, 1.5], xytext=[bank_pos[0], bank_pos[1]],
+            arrowprops=dict(arrowstyle='->', color='gray', lw=2, linestyle='dashed', alpha=0.5))
+ax.annotate('', xy=[1.5, 1.5], xytext=[bank_pos[0], bank_pos[1]],
+            arrowprops=dict(arrowstyle='->', color='gray', lw=2, linestyle='dashed', alpha=0.5))
+
+# Add context labels
+ax.text(-2, 2.5, 'Nature Context', ha='center', fontsize=12, color='green', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
+ax.text(2, 2.5, 'Finance Context', ha='center', fontsize=12, color='blue', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+
+# Add the problem statement
+ax.text(0, 0.3, '⚠️ Static Embedding Problem', ha='center', fontsize=13, color='red', fontweight='bold')
+ax.text(0, -0.1, '"bank" gets the SAME vector regardless of context',
+        ha='center', fontsize=10, style='italic', color='darkred')
+
+ax.set_xlim(-3, 3)
+ax.set_ylim(-0.5, 3)
+ax.set_xlabel('Embedding Dimension 1', fontsize=11)
+ax.set_ylabel('Embedding Dimension 2', fontsize=11)
+ax.set_title('Static Embeddings: The "Bank" Problem\n(Same vector for "river bank" and "financial bank")',
+             fontsize=13, fontweight='bold')
+ax.grid(True, alpha=0.2)
+ax.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
+ax.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+**The Problem:** In static embeddings, "bank" is frozen at one location in the embedding space. It can't move toward "river" in one sentence and toward "loan" in another. The vector is context-independent.
+
 **Self-Attention** is the mechanism that allows words to look at their neighbors and "update" their meaning based on context.
 
 By the end of this post, you'll understand:
