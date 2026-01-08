@@ -292,29 +292,46 @@ x = x + FeedForward(LayerNorm(x))
 
 ### Visual Comparison
 
+**Post-Norm Architecture:**
+```{mermaid}
+flowchart TB
+    Input1["Input"]
+    Attention1["Attention"]
+    Add1["(+) Residual Add"]
+    LN1["LayerNorm"]
+    Output1["Output"]
+
+    Input1 --> Attention1
+    Input1 -.Skip.-> Add1
+    Attention1 --> Add1
+    Add1 --> LN1
+    LN1 --> Output1
+
+    style Input1 fill:#e1f5ff
+    style Output1 fill:#e1ffe1
+    style LN1 fill:#fff4e1
+    style Add1 fill:#ffe1f5
 ```
-Post-Norm:                       Pre-Norm:
-┌─────────┐                      ┌─────────┐
-│  Input  │                      │  Input  │
-└────┬────┘                      └────┬────┘
-     │                                │
-     ├──────────┐                     ├──────────┐
-     │          │                     │          │
-     ▼          │                     │          ▼
-┌─────────┐    │                     │    ┌──────────┐
-│Attention│    │                     │    │LayerNorm │
-└────┬────┘    │                     │    └────┬─────┘
-     │         │                     │         │
-     ▼         │                     │         ▼
-   ( + )◄──────┘                     │    ┌─────────┐
-     │                               │    │Attention│
-     ▼                               │    └────┬────┘
-┌──────────┐                         │         │
-│LayerNorm │                         │         ▼
-└────┬─────┘                         │       ( + )◄─┘
-     │                               │         │
-     ▼                               ▼         ▼
-  Output                          Output    Output
+
+**Pre-Norm Architecture:**
+```{mermaid}
+flowchart TB
+    Input2["Input"]
+    LN2["LayerNorm"]
+    Attention2["Attention"]
+    Add2["(+) Residual Add"]
+    Output2["Output"]
+
+    Input2 --> LN2
+    LN2 --> Attention2
+    Input2 -.Skip.-> Add2
+    Attention2 --> Add2
+    Add2 --> Output2
+
+    style Input2 fill:#e1f5ff
+    style Output2 fill:#e1ffe1
+    style LN2 fill:#fff4e1
+    style Add2 fill:#ffe1f5
 ```
 
 **Why Pre-Norm Won:**

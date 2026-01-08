@@ -97,65 +97,58 @@ If we look at the model from top to bottom, it looks like a factory assembly lin
 
 ### The Full GPT Architecture
 
-```
-                    Input Token IDs
-                    [batch, seq_len]
-                          │
-                          ▼
-            ┌─────────────────────────┐
-            │  Token Embedding Table  │
-            │   [vocab_size, d_model] │
-            └───────────┬─────────────┘
-                        │
-                        ▼
-            ┌─────────────────────────┐
-            │ Positional Encoding     │
-            │   [max_len, d_model]    │
-            └───────────┬─────────────┘
-                        │
-                        ▼
-                  [batch, seq, d_model]
-                        │
-        ┌───────────────┴───────────────┐
-        │   Transformer Block 1         │
-        │   ┌─────────────────────┐     │
-        │   │  LayerNorm          │     │
-        │   │  MultiHeadAttention │     │
-        │   │  Residual Add       │     │
-        │   └──────────┬──────────┘     │
-        │   ┌──────────▼──────────┐     │
-        │   │  LayerNorm          │     │
-        │   │  FeedForward (FFN)  │     │
-        │   │  Residual Add       │     │
-        │   └─────────────────────┘     │
-        └───────────────┬───────────────┘
-                        │
-        ┌───────────────▼───────────────┐
-        │   Transformer Block 2         │
-        │   (same structure...)         │
-        └───────────────┬───────────────┘
-                        │
-                       ...
-                        │
-        ┌───────────────▼───────────────┐
-        │   Transformer Block N         │
-        │   (same structure...)         │
-        └───────────────┬───────────────┘
-                        │
-                        ▼
-            ┌─────────────────────────┐
-            │  Final LayerNorm        │
-            └───────────┬─────────────┘
-                        │
-                        ▼
-            ┌─────────────────────────┐
-            │  Language Model Head    │
-            │  Linear: d_model→vocab  │
-            └───────────┬─────────────┘
-                        │
-                        ▼
-                  Logits/Predictions
-              [batch, seq, vocab_size]
+```{mermaid}
+flowchart TB
+    Input["Input Token IDs<br/>[batch, seq_len]"]
+    TokenEmb["Token Embedding Table<br/>[vocab_size, d_model]"]
+    PosEnc["Positional Encoding<br/>[max_len, d_model]"]
+    Shape1["[batch, seq, d_model]"]
+
+    subgraph Block1["Transformer Block 1"]
+        direction TB
+        LN1_1["LayerNorm"]
+        Attn1["MultiHeadAttention"]
+        Add1_1["Residual Add"]
+        LN1_2["LayerNorm"]
+        FFN1["FeedForward (FFN)"]
+        Add1_2["Residual Add"]
+
+        LN1_1 --> Attn1
+        Attn1 --> Add1_1
+        Add1_1 --> LN1_2
+        LN1_2 --> FFN1
+        FFN1 --> Add1_2
+    end
+
+    Block2["Transformer Block 2<br/>(same structure)"]
+    Dots["⋮<br/>More Blocks<br/>⋮"]
+    BlockN["Transformer Block N<br/>(same structure)"]
+
+    FinalLN["Final LayerNorm"]
+    LMHead["Language Model Head<br/>Linear: d_model → vocab"]
+    Output["Logits/Predictions<br/>[batch, seq, vocab_size]"]
+
+    Input --> TokenEmb
+    TokenEmb --> PosEnc
+    PosEnc --> Shape1
+    Shape1 --> Block1
+    Block1 --> Block2
+    Block2 --> Dots
+    Dots --> BlockN
+    BlockN --> FinalLN
+    FinalLN --> LMHead
+    LMHead --> Output
+
+    style Input fill:#e1f5ff
+    style Output fill:#e1ffe1
+    style TokenEmb fill:#fff4e1
+    style PosEnc fill:#fff4e1
+    style Block1 fill:#f0f0f0
+    style Block2 fill:#f0f0f0
+    style BlockN fill:#f0f0f0
+    style FinalLN fill:#ffe1f5
+    style LMHead fill:#ffe1f5
+    style Dots fill:#ffffff,stroke:#999,stroke-dasharray: 5 5
 ```
 
 ### Key Components Explained:
