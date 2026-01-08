@@ -56,6 +56,53 @@ Imagine every word in the sentence is a folder in a filing cabinet. To facilitat
 
 Now, the vector for "Sky" is no longer just "Sky"; it is "Sky + a little bit of Blue".
 
+### The Key Advantage: Everything Happens at Once
+
+Remember from [L02](L02_Embeddings_and_Positional_Encoding.md): *"The attention mechanism is **parallel**. It looks at every word in a sentence at the exact same time."*
+
+This is the **breakthrough** that makes Transformers faster than older architectures like RNNs (Recurrent Neural Networks).
+
+**How RNNs Process a Sentence (Sequential):**
+```
+Input: "The quick brown fox"
+
+Step 1: Process "The"       → Update hidden state
+Step 2: Process "quick"     → Update hidden state (using step 1)
+Step 3: Process "brown"     → Update hidden state (using step 2)
+Step 4: Process "fox"       → Update hidden state (using step 3)
+
+Total: 4 sequential steps (can't parallelize)
+```
+
+**How Attention Processes the Same Sentence (Parallel):**
+```
+Input: "The quick brown fox"
+
+Single Step: ALL words simultaneously:
+  - "The"   compares against ["The", "quick", "brown", "fox"]
+  - "quick" compares against ["The", "quick", "brown", "fox"]
+  - "brown" compares against ["The", "quick", "brown", "fox"]
+  - "fox"   compares against ["The", "quick", "brown", "fox"]
+
+Total: 1 parallel step (all comparisons happen at once)
+```
+
+**Why This Works:**
+
+The attention mechanism achieves parallelism through **matrix multiplication**. When we compute $QK^T$ (which you'll see shortly), we're not looping through words one-by-one. Instead:
+
+1. **Every word** generates its Query, Key, and Value simultaneously (one matrix operation)
+2. **Every Query** compares against **every Key** simultaneously (another matrix operation)
+3. **Every word** gets its context-aware representation simultaneously (final matrix operation)
+
+Modern GPUs are **optimized for matrix operations**, so computing attention for 100 words in parallel is barely slower than computing it for 10 words. This is why Transformers can handle such long contexts efficiently.
+
+```{note}
+**The Trade-off:** Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths (up to thousands of tokens).
+```
+
+Now let's see the math that makes this parallelism possible.
+
 ---
 
 ## Part 2: The Math of Similarity
