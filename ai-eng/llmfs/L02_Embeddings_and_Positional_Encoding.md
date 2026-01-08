@@ -90,7 +90,7 @@ plt.show()
 
 ## Part 2: The Problem of Order
 
-Standard Neural Networks (like the MLPs we built in the [LLM from Scratch series](L01_Tokenization_From_Scratch.md)) process data in a specific order. The attention mechanism we’ll introduce next is **parallel**. It looks at every word in a sentence at the exact same time.
+Standard Neural Networks (like the MLPs we built in the [Neural Networks from Scratch series](../nnfs/index.md)) process data in a specific order. The attention mechanism we'll introduce next is **parallel**. It looks at every word in a sentence at the exact same time.
 
 Without help, the attention-based model sees the sentence "The dog bit the man" as a **bag of words**. It has no idea which word came first.
 
