@@ -52,7 +52,7 @@ project:
         #     - file: ai-eng/nnfs/nn_architecture_patterns.md
         #       title: Architecture Patterns (NA01)
 
-        - title: LLM From Scratch
+        - title: "LLM From Scratch: Foundations"
           children:
             - file: ai-eng/llmfs/index.md
               title: "Introduction: Building GPT From First Principles"
@@ -106,19 +106,6 @@ project:
               title: "L19 - Quantization for Inference [DRAFT]"
             - file: ai-eng/llmfs-scaling/L20_Deployment_Serving.md
               title: "L20 - Deployment & Serving [DRAFT]"
-
-        # - title: "Transformers From Scratch"
-        #   children:
-        #     - file: ai-eng/transformer/TR00_attention_and_transformer_architectures.md
-        #       title: "TR00 — Attention and Transformer Architectures"
-        #     - file: ai-eng/transformer/TR01_transformers_tokens_to_next_token.md
-        #       title: "TR01 — Transformers: From Tokens to Next-Token Prediction"
-        #     - file: ai-eng/transformer/TR02_self_attention_from_scratch.md
-        #       title: "TR02 — Self-Attention from Scratch (Q/K/V, Masking, Shapes)"
-        #     - file: ai-eng/transformer/TR03_transformer_block_from_scratch.md
-        #       title: "TR03 — Transformer Block from Scratch (Attention + MLP + Residuals)"
-        #     - file: ai-eng/transformer/TR04_train_tiny_decoder_model.md
-        #       title: "TR04 — Train a Tiny Decoder Model (Next-Token Dataset + Generation)"
 
     - file: embeddings.md
       title: Embeddings at Scale Book
