@@ -28,6 +28,12 @@ In a static embedding layer (a simple lookup table), the vector for "bank" is **
 ```{code-cell} ipython3
 :tags: [remove-input]
 
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
+
 import numpy as np
 import matplotlib.pyplot as plt
 
