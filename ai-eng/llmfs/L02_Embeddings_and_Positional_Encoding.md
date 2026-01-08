@@ -228,7 +228,7 @@ plt.ylabel("Position in Sentence (Time ↓)")
 plt.show()
 ```
 
-```{tip}
+:::{tip}
 **Alternative Approach: Learned Positional Embeddings**
 
 While sinusoidal positional encoding is elegant and works well, many models (like GPT-2 and BERT) use **learned positional embeddings** instead. Rather than using a fixed mathematical formula, these models treat positional encodings as trainable parameters—just like word embeddings.
@@ -248,7 +248,7 @@ self.pos_embedding = nn.Embedding(max_seq_len, d_model)
 ```
 
 Both approaches are valid, and the choice often comes down to implementation preference and specific use case requirements.
-```
+:::
 
 ---
 
