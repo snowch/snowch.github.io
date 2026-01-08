@@ -117,6 +117,7 @@ This series assumes:
 - **Python fundamentals** (functions, classes, basic numpy)
 - **High school math** (algebra, basic calculus concepts)
 - **Neural network basics** (what a layer is, forward/backward pass)
+  - New to neural networks? Start with our [Neural Networks From Scratch](../nnfs/index.md) series!
 
 We'll explain everything else from scratch, including:
 - Matrix operations and why they matter
