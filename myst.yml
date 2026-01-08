@@ -75,6 +75,36 @@ project:
             - file: ai-eng/llmfs/L10_Fine_tuning_and_Chat.md
               title: "L10 - Fine-tuning: From Completion to Conversation"
 
+        - title: "LLM From Scratch: Production Techniques"
+          children:
+            - file: ai-eng/llmfs-production/index.md
+              title: "Introduction: Bridge to Production"
+            - file: ai-eng/llmfs-production/L11_Loading_Pretrained_Weights.md
+              title: "L11 - Loading Pretrained Weights & Transfer Learning [DRAFT]"
+            - file: ai-eng/llmfs-production/L12_Data_Loading_Pipelines.md
+              title: "L12 - Data Loading Pipelines at Scale [DRAFT]"
+            - file: ai-eng/llmfs-production/L13_Evaluation_Frameworks.md
+              title: "L13 - Evaluation Frameworks [DRAFT]"
+            - file: ai-eng/llmfs-production/L14_LoRA_PEFT.md
+              title: "L14 - Parameter-Efficient Fine-Tuning (LoRA) [DRAFT]"
+            - file: ai-eng/llmfs-production/L15_Mixed_Precision_Training.md
+              title: "L15 - Mixed Precision Training [DRAFT]"
+
+        - title: "LLM From Scratch: Scaling & Optimization"
+          children:
+            - file: ai-eng/llmfs-scaling/index.md
+              title: "Introduction: Advanced Scale & Performance"
+            - file: ai-eng/llmfs-scaling/L16_Attention_Optimizations.md
+              title: "L16 - Attention Optimizations [DRAFT]"
+            - file: ai-eng/llmfs-scaling/L17_Model_Parallelism.md
+              title: "L17 - Model Parallelism [DRAFT]"
+            - file: ai-eng/llmfs-scaling/L18_Long_Context_Handling.md
+              title: "L18 - Long Context Handling [DRAFT]"
+            - file: ai-eng/llmfs-scaling/L19_Quantization_Inference.md
+              title: "L19 - Quantization for Inference [DRAFT]"
+            - file: ai-eng/llmfs-scaling/L20_Deployment_Serving.md
+              title: "L20 - Deployment & Serving [DRAFT]"
+
         # - title: "Transformers From Scratch"
         #   children:
         #     - file: ai-eng/transformer/TR00_attention_and_transformer_architectures.md
