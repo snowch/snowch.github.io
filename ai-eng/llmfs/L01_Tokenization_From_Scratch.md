@@ -272,7 +272,7 @@ for i, m in enumerate(merges):
 After training, you should see merges that form familiar chunks (often `un`, `able`, and sometimes `es`) because those sequences occur across multiple high-frequency words.
 ```
 
-### 3.3 Tokenizing new words (including "OOV" ones)
+### 3.3 Tokenizing new words (including Out-of-Vocabulary words)
 
 Tokenization = start from characters, then apply merges **in the same order** we learned them.
 

@@ -204,6 +204,68 @@ def get_lr(step, warmup_steps, max_steps, max_lr, min_lr):
 - `warmup_steps = 2000`
 - `min_lr = max_lr * 0.1`
 
+**Visualizing the Schedule:**
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+def get_lr(step, warmup_steps, max_steps, max_lr, min_lr):
+    """Calculate learning rate with warmup and cosine decay."""
+    # 1. Linear warmup
+    if step < warmup_steps:
+        return max_lr * (step / warmup_steps)
+    # 2. Cosine decay
+    decay_ratio = (step - warmup_steps) / (max_steps - warmup_steps)
+    coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))
+    return min_lr + coeff * (max_lr - min_lr)
+
+# Parameters
+max_steps = 10000
+warmup_steps = 1000
+max_lr = 6e-4
+min_lr = 6e-5
+
+# Calculate learning rate at each step
+steps = np.arange(0, max_steps)
+learning_rates = [get_lr(s, warmup_steps, max_steps, max_lr, min_lr) for s in steps]
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+# Plot the schedule
+ax.plot(steps, learning_rates, linewidth=2, color='#2E86AB')
+
+# Annotate key phases
+ax.axvline(x=warmup_steps, color='red', linestyle='--', alpha=0.5, linewidth=2)
+ax.text(warmup_steps + 100, max_lr * 0.85, 'Warmup Complete\n(Step 1000)',
+        fontsize=11, color='red', fontweight='bold')
+
+ax.axhline(y=max_lr, color='green', linestyle='--', alpha=0.3, label=f'Max LR = {max_lr}')
+ax.axhline(y=min_lr, color='orange', linestyle='--', alpha=0.3, label=f'Min LR = {min_lr}')
+
+# Highlight regions
+ax.fill_between(steps[:warmup_steps], 0, max_lr, alpha=0.2, color='yellow', label='Warmup Phase')
+ax.fill_between(steps[warmup_steps:], 0, [learning_rates[i] for i in range(warmup_steps, max_steps)],
+                alpha=0.2, color='blue', label='Cosine Decay Phase')
+
+ax.set_xlabel('Training Steps', fontsize=12)
+ax.set_ylabel('Learning Rate', fontsize=12)
+ax.set_title('Learning Rate Schedule: Warmup + Cosine Decay', fontsize=14, fontweight='bold')
+ax.legend(loc='upper right', fontsize=10)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+**Why this pattern works:**
+- **Warmup (yellow)**: Prevents large gradient updates with random weights early on
+- **Peak (1000-2000 steps)**: Maximum learning happens when gradients are reliable
+- **Decay (blue)**: Gradually reduces learning rate for fine-tuning near optimal weights
+
 ### Batch Size and Gradient Accumulation
 
 Training LLMs requires processing **lots of tokens**. But GPU memory is limited.

@@ -83,6 +83,67 @@ The real magic of residual connections becomes clear during backpropagation. Con
 This is why ResNets, Transformers, and other modern architectures can be so deep—residual connections solved the vanishing gradient problem that plagued earlier deep networks.
 ```
 
+### Visualizing Gradient Flow: With vs. Without Residuals
+
+Let's see the dramatic difference residual connections make in a deep network:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Simulate gradient magnitudes through layers
+num_layers = 20
+layers = np.arange(1, num_layers + 1)
+
+# Without residuals: exponential decay (vanishing gradients)
+# Each layer multiplies gradient by ~0.8 (typical for deep networks)
+gradient_without_residual = np.power(0.8, layers - 1)
+
+# With residuals: gradient stays stable due to identity path
+# The "+1" term in the derivative prevents vanishing
+gradient_with_residual = 0.7 + 0.3 * np.power(0.9, layers - 1)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+# Plot 1: Gradient Magnitude
+ax1.plot(layers, gradient_without_residual, 'o-', label='Without Residuals',
+         color='red', linewidth=2, markersize=6)
+ax1.plot(layers, gradient_with_residual, 's-', label='With Residuals',
+         color='green', linewidth=2, markersize=6)
+ax1.axhline(y=0.1, color='gray', linestyle='--', alpha=0.5, label='Vanishing Threshold')
+ax1.set_xlabel('Layer Depth', fontsize=12)
+ax1.set_ylabel('Gradient Magnitude', fontsize=12)
+ax1.set_title('Gradient Flow Through Deep Network', fontsize=14, fontweight='bold')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+ax1.set_yscale('log')
+
+# Plot 2: Layer-by-layer comparison
+bar_width = 0.35
+x_pos = np.arange(len(layers[:10]))
+ax2.bar(x_pos - bar_width/2, gradient_without_residual[:10], bar_width,
+        label='Without Residuals', color='red', alpha=0.7)
+ax2.bar(x_pos + bar_width/2, gradient_with_residual[:10], bar_width,
+        label='With Residuals', color='green', alpha=0.7)
+ax2.set_xlabel('Layer Number', fontsize=12)
+ax2.set_ylabel('Gradient Magnitude', fontsize=12)
+ax2.set_title('First 10 Layers (Zoomed)', fontsize=14, fontweight='bold')
+ax2.set_xticks(x_pos)
+ax2.set_xticklabels(layers[:10])
+ax2.legend()
+ax2.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+**Key observations:**
+- **Without residuals** (red): Gradients decay exponentially, reaching near-zero by layer 10-15
+- **With residuals** (green): Gradients remain strong even in deep layers
+- This is why we can train 100+ layer transformers successfully!
+
 ---
 
 ## Part 2: Layer Normalization (The Leveler)
