@@ -162,6 +162,10 @@ By the end of this post, you'll understand:
 
 ## Part 1: The Intuition (The Filing Cabinet)
 
+**Solving the "Bank" Problem:**
+
+We've seen that static embeddings give "bank" the same vector whether it appears with "river" or "loan". How does attention fix this? It allows each word to **look at its neighbors** and adjust its meaning based on what it finds.
+
 The math of Attention can look scary, but the concept is simple. It is a **Soft Database Lookup**.
 
 Imagine every word in the sentence is a folder in a filing cabinet. To facilitate a search, every word produces three vectors:
@@ -172,13 +176,30 @@ Imagine every word in the sentence is a folder in a filing cabinet. To facilitat
 | **K** | **Key** | What do I contain? | The label on the folder: *"I am an adjective."* |
 | **V** | **Value** | The content | The actual document inside the folder: *"Blue."* |
 
-### The Search Process
-1. The word "Sky" holds up its **Query** ("Looking for adjectives").
-2. It compares this Query against every other word's **Key**.
-3. It finds a high match with the word "Blue."
-4. It extracts the **Value** from "Blue" and adds it to its own representation.
+### How Attention Works: The Search Process
 
-Now, the vector for "Sky" is no longer just "Sky"; it is "Sky + a little bit of Blue".
+Let's trace how "bank" would use attention to shift its meaning in "The **bank** of the river":
+
+1. **"bank"** generates its **Query**: "What context am I in?"
+2. It compares this Query against every other word's **Key**:
+   - **"river"** Key: "I'm a geographic feature" → High match!
+   - **"of"** Key: "I'm a preposition" → Low match
+   - **"the"** Key: "I'm an article" → Low match
+3. "bank" finds the highest match with **"river"**
+4. It extracts the **Value** from "river" (its semantic meaning) and adds it to its own representation
+
+Now, the vector for "bank" is no longer just the static embedding; it is "bank + a lot of 'river' + a little bit of 'the' and 'of'". The representation has shifted toward the nature/geography meaning!
+
+```{note}
+**Why "Query, Key, Value"?**
+
+This terminology comes from databases:
+- **Query**: What you're searching for (like "SELECT WHERE...")
+- **Key**: The index you search against (like database keys)
+- **Value**: The actual data you retrieve
+
+In attention, every word simultaneously plays all three roles for different parts of the computation.
+```
 
 ### The Key Advantage: Everything Happens at Once
 
