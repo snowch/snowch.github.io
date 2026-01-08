@@ -62,22 +62,22 @@ bank_pos = [0, 1.2]
 
 # Plot nature cluster (green) - labels below points
 for word, pos in nature_words.items():
-    ax.scatter(pos[0], pos[1], c='green', s=400, alpha=0.5, edgecolors='darkgreen', linewidth=2.5, zorder=2)
-    ax.text(pos[0], pos[1]-0.35, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkgreen')
+    ax.scatter(pos[0], pos[1], c='green', s=100, alpha=0.5, edgecolors='darkgreen', linewidth=2.5, zorder=2)
+    ax.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkgreen')
 
 # Plot finance cluster (blue) - labels below points
 for word, pos in finance_words.items():
-    ax.scatter(pos[0], pos[1], c='blue', s=400, alpha=0.5, edgecolors='darkblue', linewidth=2.5, zorder=2)
-    ax.text(pos[0], pos[1]-0.35, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkblue')
+    ax.scatter(pos[0], pos[1], c='blue', s=100, alpha=0.5, edgecolors='darkblue', linewidth=2.5, zorder=2)
+    ax.text(pos[0], pos[1]-0.1, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkblue')
 
 # Plot "bank" in the middle (red, larger) - label below
 ax.scatter(bank_pos[0], bank_pos[1], c='red', s=600, alpha=0.7, edgecolors='darkred', linewidth=3, zorder=3)
 ax.text(bank_pos[0], bank_pos[1]-0.45, 'bank', ha='center', va='top', fontsize=14, fontweight='bold', color='darkred')
 
 # Add clearer arrows showing the problem
-ax.annotate('', xy=[-1.8, 1.2], xytext=[bank_pos[0]-0.1, bank_pos[1]],
+ax.annotate('', xy=[-1.6, 1.2], xytext=[bank_pos[0]-0.1, bank_pos[1]],
             arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
-ax.annotate('', xy=[1.8, 1.2], xytext=[bank_pos[0]+0.1, bank_pos[1]],
+ax.annotate('', xy=[1.6, 1.2], xytext=[bank_pos[0]+0.1, bank_pos[1]],
             arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
 
 # Add context labels with better positioning
@@ -92,8 +92,8 @@ ax.text(0, -1.1, '"bank" is frozen at ONE location—can\'t shift meaning based 
         ha='center', fontsize=11, style='italic', color='darkred')
 
 # Add labels for what the arrows mean
-ax.text(-0.9, 0.6, 'Should move\nhere for "river"?', ha='center', fontsize=9, color='red', style='italic')
-ax.text(0.9, 0.6, 'Should move\nhere for "loan"?', ha='center', fontsize=9, color='red', style='italic')
+ax.text(-0.9, 0.6, 'Should move\nhere for "river"?', ha='center', fontsize=12, color='red', style='italic')
+ax.text(0.9, 0.6, 'Should move\nhere for "loan"?', ha='center', fontsize=12, color='red', style='italic')
 
 ax.set_xlim(-3.5, 3.5)
 ax.set_ylim(-1.5, 3.2)
