@@ -39,67 +39,71 @@ warnings.filterwarnings("ignore", message="Matplotlib is building the font cache
 import matplotlib.pyplot as plt
 
 # 2D embedding space visualization
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig, ax = plt.subplots(1, 1, figsize=(12, 7))
 
-# Nature/Geography cluster
+# Nature/Geography cluster (spread out more)
 nature_words = {
-    'river': [-2, 1.5],
-    'water': [-1.8, 1.8],
-    'shore': [-2.2, 1.3],
-    'stream': [-1.6, 1.6]
+    'river': [-2.5, 1.2],
+    'water': [-2.2, 1.8],
+    'shore': [-2.8, 0.8],
+    'stream': [-2.0, 1.4]
 }
 
-# Finance cluster
+# Finance cluster (spread out more)
 finance_words = {
-    'loan': [2, 1.5],
-    'money': [1.8, 1.8],
-    'account': [2.2, 1.3],
-    'deposit': [1.9, 1.6]
+    'loan': [2.5, 1.2],
+    'money': [2.2, 1.8],
+    'account': [2.8, 0.8],
+    'deposit': [2.0, 1.4]
 }
 
 # The problem: "bank" is stuck in the middle
-bank_pos = [0, 1.5]
+bank_pos = [0, 1.2]
 
-# Plot nature cluster (green)
+# Plot nature cluster (green) - labels below points
 for word, pos in nature_words.items():
-    ax.scatter(pos[0], pos[1], c='green', s=200, alpha=0.6, edgecolors='darkgreen', linewidth=2)
-    ax.text(pos[0], pos[1], word, ha='center', va='center', fontsize=11, fontweight='bold')
+    ax.scatter(pos[0], pos[1], c='green', s=400, alpha=0.5, edgecolors='darkgreen', linewidth=2.5, zorder=2)
+    ax.text(pos[0], pos[1]-0.35, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkgreen')
 
-# Plot finance cluster (blue)
+# Plot finance cluster (blue) - labels below points
 for word, pos in finance_words.items():
-    ax.scatter(pos[0], pos[1], c='blue', s=200, alpha=0.6, edgecolors='darkblue', linewidth=2)
-    ax.text(pos[0], pos[1], word, ha='center', va='center', fontsize=11, fontweight='bold')
+    ax.scatter(pos[0], pos[1], c='blue', s=400, alpha=0.5, edgecolors='darkblue', linewidth=2.5, zorder=2)
+    ax.text(pos[0], pos[1]-0.35, word, ha='center', va='top', fontsize=12, fontweight='bold', color='darkblue')
 
-# Plot "bank" in the middle (red, larger)
-ax.scatter(bank_pos[0], bank_pos[1], c='red', s=300, alpha=0.8, edgecolors='darkred', linewidth=3)
-ax.text(bank_pos[0], bank_pos[1], 'bank', ha='center', va='center', fontsize=13, fontweight='bold', color='white')
+# Plot "bank" in the middle (red, larger) - label below
+ax.scatter(bank_pos[0], bank_pos[1], c='red', s=600, alpha=0.7, edgecolors='darkred', linewidth=3, zorder=3)
+ax.text(bank_pos[0], bank_pos[1]-0.45, 'bank', ha='center', va='top', fontsize=14, fontweight='bold', color='darkred')
 
-# Add arrows showing the problem
-ax.annotate('', xy=[-1.5, 1.5], xytext=[bank_pos[0], bank_pos[1]],
-            arrowprops=dict(arrowstyle='->', color='gray', lw=2, linestyle='dashed', alpha=0.5))
-ax.annotate('', xy=[1.5, 1.5], xytext=[bank_pos[0], bank_pos[1]],
-            arrowprops=dict(arrowstyle='->', color='gray', lw=2, linestyle='dashed', alpha=0.5))
+# Add clearer arrows showing the problem
+ax.annotate('', xy=[-1.8, 1.2], xytext=[bank_pos[0]-0.1, bank_pos[1]],
+            arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
+ax.annotate('', xy=[1.8, 1.2], xytext=[bank_pos[0]+0.1, bank_pos[1]],
+            arrowprops=dict(arrowstyle='->', color='red', lw=3, linestyle='dashed', alpha=0.6))
 
-# Add context labels
-ax.text(-2, 2.5, 'Nature Context', ha='center', fontsize=12, color='green', fontweight='bold',
-        bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
-ax.text(2, 2.5, 'Finance Context', ha='center', fontsize=12, color='blue', fontweight='bold',
-        bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+# Add context labels with better positioning
+ax.text(-2.5, 2.6, 'Nature/Geography\nContext', ha='center', fontsize=13, color='darkgreen', fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.5, edgecolor='darkgreen', linewidth=2))
+ax.text(2.5, 2.6, 'Finance/Banking\nContext', ha='center', fontsize=13, color='darkblue', fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.5, edgecolor='darkblue', linewidth=2))
 
-# Add the problem statement
-ax.text(0, 0.3, '⚠️ Static Embedding Problem', ha='center', fontsize=13, color='red', fontweight='bold')
-ax.text(0, -0.1, '"bank" gets the SAME vector regardless of context',
-        ha='center', fontsize=10, style='italic', color='darkred')
+# Add the problem statement at bottom
+ax.text(0, -0.7, '⚠️  Static Embedding Problem', ha='center', fontsize=14, color='red', fontweight='bold')
+ax.text(0, -1.1, '"bank" is frozen at ONE location—can\'t shift meaning based on context',
+        ha='center', fontsize=11, style='italic', color='darkred')
 
-ax.set_xlim(-3, 3)
-ax.set_ylim(-0.5, 3)
-ax.set_xlabel('Embedding Dimension 1', fontsize=11)
-ax.set_ylabel('Embedding Dimension 2', fontsize=11)
-ax.set_title('Static Embeddings: The "Bank" Problem\n(Same vector for "river bank" and "financial bank")',
-             fontsize=13, fontweight='bold')
-ax.grid(True, alpha=0.2)
-ax.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
-ax.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
+# Add labels for what the arrows mean
+ax.text(-0.9, 0.6, 'Should move\nhere for "river"?', ha='center', fontsize=9, color='red', style='italic')
+ax.text(0.9, 0.6, 'Should move\nhere for "loan"?', ha='center', fontsize=9, color='red', style='italic')
+
+ax.set_xlim(-3.5, 3.5)
+ax.set_ylim(-1.5, 3.2)
+ax.set_xlabel('Embedding Dimension 1', fontsize=12, fontweight='bold')
+ax.set_ylabel('Embedding Dimension 2', fontsize=12, fontweight='bold')
+ax.set_title('Static Embeddings: The "Bank" Problem\n(Same vector whether next to "river" or "loan")',
+             fontsize=14, fontweight='bold', pad=15)
+ax.grid(True, alpha=0.2, linestyle='--')
+ax.axhline(y=0, color='k', linewidth=0.8, alpha=0.3)
+ax.axvline(x=0, color='k', linewidth=0.8, alpha=0.3)
 
 plt.tight_layout()
 plt.show()
