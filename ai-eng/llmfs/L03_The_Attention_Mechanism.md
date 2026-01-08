@@ -216,11 +216,11 @@ Input: "The bank approved the loan because it was well-capitalized"
         ↑                               ↑
       word 1                          word 8
 
-Step 1: "The"    → hidden_state_1 = f(embedding("The"))
-Step 2: "bank"   → hidden_state_2 = f(embedding("bank"), hidden_state_1)
+Step 1: "The"      → hidden_state_1 = f(embedding("The"))
+Step 2: "bank"     → hidden_state_2 = f(embedding("bank"), hidden_state_1)
 Step 3: "approved" → hidden_state_3 = f(embedding("approved"), hidden_state_2)
 ...
-Step 8: "it"     → hidden_state_8 = f(embedding("it"), hidden_state_7)
+Step 8: "it"       → hidden_state_8 = f(embedding("it"), hidden_state_7)
 
 Problem: To understand what "it" refers to (word 8), the model must rely on
 information about "bank" (word 2) that has been compressed through 6 sequential
@@ -244,11 +244,11 @@ Input: "The bank approved the loan because it was well-capitalized"
 Single Step: ALL words computed simultaneously via matrix operations:
 
 "it" (word 8) compares its Query directly against ALL Keys:
-  Q("it") · K("The")    = 0.05  → Low attention weight
-  Q("it") · K("bank")   = 0.82  → HIGH attention weight! ✓
+  Q("it") · K("The")      = 0.05  → Low attention weight
+  Q("it") · K("bank")     = 0.82  → HIGH attention weight! ✓
   Q("it") · K("approved") = 0.08  → Low attention weight
-  Q("it") · K("the")    = 0.02  → Low attention weight
-  Q("it") · K("loan")   = 0.15  → Medium attention weight
+  Q("it") · K("the")      = 0.02  → Low attention weight
+  Q("it") · K("loan")     = 0.15  → Medium attention weight
   ...
 
 Result: "it" can look DIRECTLY at "bank" (word 2) without any intermediate steps.
