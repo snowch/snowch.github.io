@@ -578,6 +578,8 @@ The pattern above shows the *ideal* behavior we'd hope to see—"it" resolving t
 
 ## Part 4: Implementation in PyTorch
 
+We've seen the intuition (Q/K/V filing cabinet), the math (dot products and scaling), and the visualization (attention heatmaps). Now let's see how remarkably simple the actual code is.
+
 We can implement this entire mechanism in fewer than 20 lines of code.
 
 Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
