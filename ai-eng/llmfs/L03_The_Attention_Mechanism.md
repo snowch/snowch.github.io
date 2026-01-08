@@ -293,7 +293,7 @@ Total: 1 parallel step (all comparisons at once, then weighted sum)
 
 **Why Direct Access Matters:**
 
-1. **No information loss**: "it" doesn't need to hope that information about "bank" survived 6 sequential compressions
+1. **No information loss**: "it" doesn't need to hope that information about "bank" survived 4 intermediate compressions (hidden states 3→4→5→6)
 2. **Long-range dependencies**: Works just as well for word 100 referring to word 1 as for adjacent words
 3. **Symmetry**: "bank" can attend to "loan" just as easily as "loan" attends to "bank"
 4. **Multiple relationships**: Each word can attend strongly to multiple other words simultaneously (through the weighted sum)
@@ -325,7 +325,13 @@ Now let's see the math that makes this parallelism possible.
 
 ## Part 2: The Math of Similarity
 
-In transformers, to determine which words are relevant to each other, we use the **Dot Product**. This operation measures alignment: if two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative.
+In Part 1, we said that each word's **Query** compares against other words' **Keys** to find matches. But HOW do we "compare" two vectors? How do we measure if a Query is similar to a Key?
+
+The answer: the **Dot Product**.
+
+The dot product is a mathematical operation that measures alignment between two vectors. If two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative. If they're perpendicular, the result is zero.
+
+**This is how attention computes "relevance"**: Q("it") · K("bank") gives us a score measuring how much "it" should attend to "bank".
 
 ### Visualizing the "Magnitude Problem"
 
@@ -503,6 +509,8 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 ## Part 3: Visualizing the Attention Map
 
+So far we've focused on the "bank" example to understand how attention works. Now let's visualize attention patterns with a different example that we'll build on in [L04 - Multi-Head Attention](L04_Multi_Head_Attention.md).
+
 In trained models, attention patterns emerge that capture semantic relationships. The heatmap below shows a **simplified example** to illustrate what we might expect: brighter colors represent higher attention weights (post-softmax probabilities).
 
 ```{code-cell} ipython3
@@ -572,7 +580,7 @@ The pattern above shows the *ideal* behavior we'd hope to see—"it" resolving t
 
 We can implement this entire mechanism in fewer than 20 lines of code.
 
-Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](https://www.google.com/search?q=L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
+Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
 
 ```python
 import torch
@@ -613,8 +621,8 @@ class ScaledDotProductAttention(nn.Module):
 
 1. **Context Matters:** Standard embeddings are static. Attention makes them dynamic.
 2. **Q, K, V:** We project our input into "Queries" (Searches), "Keys" (Labels), and "Values" (Content).
-3. **Scaling:** We divide by  to stop the gradients from vanishing when vectors get large.
+3. **Scaling:** We divide by $\sqrt{d_k}$ to stop the gradients from vanishing when vectors get large.
 
-**Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it"  "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
+**Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it" → "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
 
 ---
