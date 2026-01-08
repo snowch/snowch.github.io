@@ -285,48 +285,67 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 ## Part 3: Visualizing the Attention Map
 
-When we train these models, we can see these relationships form. In the heatmap below, brighter colors mean a higher attention score.
-
-Notice that the word "it" attends strongly to "animal", resolving the ambiguity.
+In trained models, attention patterns emerge that capture semantic relationships. The heatmap below shows a **simplified example** to illustrate what we might expect: brighter colors represent higher attention weights (post-softmax probabilities).
 
 ```{code-cell} ipython3
 :tags: [remove-input]
 
-# Mock attention matrix for "The animal didn't cross the street because it was too tired"
+# Simplified example: "The animal didn't cross the street because it was too tired"
+# In a real model, "it" would ideally learn to attend to "animal" (not "street")
 tokens = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "tired"]
 data = np.zeros((len(tokens), len(tokens)))
 
-# Highlighting that "it" attends strongly to "animal"
 it_idx = tokens.index("it")
 animal_idx = tokens.index("animal")
 street_idx = tokens.index("street")
 
-# "it" refers to "animal", not "street"
-data[it_idx, animal_idx] = 0.85
-data[it_idx, street_idx] = 0.05
-data[it_idx, it_idx] = 0.1
+# Simulating ideal attention: "it" refers to "animal"
+data[it_idx, animal_idx] = 0.7   # Strong attention to "animal"
+data[it_idx, street_idx] = 0.05  # Weak attention to "street"
+data[it_idx, it_idx] = 0.15       # Some self-attention
+data[it_idx, 6] = 0.1            # Some attention to "because" (context)
 
-# Random noise for other relations to simulate a real learned map
-np.random.seed(42)
-background_noise = np.random.rand(len(tokens), len(tokens)) * 0.05
-data += background_noise
-
-# Normalize rows to sum to 1 (like Softmax)
-row_sums = data.sum(axis=1)
-data = data / row_sums[:, np.newaxis]
+# Simple diagonal pattern for other words (attending to themselves)
+for i in range(len(tokens)):
+    if i != it_idx:
+        data[i, i] = 0.8
+        # Distribute remaining probability uniformly
+        remaining = 0.2 / (len(tokens) - 1)
+        for j in range(len(tokens)):
+            if i != j:
+                data[i, j] = remaining
 
 plt.figure(figsize=(10, 8))
-plt.imshow(data, cmap='Blues')
-plt.xticks(range(len(tokens)), tokens, rotation=45)
+plt.imshow(data, cmap='Blues', vmin=0, vmax=1)
+plt.xticks(range(len(tokens)), tokens, rotation=45, ha='right')
 plt.yticks(range(len(tokens)), tokens)
-plt.title("Self-Attention Map: Visualizing Context\n(Notice 'it' focusing on 'animal')")
-plt.xlabel("Key (Source Information)")
-plt.ylabel("Query (Current Word Focus)")
-plt.colorbar(label='Attention Probability')
+plt.title("Self-Attention Pattern (Simplified Example)\nRow 'it' shows ~70% attention to 'animal'")
+plt.xlabel("Key (attending TO)")
+plt.ylabel("Query (attending FROM)")
+plt.colorbar(label='Attention Weight')
+
+# Add text annotations for the "it" row to make it clearer
+for j, token in enumerate(tokens):
+    weight = data[it_idx, j]
+    if weight > 0.1:  # Only annotate significant weights
+        plt.text(j, it_idx, f'{weight:.0%}',
+                ha='center', va='center', color='red', fontsize=9, fontweight='bold')
+
 plt.tight_layout()
 plt.show()
 
 
+```
+
+```{note}
+**This is a pedagogical example, not real trained attention!**
+
+In practice, attention patterns in trained transformers are:
+- **Multi-headed**: Each attention head learns different patterns (we'll cover this in L05)
+- **Layer-dependent**: Early layers may focus on syntax, later layers on semantics
+- **Task-dependent**: What the model attends to depends on the training objective
+
+The pattern above shows the *ideal* behavior we'd hope to see—"it" resolving to "animal" rather than "street". Real attention maps are messier and more nuanced!
 ```
 
 ---
