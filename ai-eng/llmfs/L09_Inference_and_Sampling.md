@@ -138,6 +138,82 @@ Suppose after applying temperature=1.0 to our logits and running softmax, we get
 - **Adaptive:** When the model is confident (one token has 0.95 probability), nucleus might only keep that 1 token. When uncertain (many tokens around 0.1 each), it keeps more options.
 - **Quality-based:** Cuts based on probability mass, not arbitrary count
 
+**Visualizing Top-P Filtering:**
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create a mock probability distribution (sorted)
+tokens = ['the', 'a', 'this', 'that', 'my', 'your', 'some', 'one', 'any', 'each']
+probs = np.array([0.40, 0.30, 0.20, 0.05, 0.03, 0.015, 0.003, 0.001, 0.0005, 0.0005])
+cumsum = np.cumsum(probs)
+
+# Top-p threshold
+top_p = 0.9
+
+# Find cutoff
+cutoff_idx = np.where(cumsum >= top_p)[0][0]
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+# Plot 1: Probability distribution with cutoff
+colors = ['green' if i <= cutoff_idx else 'lightgray' for i in range(len(tokens))]
+bars = ax1.bar(tokens, probs, color=colors, alpha=0.8, edgecolor='black')
+
+# Annotate kept vs. filtered
+ax1.axhline(y=probs[cutoff_idx], color='red', linestyle='--', linewidth=2,
+            label=f'Cutoff at token {cutoff_idx + 1}')
+ax1.text(cutoff_idx + 0.5, probs[cutoff_idx] + 0.02, 'Top-p=0.9\nCutoff',
+         color='red', fontweight='bold', fontsize=10)
+
+ax1.set_xlabel('Tokens (sorted by probability)', fontsize=12)
+ax1.set_ylabel('Probability', fontsize=12)
+ax1.set_title('Top-P Nucleus Sampling (p=0.9)', fontsize=14, fontweight='bold')
+ax1.legend()
+ax1.grid(True, alpha=0.3, axis='y')
+ax1.set_xticklabels(tokens, rotation=45)
+
+# Add text labels on bars
+for i, (bar, prob) in enumerate(zip(bars, probs)):
+    height = bar.get_height()
+    status = 'KEPT' if i <= cutoff_idx else 'FILTERED'
+    ax1.text(bar.get_x() + bar.get_width()/2, height + 0.01,
+             f'{prob:.2f}', ha='center', va='bottom', fontsize=9)
+
+# Plot 2: Cumulative probability
+ax2.plot(range(len(tokens)), cumsum, 'o-', linewidth=2, markersize=8, color='blue')
+ax2.axhline(y=top_p, color='red', linestyle='--', linewidth=2, label=f'p={top_p} threshold')
+ax2.axvline(x=cutoff_idx, color='red', linestyle='--', linewidth=2, alpha=0.5)
+
+# Shade the "nucleus"
+ax2.fill_between(range(cutoff_idx + 1), 0, [cumsum[i] for i in range(cutoff_idx + 1)],
+                 alpha=0.3, color='green', label='Nucleus (kept)')
+ax2.fill_between(range(cutoff_idx + 1, len(tokens)), 0,
+                 [cumsum[i] for i in range(cutoff_idx + 1, len(tokens))],
+                 alpha=0.3, color='gray', label='Tail (filtered)')
+
+ax2.set_xlabel('Token Rank', fontsize=12)
+ax2.set_ylabel('Cumulative Probability', fontsize=12)
+ax2.set_title('Cumulative Probability Mass', fontsize=14, fontweight='bold')
+ax2.set_xticks(range(len(tokens)))
+ax2.set_xticklabels(tokens, rotation=45)
+ax2.legend()
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+**Key insight from the visualization:**
+- **Left plot**: Only the first 3 tokens (green) are kept—they account for 90% of probability mass
+- **Right plot**: Cumulative probability curve crosses the 0.9 threshold after 3 tokens
+- The remaining 7 tokens (gray) are filtered out despite being possible candidates
+
+This adaptive filtering keeps quality high while allowing flexibility when the model is uncertain.
+
 ---
 
 ## Part 4: The Inference Code
