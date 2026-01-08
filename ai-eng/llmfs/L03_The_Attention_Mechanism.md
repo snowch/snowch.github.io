@@ -205,32 +205,77 @@ In attention, every word simultaneously plays all three roles for different part
 
 Remember from [L02](L02_Embeddings_and_Positional_Encoding.md): *"The attention mechanism is **parallel**. It looks at every word in a sentence at the exact same time."*
 
-This is the **breakthrough** that makes Transformers faster than older architectures like RNNs (Recurrent Neural Networks).
+This is the **breakthrough** that makes Transformers faster AND better at understanding language than older architectures like RNNs (Recurrent Neural Networks).
 
 **How RNNs Process a Sentence (Sequential):**
-```
-Input: "The quick brown fox"
 
-Step 1: Process "The"       → Update hidden state
-Step 2: Process "quick"     → Update hidden state (using step 1)
-Step 3: Process "brown"     → Update hidden state (using step 2)
-Step 4: Process "fox"       → Update hidden state (using step 3)
+RNNs maintain a "hidden state"—a vector that gets updated as each word is processed. Information from earlier words must flow through this hidden state to reach later words.
 
-Total: 4 sequential steps (can't parallelize)
 ```
+Input: "The bank approved the loan because it was well-capitalized"
+        ↑                               ↑
+      word 1                          word 8
+
+Step 1: "The"    → hidden_state_1 = f(embedding("The"))
+Step 2: "bank"   → hidden_state_2 = f(embedding("bank"), hidden_state_1)
+Step 3: "approved" → hidden_state_3 = f(embedding("approved"), hidden_state_2)
+...
+Step 8: "it"     → hidden_state_8 = f(embedding("it"), hidden_state_7)
+
+Problem: To understand what "it" refers to (word 8), the model must rely on
+information about "bank" (word 2) that has been compressed through 6 sequential
+transformations: hidden_state_2 → 3 → 4 → 5 → 6 → 7 → 8
+
+Each step risks losing information (the "vanishing gradient" problem).
+Total: 8 sequential steps (MUST run one-by-one)
+```
+
+**The Hidden State Bottleneck:**
+
+Think of the hidden state like a game of telephone. By the time information from "bank" reaches "it" through 6 intermediate updates, subtle details may have faded. The model is forced to compress everything important about the entire sentence history into a single fixed-size vector at each step.
 
 **How Attention Processes the Same Sentence (Parallel):**
-```
-Input: "The quick brown fox"
 
-Single Step: ALL words simultaneously:
-  - "The"   compares against ["The", "quick", "brown", "fox"]
-  - "quick" compares against ["The", "quick", "brown", "fox"]
-  - "brown" compares against ["The", "quick", "brown", "fox"]
-  - "fox"   compares against ["The", "quick", "brown", "fox"]
+Instead of passing information through a chain of hidden states, attention allows **direct connections** between any two words.
 
-Total: 1 parallel step (all comparisons happen at once)
 ```
+Input: "The bank approved the loan because it was well-capitalized"
+
+Single Step: ALL words computed simultaneously via matrix operations:
+
+"it" (word 8) compares its Query directly against ALL Keys:
+  Q("it") · K("The")    = 0.05  → Low attention weight
+  Q("it") · K("bank")   = 0.82  → HIGH attention weight! ✓
+  Q("it") · K("approved") = 0.08  → Low attention weight
+  Q("it") · K("the")    = 0.02  → Low attention weight
+  Q("it") · K("loan")   = 0.15  → Medium attention weight
+  ...
+
+Result: "it" can look DIRECTLY at "bank" (word 2) without any intermediate steps.
+No information loss. No compression. Direct access.
+
+Every other word does the same computation simultaneously:
+  - "The" attends to all words
+  - "bank" attends to all words
+  - "approved" attends to all words
+  ... (all computed in parallel)
+
+Total: 1 parallel step (all comparisons at once, then weighted sum)
+```
+
+**Why Direct Access Matters:**
+
+1. **No information loss**: "it" doesn't need to hope that information about "bank" survived 6 sequential compressions
+2. **Long-range dependencies**: Works just as well for word 100 referring to word 1 as for adjacent words
+3. **Symmetry**: "bank" can attend to "loan" just as easily as "loan" attends to "bank"
+4. **Multiple relationships**: Each word can attend strongly to multiple other words simultaneously (through the weighted sum)
+
+**Concrete Example - Pronoun Resolution:**
+
+Consider: "The **artist** gave the **musician** a **score** because **she** loved **her** composition."
+
+- RNN: By the time we reach "she", information about "artist" and "musician" has been mixed together in the hidden state. Hard to tell who "she" refers to.
+- Attention: "she" directly queries both "artist" and "musician", finds stronger semantic match with "musician" (or "artist" depending on learned weights), resolves reference clearly.
 
 **Why This Works:**
 
@@ -243,7 +288,7 @@ The attention mechanism achieves parallelism through **matrix multiplication**. 
 Modern GPUs are **optimized for matrix operations**, so computing attention for 100 words in parallel is barely slower than computing it for 10 words. This is why Transformers can handle such long contexts efficiently.
 
 ```{note}
-**The Trade-off:** Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths (up to thousands of tokens).
+**The Trade-off:** Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths (up to thousands of tokens). Plus, the direct access enables better language understanding, especially for long-range dependencies.
 ```
 
 Now let's see the math that makes this parallelism possible.
