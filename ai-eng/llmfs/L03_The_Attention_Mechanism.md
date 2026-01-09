@@ -620,27 +620,27 @@ origin = [0, 0]
 # Query (blue, reference vector)
 ax1.quiver(*origin, *q, angles='xy', scale_units='xy', scale=1,
           color='#1f77b4', width=0.015, alpha=0.9, label='Query: "it"', zorder=5)
-ax1.text(q[0]+0.1, q[1]+0.15, 'Q: "it"', fontsize=11, fontweight='bold', color='#1f77b4')
+ax1.text(q[0]-0.05, q[1]+0.2, 'Q: "it"', fontsize=11, fontweight='bold', color='#1f77b4')
 
 # Keys with width based on attention weight
 max_width = 0.012
 ax1.quiver(*origin, *k_animal, angles='xy', scale_units='xy', scale=1,
           color='#2ca02c', width=max_width * (w_animal/w_animal), alpha=0.8, zorder=4)
-ax1.text(k_animal[0]+0.05, k_animal[1]-0.25, f'K: "animal"\nscore={score_animal:.2f}\nw={w_animal:.0%}',
-         fontsize=9, color='#2ca02c', fontweight='bold')
+ax1.text(k_animal[0]+0.15, k_animal[1]+0.05, f'K: "animal"\nscore={score_animal:.2f}\nw={w_animal:.0%}',
+         fontsize=9, color='#2ca02c', fontweight='bold', va='bottom')
 
 ax1.quiver(*origin, *k_street, angles='xy', scale_units='xy', scale=1,
           color='#ff7f0e', width=max_width * (w_street/w_animal), alpha=0.8, zorder=3)
-ax1.text(k_street[0]-0.1, k_street[1]-0.25, f'K: "street"\nscore={score_street:.2f}\nw={w_street:.0%}',
-         fontsize=9, color='#ff7f0e', fontweight='bold')
+ax1.text(k_street[0]+0.05, k_street[1]-0.35, f'K: "street"\nscore={score_street:.2f}\nw={w_street:.0%}',
+         fontsize=9, color='#ff7f0e', fontweight='bold', va='top')
 
 ax1.quiver(*origin, *k_because, angles='xy', scale_units='xy', scale=1,
           color='#d62728', width=max_width * (w_because/w_animal), alpha=0.8, zorder=2)
-ax1.text(k_because[0]-0.35, k_because[1]+0.1, f'K: "because"\nscore={score_because:.2f}\nw={w_because:.0%}',
-         fontsize=9, color='#d62728', fontweight='bold')
+ax1.text(k_because[0]-0.1, k_because[1]+0.25, f'K: "because"\nscore={score_because:.2f}\nw={w_because:.0%}',
+         fontsize=9, color='#d62728', fontweight='bold', ha='right', va='bottom')
 
-ax1.set_xlim(-0.8, 1.6)
-ax1.set_ylim(-0.5, 1.2)
+ax1.set_xlim(-0.9, 1.7)
+ax1.set_ylim(-0.6, 1.3)
 ax1.set_aspect('equal')
 ax1.grid(True, alpha=0.3)
 ax1.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
@@ -668,18 +668,18 @@ context = w_animal * v_animal + w_street * v_street + w_because * v_because
 # Plot value vectors (lighter colors)
 ax2.quiver(*origin, *v_animal, angles='xy', scale_units='xy', scale=1,
           color='#2ca02c', width=0.01, alpha=0.4, zorder=2, label='V: "animal"')
-ax2.text(v_animal[0]+0.05, v_animal[1]+0.05, f'V: "animal"\n({w_animal:.0%})',
-         fontsize=9, color='#2ca02c')
+ax2.text(v_animal[0]+0.15, v_animal[1]+0.08, f'V: "animal"\n({w_animal:.0%})',
+         fontsize=9, color='#2ca02c', va='bottom')
 
 ax2.quiver(*origin, *v_street, angles='xy', scale_units='xy', scale=1,
           color='#ff7f0e', width=0.01, alpha=0.4, zorder=2, label='V: "street"')
-ax2.text(v_street[0]-0.05, v_street[1]-0.2, f'V: "street"\n({w_street:.0%})',
-         fontsize=9, color='#ff7f0e')
+ax2.text(v_street[0]+0.05, v_street[1]-0.22, f'V: "street"\n({w_street:.0%})',
+         fontsize=9, color='#ff7f0e', va='top')
 
 ax2.quiver(*origin, *v_because, angles='xy', scale_units='xy', scale=1,
           color='#d62728', width=0.01, alpha=0.4, zorder=2, label='V: "because"')
-ax2.text(v_because[0]-0.35, v_because[1]+0.05, f'V: "because"\n({w_because:.0%})',
-         fontsize=9, color='#d62728')
+ax2.text(v_because[0]-0.05, v_because[1]+0.15, f'V: "because"\n({w_because:.0%})',
+         fontsize=9, color='#d62728', ha='right', va='bottom')
 
 # Plot weighted components (dashed)
 weighted_animal = w_animal * v_animal
@@ -696,12 +696,13 @@ ax2.quiver(*weighted_animal+weighted_street, *(weighted_because), angles='xy', s
 # Final context vector (thick black arrow)
 ax2.quiver(*origin, *context, angles='xy', scale_units='xy', scale=1,
           color='black', width=0.015, alpha=0.9, zorder=5, label='Context (output)')
-ax2.text(context[0]+0.05, context[1]+0.1, 'Context\n(output)',
-         fontsize=11, fontweight='bold', color='black',
-         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.3))
+ax2.text(context[0]+0.1, context[1]+0.05, 'Context\n(output)',
+         fontsize=10, fontweight='bold', color='black',
+         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.3),
+         va='bottom')
 
-ax2.set_xlim(-0.5, 1.0)
-ax2.set_ylim(-0.3, 0.8)
+ax2.set_xlim(-0.55, 1.1)
+ax2.set_ylim(-0.35, 0.85)
 ax2.set_aspect('equal')
 ax2.grid(True, alpha=0.3)
 ax2.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
