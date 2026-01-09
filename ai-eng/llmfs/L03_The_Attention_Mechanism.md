@@ -629,13 +629,12 @@ K = {
 names = list(K.keys())
 scores = np.array([Q @ K[n] for n in names])
 
-# Use matplotlib default color cycle
+# Use matplotlib default color cycle (no hard-coded palette)
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 cQ = cycle[3 % len(cycle)]
 
-fig, ax = plt.subplots(figsize=(7.5, 6.8))
-ax.set_title("Step 1 — Similarity: score = Q·K", fontsize=16, fontweight="bold", pad=12)
+fig, ax = plt.subplots(figsize=(7.5, 9))
 
 # Offset Q slightly so it doesn't perfectly overlap K_animal
 q_hat = Q / np.linalg.norm(Q)
@@ -646,19 +645,38 @@ q_end = q_start + Q
 arrow(ax, (q_start[0], q_start[1]), (q_end[0], q_end[1]),
       color=cQ, lw=4, ls="--", z=5, ms=20)
 
-# Keys with thickness proportional to score
+# Keys with SAME thickness, but circle size proportional to score
 smax = scores.max()
 for i, n in enumerate(names):
     k = K[n]
-    lw = 2.5 + 6.5 * (scores[i] / smax)
-    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=lw, z=4, ms=18)
-    ax.scatter([k[0]], [k[1]], s=45, color=colors[n], alpha=0.9, zorder=6)
+    # Arrow points to the center of the circle at k[0], k[1]
+    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=3.5, z=4, ms=18)
+    # Circle size proportional to score, doubled
+    circle_size = 2 * (50 + 350 * (scores[i] / smax))
+    ax.scatter([k[0]], [k[1]], s=circle_size, color=colors[n], alpha=0.6, zorder=6, edgecolors='white', linewidths=1.5)
 
-legend_lines = [f"Q('it') = {Q.tolist()} (blue dashed)"]
-legend_lines += [f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}" for i, n in enumerate(names)]
-legend_lines.append("")
-legend_lines.append("Thicker arrow = bigger dot-product score")
-box(ax, 0.03, 0.97, "\n".join(legend_lines), fs=11)
+# Color-coded legend with colored markers
+from matplotlib.lines import Line2D
+legend_elements = []
+
+# Add Q line with note about offset
+legend_elements.append(Line2D([0], [0], color=cQ, linestyle='--', lw=3,
+                              label=f"Q('it') = {Q.tolist()} (offset for display)"))
+
+# Add colored entries for each key
+for i, n in enumerate(names):
+    label_text = f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}"
+    legend_elements.append(Line2D([0], [0], marker='o', color='w',
+                                  markerfacecolor=colors[n], markersize=10,
+                                  label=label_text))
+
+ax.legend(handles=legend_elements, loc='upper left', fontsize=10,
+          framealpha=0.95, edgecolor='0.65')
+
+# Add note about circle sizes
+ax.text(0.03, 0.02, "Circle size = dot-product score",
+        fontsize=10, ha='left', va='bottom', transform=ax.transAxes,
+        style='italic', alpha=0.7)
 
 ax.axhline(0, color="k", alpha=0.18)
 ax.axvline(0, color="k", alpha=0.18)
@@ -666,14 +684,14 @@ ax.grid(True, alpha=0.25)
 ax.set_aspect("equal")
 ax.set_xlabel("dim 1", fontsize=12)
 ax.set_ylabel("dim 2", fontsize=12)
-ax.set_xlim(-1.2, 4.8)
-ax.set_ylim(-1.2, 5.4)
+ax.set_xlim(-0.5, 4.8)
+ax.set_ylim(-0.5, 5.4)
 
 plt.tight_layout()
 plt.show()
 ```
 
-**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). Arrow thickness reflects the raw dot product scores—before any normalization.
+**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). **Circle size** reflects the raw dot product scores—before any normalization.
 
 #### Steps 2-3: Scaling and Softmax (Scores → Weights)
 
@@ -712,7 +730,6 @@ cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 
 fig, ax = plt.subplots(figsize=(8.5, 4.8))
-ax.set_title("Step 2–3 — Scale + Softmax → attention weights", fontsize=16, fontweight="bold", pad=12)
 
 y = np.arange(len(names))
 bars = ax.barh(y, w, height=0.55)
@@ -783,7 +800,6 @@ colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 cCTX = cycle[4 % len(cycle)]
 
 fig, ax = plt.subplots(figsize=(7.5, 6.8))
-ax.set_title("Step 4 — Copy from Values: context = Σ wᵢ·Vᵢ", fontsize=16, fontweight="bold", pad=12)
 
 # Plot value points
 for i, n in enumerate(names):
