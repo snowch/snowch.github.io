@@ -576,6 +576,156 @@ It's crucial to understand the distinction between these two terms that are ofte
 When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
+### Geometric View: From Scores to Context
+
+Let's visualize how attention works geometrically using a concrete example: the query "sat" attending to three keys: "cat", "The", and "on".
+
+The visualization below shows two spaces:
+- **Left (Query-Key space)**: Shows alignment between the query and each key (thicker arrows = higher attention)
+- **Right (Value space)**: Shows how attention weights combine values to produce the final context vector
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+# === LEFT PLOT: Query-Key Space (Computing Attention Scores) ===
+ax1.set_title('Query-Key Space: Computing Attention\n"sat" attending to other words',
+              fontsize=12, fontweight='bold', pad=15)
+
+# Query vector (what "sat" is looking for)
+q = np.array([1.2, 0.8])
+
+# Key vectors (what each word advertises)
+k_cat = np.array([1.0, 0.7])      # Similar to query (high score)
+k_the = np.array([0.3, 0.2])      # Somewhat aligned (medium score)
+k_on = np.array([-0.5, 0.3])      # Less aligned (low score)
+
+# Compute dot products (scores before scaling/softmax)
+score_cat = np.dot(q, k_cat)
+score_the = np.dot(q, k_the)
+score_on = np.dot(q, k_on)
+
+# Normalize to get attention weights (simplified softmax)
+scores = np.array([score_cat, score_the, score_on])
+weights = np.exp(scores) / np.sum(np.exp(scores))
+w_cat, w_the, w_on = weights
+
+# Plot vectors with thickness proportional to attention weight
+origin = [0, 0]
+
+# Query (blue, reference vector)
+ax1.quiver(*origin, *q, angles='xy', scale_units='xy', scale=1,
+          color='#1f77b4', width=0.015, alpha=0.9, label='Query: "sat"', zorder=5)
+ax1.text(q[0]+0.1, q[1]+0.15, 'Q: "sat"', fontsize=11, fontweight='bold', color='#1f77b4')
+
+# Keys with width based on attention weight
+max_width = 0.012
+ax1.quiver(*origin, *k_cat, angles='xy', scale_units='xy', scale=1,
+          color='#2ca02c', width=max_width * (w_cat/w_cat), alpha=0.8, zorder=4)
+ax1.text(k_cat[0]+0.05, k_cat[1]-0.25, f'K: "cat"\nscore={score_cat:.2f}\nw={w_cat:.0%}',
+         fontsize=9, color='#2ca02c', fontweight='bold')
+
+ax1.quiver(*origin, *k_the, angles='xy', scale_units='xy', scale=1,
+          color='#ff7f0e', width=max_width * (w_the/w_cat), alpha=0.8, zorder=3)
+ax1.text(k_the[0]-0.1, k_the[1]-0.25, f'K: "The"\nscore={score_the:.2f}\nw={w_the:.0%}',
+         fontsize=9, color='#ff7f0e', fontweight='bold')
+
+ax1.quiver(*origin, *k_on, angles='xy', scale_units='xy', scale=1,
+          color='#d62728', width=max_width * (w_on/w_cat), alpha=0.8, zorder=2)
+ax1.text(k_on[0]-0.35, k_on[1]+0.1, f'K: "on"\nscore={score_on:.2f}\nw={w_on:.0%}',
+         fontsize=9, color='#d62728', fontweight='bold')
+
+ax1.set_xlim(-0.8, 1.6)
+ax1.set_ylim(-0.5, 1.2)
+ax1.set_aspect('equal')
+ax1.grid(True, alpha=0.3)
+ax1.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
+ax1.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
+ax1.set_xlabel('Dimension 1', fontsize=10)
+ax1.set_ylabel('Dimension 2', fontsize=10)
+
+# Add note about arrow thickness
+ax1.text(0.02, 0.98, 'Arrow thickness ∝ attention weight',
+         transform=ax1.transAxes, fontsize=9, va='top',
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+
+# === RIGHT PLOT: Value Space (Weighted Sum) ===
+ax2.set_title('Value Space: Computing Context\ncontext = Σ (attention weight × value)',
+              fontsize=12, fontweight='bold', pad=15)
+
+# Value vectors (different from keys! These are the actual content)
+v_cat = np.array([0.8, 0.5])
+v_the = np.array([0.2, 0.1])
+v_on = np.array([-0.3, 0.6])
+
+# Compute weighted context vector
+context = w_cat * v_cat + w_the * v_the + w_on * v_on
+
+# Plot value vectors (lighter colors)
+ax2.quiver(*origin, *v_cat, angles='xy', scale_units='xy', scale=1,
+          color='#2ca02c', width=0.01, alpha=0.4, zorder=2, label='V: "cat"')
+ax2.text(v_cat[0]+0.05, v_cat[1]+0.05, f'V: "cat"\n({w_cat:.0%})',
+         fontsize=9, color='#2ca02c')
+
+ax2.quiver(*origin, *v_the, angles='xy', scale_units='xy', scale=1,
+          color='#ff7f0e', width=0.01, alpha=0.4, zorder=2, label='V: "The"')
+ax2.text(v_the[0]-0.05, v_the[1]-0.2, f'V: "The"\n({w_the:.0%})',
+         fontsize=9, color='#ff7f0e')
+
+ax2.quiver(*origin, *v_on, angles='xy', scale_units='xy', scale=1,
+          color='#d62728', width=0.01, alpha=0.4, zorder=2, label='V: "on"')
+ax2.text(v_on[0]-0.3, v_on[1]+0.05, f'V: "on"\n({w_on:.0%})',
+         fontsize=9, color='#d62728')
+
+# Plot weighted components (dashed)
+weighted_cat = w_cat * v_cat
+weighted_the = w_the * v_the
+weighted_on = w_on * v_on
+
+ax2.quiver(*origin, *weighted_cat, angles='xy', scale_units='xy', scale=1,
+          color='#2ca02c', width=0.008, linestyle='--', alpha=0.6, zorder=3)
+ax2.quiver(*weighted_cat, *(weighted_the), angles='xy', scale_units='xy', scale=1,
+          color='#ff7f0e', width=0.008, linestyle='--', alpha=0.6, zorder=3)
+ax2.quiver(*weighted_cat+weighted_the, *(weighted_on), angles='xy', scale_units='xy', scale=1,
+          color='#d62728', width=0.008, linestyle='--', alpha=0.6, zorder=3)
+
+# Final context vector (thick black arrow)
+ax2.quiver(*origin, *context, angles='xy', scale_units='xy', scale=1,
+          color='black', width=0.015, alpha=0.9, zorder=5, label='Context (output)')
+ax2.text(context[0]+0.05, context[1]+0.1, 'Context\n(output)',
+         fontsize=11, fontweight='bold', color='black',
+         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.3))
+
+ax2.set_xlim(-0.5, 1.0)
+ax2.set_ylim(-0.3, 0.8)
+ax2.set_aspect('equal')
+ax2.grid(True, alpha=0.3)
+ax2.axhline(y=0, color='k', linewidth=0.5, alpha=0.3)
+ax2.axvline(x=0, color='k', linewidth=0.5, alpha=0.3)
+ax2.set_xlabel('Dimension 1', fontsize=10)
+ax2.set_ylabel('Dimension 2', fontsize=10)
+
+# Add note about weighted sum
+ax2.text(0.02, 0.98, 'Dashed arrows show weighted values\nBlack arrow is their sum',
+         transform=ax2.transAxes, fontsize=9, va='top',
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+
+plt.tight_layout()
+plt.show()
+```
+
+**What This Shows:**
+
+1. **Left plot**: The query "sat" compares against three keys. "cat" has the highest alignment (score=1.62), so it receives the highest attention weight (68%).
+
+2. **Right plot**: The attention weights scale each value vector (dashed arrows show the scaled versions). The final context is the sum of these weighted values—mostly "cat" with small contributions from "The" and "on".
+
+**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend, but values determine *what* information to extract.
+
 ---
 
 ## Part 3: Visualizing the Attention Map
