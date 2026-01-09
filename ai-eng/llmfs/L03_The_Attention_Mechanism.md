@@ -578,7 +578,9 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 ### Geometric View: From Scores to Context
 
-Let's zoom into the pronoun resolution example geometrically. When "it" (query) compares against other words' keys, how does it compute the final context vector?
+In the worked example above, we calculated that Q=[3, 1] attending to K=[3, 1] yields 89% attention weight. Let's visualize this geometrically using those exact vectors.
+
+When "it" (query) compares against other words' keys, how does it compute the final context vector?
 
 The visualization below shows two spaces:
 - **Left (Query-Key space)**: Shows alignment between "it" (query) and candidate keys (thicker arrows = higher attention)
@@ -596,13 +598,13 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
 ax1.set_title('Left: K-space (scores)\nthicker K arrows = higher attention weight',
               fontsize=13, fontweight='bold', pad=15)
 
-# Query vector (what "it" is looking for - searching for its referent)
-q = np.array([1.2, 0.8])
+# Query vector - SAME AS WORKED EXAMPLE ABOVE: Q = [3, 1]
+q = np.array([3.0, 1.0])
 
-# Key vectors (what each word advertises)
-k_animal = np.array([1.0, 0.7])      # High match - "it" refers to "animal"
-k_street = np.array([0.3, 0.2])      # Low match - "street" less likely referent
-k_because = np.array([-0.5, 0.3])    # Very low match - function word
+# Key vectors - Using vectors from worked example + dot product diagram
+k_animal = np.array([3.0, 1.0])      # Exact match: Q·K = 10 → 87% weight
+k_street = np.array([1.0, 4.0])      # Misaligned: Q·K = 7 → 10% weight
+k_because = np.array([1.5, 0.5])     # Short aligned: Q·K = 5 → 3% weight
 
 # Compute dot products (scores before scaling/softmax)
 score_animal = np.dot(q, k_animal)
@@ -620,7 +622,7 @@ origin = [0, 0]
 # Query (blue, reference vector)
 ax1.quiver(*origin, *q, angles='xy', scale_units='xy', scale=1,
           color='#0066cc', width=0.018, alpha=1.0, zorder=5)
-ax1.text(q[0]+0.05, q[1]+0.25, 'Q: "it"', fontsize=13, fontweight='bold',
+ax1.text(q[0]+0.3, q[1]+0.4, 'Q: "it"\n[3, 1]', fontsize=13, fontweight='bold',
          color='#0066cc', bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
          edgecolor='#0066cc', linewidth=2))
 
@@ -628,24 +630,24 @@ ax1.text(q[0]+0.05, q[1]+0.25, 'Q: "it"', fontsize=13, fontweight='bold',
 max_width = 0.015
 ax1.quiver(*origin, *k_animal, angles='xy', scale_units='xy', scale=1,
           color='#00aa00', width=max_width * (w_animal/w_animal), alpha=1.0, zorder=4)
-ax1.text(k_animal[0]+0.15, k_animal[1]+0.15, f'"animal"\nw={w_animal:.0%}',
-         fontsize=12, color='#00aa00', fontweight='bold', va='bottom',
+ax1.text(k_animal[0]+0.3, k_animal[1]-0.7, f'"animal" [3, 1]\nQ·K=10\nw={w_animal:.0%}',
+         fontsize=12, color='#00aa00', fontweight='bold', va='top',
          bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#00aa00', linewidth=1.5))
 
 ax1.quiver(*origin, *k_street, angles='xy', scale_units='xy', scale=1,
           color='#ff8800', width=max_width * (w_street/w_animal), alpha=1.0, zorder=3)
-ax1.text(k_street[0]+0.08, k_street[1]-0.4, f'"street"\nw={w_street:.0%}',
-         fontsize=12, color='#ff8800', fontweight='bold', va='top',
+ax1.text(k_street[0]+0.5, k_street[1]+0.3, f'"street" [1, 4]\nQ·K=7\nw={w_street:.0%}',
+         fontsize=12, color='#ff8800', fontweight='bold', va='bottom',
          bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#ff8800', linewidth=1.5))
 
 ax1.quiver(*origin, *k_because, angles='xy', scale_units='xy', scale=1,
           color='#cc0000', width=max_width * (w_because/w_animal), alpha=1.0, zorder=2)
-ax1.text(k_because[0]-0.15, k_because[1]+0.3, f'"because"\nw={w_because:.0%}',
-         fontsize=12, color='#cc0000', fontweight='bold', ha='right', va='bottom',
+ax1.text(k_because[0]+0.3, k_because[1]-0.5, f'"because" [1.5, 0.5]\nQ·K=5\nw={w_because:.0%}',
+         fontsize=11, color='#cc0000', fontweight='bold', va='top',
          bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#cc0000', linewidth=1.5))
 
-ax1.set_xlim(-1.0, 1.8)
-ax1.set_ylim(-0.7, 1.4)
+ax1.set_xlim(-0.5, 4.5)
+ax1.set_ylim(-1.0, 5.0)
 ax1.set_aspect('equal')
 ax1.grid(True, alpha=0.3, linewidth=0.8)
 ax1.axhline(y=0, color='k', linewidth=1, alpha=0.4)
@@ -657,10 +659,10 @@ ax1.set_ylabel('Dimension 2', fontsize=11)
 ax2.set_title('Right: V-space (output)\ncontext = Σ (attention weight) × V',
               fontsize=13, fontweight='bold', pad=15)
 
-# Value vectors (different from keys! These are the actual content)
-v_animal = np.array([0.8, 0.5])
-v_street = np.array([0.2, 0.1])
-v_because = np.array([-0.3, 0.6])
+# Value vectors (different from keys! These carry semantic content)
+v_animal = np.array([2.0, 1.5])
+v_street = np.array([0.5, 0.3])
+v_because = np.array([-0.5, 1.2])
 
 # Compute weighted context vector
 context = w_animal * v_animal + w_street * v_street + w_because * v_because
@@ -668,17 +670,17 @@ context = w_animal * v_animal + w_street * v_street + w_because * v_because
 # Plot value vectors (lighter, thin arrows)
 ax2.quiver(*origin, *v_animal, angles='xy', scale_units='xy', scale=1,
           color='#00aa00', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_animal[0]+0.18, v_animal[1]+0.10, f'"animal"\n{w_animal:.0%}',
+ax2.text(v_animal[0]+0.3, v_animal[1]+0.2, f'V: "animal"\n({w_animal:.0%})',
          fontsize=11, color='#00aa00', va='bottom', alpha=0.7)
 
 ax2.quiver(*origin, *v_street, angles='xy', scale_units='xy', scale=1,
           color='#ff8800', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_street[0]+0.08, v_street[1]-0.25, f'"street"\n{w_street:.0%}',
+ax2.text(v_street[0]+0.15, v_street[1]-0.4, f'V: "street"\n({w_street:.0%})',
          fontsize=11, color='#ff8800', va='top', alpha=0.7)
 
 ax2.quiver(*origin, *v_because, angles='xy', scale_units='xy', scale=1,
           color='#cc0000', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_because[0]-0.1, v_because[1]+0.18, f'"because"\n{w_because:.0%}',
+ax2.text(v_because[0]-0.2, v_because[1]+0.3, f'V: "because"\n({w_because:.0%})',
          fontsize=11, color='#cc0000', ha='right', va='bottom', alpha=0.7)
 
 # Plot weighted components (dashed, thicker, more visible)
@@ -696,14 +698,14 @@ ax2.quiver(*weighted_animal+weighted_street, *(weighted_because), angles='xy', s
 # Final context vector (thick black arrow)
 ax2.quiver(*origin, *context, angles='xy', scale_units='xy', scale=1,
           color='black', width=0.020, alpha=1.0, zorder=5)
-ax2.text(context[0]+0.12, context[1]+0.08, 'Context\n(output)',
+ax2.text(context[0]+0.3, context[1]+0.2, 'Context\n(output)',
          fontsize=13, fontweight='bold', color='black',
          bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow',
                    edgecolor='black', linewidth=2, alpha=0.9),
          va='bottom')
 
-ax2.set_xlim(-0.6, 1.2)
-ax2.set_ylim(-0.4, 0.9)
+ax2.set_xlim(-1.0, 3.0)
+ax2.set_ylim(-0.5, 2.5)
 ax2.set_aspect('equal')
 ax2.grid(True, alpha=0.3, linewidth=0.8)
 ax2.axhline(y=0, color='k', linewidth=1, alpha=0.4)
@@ -717,9 +719,9 @@ plt.show()
 
 **What This Shows:**
 
-1. **Left plot (K-space)**: The query "it" (blue arrow) compares against three keys. The **thickness of each arrow** shows its attention weight—"animal" gets 71% (thickest), "street" gets 21% (medium), and "because" gets 9% (thinnest). This is how the model resolves that "it" likely refers to "animal".
+1. **Left plot (K-space)**: The query "it" Q=[3, 1] (blue arrow) compares against three keys using dot products. Notice that K_animal=[3, 1] **perfectly aligns** with the query (Q·K=10), yielding 87% attention weight. K_street=[1, 4] is **misaligned** (Q·K=7), getting only 10%. The **thickness of each arrow** reflects these weights—this is how the model resolves that "it" likely refers to "animal".
 
-2. **Right plot (V-space)**: The faint arrows show the original value vectors. The **dashed arrows** show these values scaled by their attention weights. The final **black arrow** is the sum: the context vector for "it" contains mostly "animal"'s semantic content (71%) with smaller contributions from "street" and "because".
+2. **Right plot (V-space)**: The faint arrows show the original value vectors. The **dashed arrows** show these values scaled by their attention weights (87% × V_animal + 10% × V_street + 3% × V_because). The final **black arrow** is their sum: the context vector for "it" contains mostly "animal"'s semantic content with small contributions from "street" and "because".
 
 **Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution), but values determine *what* information to extract (semantic content).
 
