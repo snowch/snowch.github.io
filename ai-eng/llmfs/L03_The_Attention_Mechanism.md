@@ -337,7 +337,7 @@ This is why **context length** is a key specification in LLMs:
 - GPT-4 Turbo (2023): 128K tokens
 - Gemini 1.5 (2024): 1M+ tokens
 
-**Beyond this lesson:** Advanced techniques like Flash Attention (covered in [L16 - Attention Optimizations](../llmfs-scaling/L16_Attention_Optimizations.md)) reduce memory usage without changing the math, and sparse attention patterns can break the $O(n^2)$ barrier entirely. But for now, understand that memory—not speed—is what limits context length in transformers.
+**Beyond this lesson:** Advanced techniques like Flash Attention ([L16 - Attention Optimizations](../llmfs-scaling/L16_Attention_Optimizations.md)) reduce memory usage without changing the math, and techniques like RoPE and ALiBi ([L18 - Long Context Handling](../llmfs-scaling/L18_Long_Context_Handling.md)) enable models to handle sequences beyond their original training length. But for now, understand that memory—not speed—is what limits context length in transformers.
 ```
 
 Now let's see the math that makes this parallelism possible.
