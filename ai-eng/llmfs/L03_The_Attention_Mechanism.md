@@ -731,7 +731,7 @@ plt.show()
 
 ## Part 3: Visualizing the Attention Map
 
-So far we've focused on the "bank" example to understand how attention works. Now let's visualize attention patterns with a different example that we'll build on in [L04 - Multi-Head Attention](L04_Multi_Head_Attention.md).
+We've explored attention through different lenses—from the "bank" disambiguation problem to pronoun resolution with the geometric view above. Now let's see the **full attention pattern** for our pronoun resolution example as a heatmap.
 
 In trained models, attention patterns emerge that capture semantic relationships. The heatmap below shows a **simplified example** to illustrate what we might expect: brighter colors represent higher attention weights (post-softmax probabilities).
 
