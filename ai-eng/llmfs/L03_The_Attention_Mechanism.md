@@ -491,9 +491,10 @@ graph TD
 
     %% --- The Inputs ---
     subgraph INPUTS [The Data]
-        Q(Q: Queries):::input
-        K(K: Keys):::input
-        V(V: Values):::input
+        %% 1. Define Notes inside so lines don't cross the Title
+        noteQ[Note: What I'm looking for] -.-> Q(Q: Queries):::input
+        noteK[Note: Folder Labels] -.-> K(K: Keys):::input
+        noteV[Note: The actual content] -.-> V(V: Values):::input
     end
 
     %% --- Step 1: Scores ---
@@ -523,12 +524,9 @@ graph TD
     style K fill:#bbdefb,stroke:#1976d2
     style V fill:#c8e6c9,stroke:#388e3c
 
-    %% Add notes corresponding to the database analogy
-    noteQ[Note: What I'm looking for] -.-> Q
-    noteK[Note: Folder Labels] -.-> K
-    noteV[Note: The actual content] -.-> V
-
-    linkStyle 10,11,12 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
+    %% --- Link Styling ---
+    %% Updated indices to 0,1,2 because the Note links are now defined first (at the top)
+    linkStyle 0,1,2 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
 ```
 
 ### Example Walkthrough: Crunching the Numbers
