@@ -576,15 +576,101 @@ It's crucial to understand the distinction between these two terms that are ofte
 When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
-### Geometric View: From Scores to Context
+### Geometric View: The Four Steps of Attention
 
-In the worked example above, we calculated that Q=[3, 1] attending to K=[3, 1] yields 89% attention weight. Let's visualize this geometrically using those exact vectors.
+In the worked example above, we calculated that Q=[3, 1] attending to K=[3, 1] yields 89% attention weight. Let's visualize this step-by-step using those exact vectors to see how "it" computes its final context vector.
 
-When "it" (query) compares against other words' keys, how does it compute the final context vector?
+We'll break attention into its four steps:
+1. **Similarity**: Compute dot products Q·K (scores)
+2. **Scaling**: Divide by √d_k
+3. **Softmax**: Convert to probabilities (weights)
+4. **Weighted Sum**: Combine values using those weights
 
-The visualization below shows two spaces:
-- **Left (Query-Key space)**: Shows alignment between "it" (query) and candidate keys (thicker arrows = higher attention)
-- **Right (Value space)**: Shows how attention weights combine values to produce "it"'s context vector
+#### Step 1: Similarity in Q-K Space (Computing Scores)
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
+
+def arrow(ax, start, end, color=None, lw=3, alpha=1.0, ls='-', z=3, ms=18):
+    ax.add_patch(FancyArrowPatch(
+        start, end,
+        arrowstyle='-|>',
+        mutation_scale=ms,
+        linewidth=lw,
+        linestyle=ls,
+        color=color,
+        alpha=alpha,
+        zorder=z
+    ))
+
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
+
+# Toy example aligned to your walkthrough
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+names = list(K.keys())
+scores = np.array([Q @ K[n] for n in names])
+
+# Use matplotlib default color cycle
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
+cQ = cycle[3 % len(cycle)]
+
+fig, ax = plt.subplots(figsize=(7.5, 6.8))
+ax.set_title("Step 1 — Similarity: score = Q·K", fontsize=16, fontweight="bold", pad=12)
+
+# Offset Q slightly so it doesn't perfectly overlap K_animal
+q_hat = Q / np.linalg.norm(Q)
+perp = np.array([-q_hat[1], q_hat[0]])
+eps = 0.15
+q_start = eps * perp
+q_end = q_start + Q
+arrow(ax, (q_start[0], q_start[1]), (q_end[0], q_end[1]),
+      color=cQ, lw=4, ls="--", z=5, ms=20)
+
+# Keys with thickness proportional to score
+smax = scores.max()
+for i, n in enumerate(names):
+    k = K[n]
+    lw = 2.5 + 6.5 * (scores[i] / smax)
+    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=lw, z=4, ms=18)
+    ax.scatter([k[0]], [k[1]], s=45, color=colors[n], alpha=0.9, zorder=6)
+
+legend_lines = [f"Q('it') = {Q.tolist()} (blue dashed)"]
+legend_lines += [f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}" for i, n in enumerate(names)]
+legend_lines.append("")
+legend_lines.append("Thicker arrow = bigger dot-product score")
+box(ax, 0.03, 0.97, "\n".join(legend_lines), fs=11)
+
+ax.axhline(0, color="k", alpha=0.18)
+ax.axvline(0, color="k", alpha=0.18)
+ax.grid(True, alpha=0.25)
+ax.set_aspect("equal")
+ax.set_xlabel("dim 1", fontsize=12)
+ax.set_ylabel("dim 2", fontsize=12)
+ax.set_xlim(-1.2, 4.8)
+ax.set_ylim(-1.2, 5.4)
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). Arrow thickness reflects the raw dot product scores—before any normalization.
+
+#### Steps 2-3: Scaling and Softmax (Scores → Weights)
 
 ```{code-cell} ipython3
 :tags: [remove-input]
@@ -592,138 +678,154 @@ The visualization below shows two spaces:
 import numpy as np
 import matplotlib.pyplot as plt
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
+def softmax(x):
+    x = x - np.max(x)
+    ex = np.exp(x)
+    return ex / ex.sum()
 
-# === LEFT PLOT: Query-Key Space (Computing Attention Scores) ===
-ax1.set_title('Left: K-space (scores)\nthicker K arrows = higher attention weight',
-              fontsize=13, fontweight='bold', pad=15)
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
 
-# Query vector - SAME AS WORKED EXAMPLE ABOVE: Q = [3, 1]
-q = np.array([3.0, 1.0])
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+names = list(K.keys())
 
-# Key vectors - Using vectors from worked example + dot product diagram
-k_animal = np.array([3.0, 1.0])      # Exact match: Q·K = 10 → 87% weight
-k_street = np.array([1.0, 4.0])      # Misaligned: Q·K = 7 → 10% weight
-k_because = np.array([1.5, 0.5])     # Short aligned: Q·K = 5 → 3% weight
+d_k = Q.size
+scores = np.array([Q @ K[n] for n in names])
+logits = scores / np.sqrt(d_k)
+w = softmax(logits)
 
-# Compute dot products (scores before scaling/softmax)
-score_animal = np.dot(q, k_animal)
-score_street = np.dot(q, k_street)
-score_because = np.dot(q, k_because)
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 
-# Normalize to get attention weights (simplified softmax)
-scores = np.array([score_animal, score_street, score_because])
-weights = np.exp(scores) / np.sum(np.exp(scores))
-w_animal, w_street, w_because = weights
+fig, ax = plt.subplots(figsize=(8.5, 4.8))
+ax.set_title("Step 2–3 — Scale + Softmax → attention weights", fontsize=16, fontweight="bold", pad=12)
 
-# Plot vectors with thickness proportional to attention weight
-origin = [0, 0]
+y = np.arange(len(names))
+bars = ax.barh(y, w, height=0.55)
+for i, b in enumerate(bars):
+    b.set_color(colors[names[i]])
+    b.set_alpha(0.85)
 
-# Query (blue, reference vector)
-ax1.quiver(*origin, *q, angles='xy', scale_units='xy', scale=1,
-          color='#0066cc', width=0.018, alpha=1.0, zorder=5)
-ax1.text(q[0]+0.3, q[1]+0.4, 'Q: "it"\n[3, 1]', fontsize=13, fontweight='bold',
-         color='#0066cc', bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
-         edgecolor='#0066cc', linewidth=2))
+ax.set_yticks(y, labels=names, fontsize=12)
+ax.invert_yaxis()
+ax.set_xlim(0, 1.0)
+ax.set_xlabel("attention weight", fontsize=12)
+ax.grid(True, axis="x", alpha=0.25)
 
-# Keys with width based on attention weight
-max_width = 0.015
-ax1.quiver(*origin, *k_animal, angles='xy', scale_units='xy', scale=1,
-          color='#00aa00', width=max_width * (w_animal/w_animal), alpha=1.0, zorder=4)
-ax1.text(k_animal[0]+0.3, k_animal[1]-0.7, f'"animal" [3, 1]\nQ·K=10\nw={w_animal:.0%}',
-         fontsize=12, color='#00aa00', fontweight='bold', va='top',
-         bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#00aa00', linewidth=1.5))
+for i, n in enumerate(names):
+    ax.text(w[i] + 0.02, i, f"{w[i]*100:.0f}%  (logit={logits[i]:.2f})",
+            va="center", fontsize=12)
 
-ax1.quiver(*origin, *k_street, angles='xy', scale_units='xy', scale=1,
-          color='#ff8800', width=max_width * (w_street/w_animal), alpha=1.0, zorder=3)
-ax1.text(k_street[0]+0.5, k_street[1]+0.3, f'"street" [1, 4]\nQ·K=7\nw={w_street:.0%}',
-         fontsize=12, color='#ff8800', fontweight='bold', va='bottom',
-         bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#ff8800', linewidth=1.5))
-
-ax1.quiver(*origin, *k_because, angles='xy', scale_units='xy', scale=1,
-          color='#cc0000', width=max_width * (w_because/w_animal), alpha=1.0, zorder=2)
-ax1.text(k_because[0]+0.3, k_because[1]-0.5, f'"because" [1.5, 0.5]\nQ·K=5\nw={w_because:.0%}',
-         fontsize=11, color='#cc0000', fontweight='bold', va='top',
-         bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='#cc0000', linewidth=1.5))
-
-ax1.set_xlim(-0.5, 4.5)
-ax1.set_ylim(-1.0, 5.0)
-ax1.set_aspect('equal')
-ax1.grid(True, alpha=0.3, linewidth=0.8)
-ax1.axhline(y=0, color='k', linewidth=1, alpha=0.4)
-ax1.axvline(x=0, color='k', linewidth=1, alpha=0.4)
-ax1.set_xlabel('Dimension 1', fontsize=11)
-ax1.set_ylabel('Dimension 2', fontsize=11)
-
-# === RIGHT PLOT: Value Space (Weighted Sum) ===
-ax2.set_title('Right: V-space (output)\ncontext = Σ (attention weight) × V',
-              fontsize=13, fontweight='bold', pad=15)
-
-# Value vectors (different from keys! These carry semantic content)
-v_animal = np.array([2.0, 1.5])
-v_street = np.array([0.5, 0.3])
-v_because = np.array([-0.5, 1.2])
-
-# Compute weighted context vector
-context = w_animal * v_animal + w_street * v_street + w_because * v_because
-
-# Plot value vectors (lighter, thin arrows)
-ax2.quiver(*origin, *v_animal, angles='xy', scale_units='xy', scale=1,
-          color='#00aa00', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_animal[0]+0.3, v_animal[1]+0.2, f'V: "animal"\n({w_animal:.0%})',
-         fontsize=11, color='#00aa00', va='bottom', alpha=0.7)
-
-ax2.quiver(*origin, *v_street, angles='xy', scale_units='xy', scale=1,
-          color='#ff8800', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_street[0]+0.15, v_street[1]-0.4, f'V: "street"\n({w_street:.0%})',
-         fontsize=11, color='#ff8800', va='top', alpha=0.7)
-
-ax2.quiver(*origin, *v_because, angles='xy', scale_units='xy', scale=1,
-          color='#cc0000', width=0.008, alpha=0.35, zorder=2)
-ax2.text(v_because[0]-0.2, v_because[1]+0.3, f'V: "because"\n({w_because:.0%})',
-         fontsize=11, color='#cc0000', ha='right', va='bottom', alpha=0.7)
-
-# Plot weighted components (dashed, thicker, more visible)
-weighted_animal = w_animal * v_animal
-weighted_street = w_street * v_street
-weighted_because = w_because * v_because
-
-ax2.quiver(*origin, *weighted_animal, angles='xy', scale_units='xy', scale=1,
-          color='#00aa00', width=0.012, linestyle='--', alpha=0.7, zorder=3, linewidth=1.5)
-ax2.quiver(*weighted_animal, *(weighted_street), angles='xy', scale_units='xy', scale=1,
-          color='#ff8800', width=0.012, linestyle='--', alpha=0.7, zorder=3, linewidth=1.5)
-ax2.quiver(*weighted_animal+weighted_street, *(weighted_because), angles='xy', scale_units='xy', scale=1,
-          color='#cc0000', width=0.012, linestyle='--', alpha=0.7, zorder=3, linewidth=1.5)
-
-# Final context vector (thick black arrow)
-ax2.quiver(*origin, *context, angles='xy', scale_units='xy', scale=1,
-          color='black', width=0.020, alpha=1.0, zorder=5)
-ax2.text(context[0]+0.3, context[1]+0.2, 'Context\n(output)',
-         fontsize=13, fontweight='bold', color='black',
-         bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow',
-                   edgecolor='black', linewidth=2, alpha=0.9),
-         va='bottom')
-
-ax2.set_xlim(-1.0, 3.0)
-ax2.set_ylim(-0.5, 2.5)
-ax2.set_aspect('equal')
-ax2.grid(True, alpha=0.3, linewidth=0.8)
-ax2.axhline(y=0, color='k', linewidth=1, alpha=0.4)
-ax2.axvline(x=0, color='k', linewidth=1, alpha=0.4)
-ax2.set_xlabel('Dimension 1', fontsize=11)
-ax2.set_ylabel('Dimension 2', fontsize=11)
+box(ax, 0.03, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
+    fs=11, va="bottom")
 
 plt.tight_layout()
 plt.show()
 ```
 
-**What This Shows:**
+**What this shows:** We divide each score by √d_k=√2≈1.41 to get "logits", then apply softmax to convert them into probabilities that sum to 1.0. The result: "animal" gets **87%** of the attention (from score=10), "street" gets **10%** (from score=7), and "because" gets **3%** (from score=5). These are the **attention weights**.
 
-1. **Left plot (K-space)**: The query "it" Q=[3, 1] (blue arrow) compares against three keys using dot products. Notice that K_animal=[3, 1] **perfectly aligns** with the query (Q·K=10), yielding 87% attention weight. K_street=[1, 4] is **misaligned** (Q·K=7), getting only 10%. The **thickness of each arrow** reflects these weights—this is how the model resolves that "it" likely refers to "animal".
+#### Step 4: Copy from Values (Weighted Sum in V-Space)
 
-2. **Right plot (V-space)**: The faint arrows show the original value vectors. The **dashed arrows** show these values scaled by their attention weights (87% × V_animal + 10% × V_street + 3% × V_because). The final **black arrow** is their sum: the context vector for "it" contains mostly "animal"'s semantic content with small contributions from "street" and "because".
+```{code-cell} ipython3
+:tags: [remove-input]
 
-**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution), but values determine *what* information to extract (semantic content).
+import numpy as np
+import matplotlib.pyplot as plt
+
+def softmax(x):
+    x = x - np.max(x)
+    ex = np.exp(x)
+    return ex / ex.sum()
+
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
+
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+V = {
+    "animal":  np.array([2.0, 1.5]),
+    "street":  np.array([0.5, 0.3]),
+    "because": np.array([-0.5, 1.2]),
+}
+names = list(K.keys())
+
+d_k = Q.size
+scores = np.array([Q @ K[n] for n in names])
+logits = scores / np.sqrt(d_k)
+w = softmax(logits)
+context = sum(w[i] * V[names[i]] for i in range(len(names)))
+
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
+cCTX = cycle[4 % len(cycle)]
+
+fig, ax = plt.subplots(figsize=(7.5, 6.8))
+ax.set_title("Step 4 — Copy from Values: context = Σ wᵢ·Vᵢ", fontsize=16, fontweight="bold", pad=12)
+
+# Plot value points
+for i, n in enumerate(names):
+    v = V[n]
+    ax.scatter([v[0]], [v[1]], s=160, color=colors[n], alpha=0.95, zorder=4)
+    ax.text(v[0] + 0.10, v[1] + 0.06, f"V_{n}", fontsize=12)
+
+# Context point
+ax.scatter([context[0]], [context[1]], s=260, color=cCTX, marker="*", zorder=6, alpha=0.95)
+ax.text(context[0] + 0.10, context[1] + 0.06, "context", fontsize=12)
+
+# Pull lines from context to values (thickness ~ weight)
+for i, n in enumerate(names):
+    v = V[n]
+    lw = 1.5 + 7.0 * (w[i] / w.max())
+    ax.plot([context[0], v[0]], [context[1], v[1]],
+            linewidth=lw, alpha=0.22, color=colors[n], zorder=2)
+
+# Contribution summary box
+contrib_lines = [
+    f"{n:7s}: w={w[i]:.2f}  w·V≈[{(w[i]*V[n])[0]:.2f}, {(w[i]*V[n])[1]:.2f}]"
+    for i, n in enumerate(names)
+]
+contrib_lines.append("")
+contrib_lines.append(f"context≈[{context[0]:.2f}, {context[1]:.2f}]")
+box(ax, 0.03, 0.97, "Values live in a different space than Keys\n\n" + "\n".join(contrib_lines), fs=11)
+
+ax.axhline(0, color="k", alpha=0.18)
+ax.axvline(0, color="k", alpha=0.18)
+ax.grid(True, alpha=0.25)
+ax.set_aspect("equal")
+ax.set_xlabel("dim 1", fontsize=12)
+ax.set_ylabel("dim 2", fontsize=12)
+
+pts = [context] + [V[n] for n in names]
+xs = [p[0] for p in pts]
+ys = [p[1] for p in pts]
+ax.set_xlim(min(xs)-1.1, max(xs)+1.1)
+ax.set_ylim(min(ys)-1.1, max(ys)+1.1)
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.79, 1.44]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
+
+**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution via geometric alignment), but values determine *what* information to extract (semantic content).
 
 ---
 
