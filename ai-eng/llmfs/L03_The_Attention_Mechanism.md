@@ -502,15 +502,15 @@ graph TD
     Q --> MatMul1(MatMul: QKᵀ):::operation
     KT --> MatMul1
 
-    MatMul1 -- "Step 1: The Scores" --> RawScores[Raw Scores Matrix]:::intermediate
+    MatMul1 -- "Step 1: Raw Scores" --> RawScores[Raw Scores Matrix]:::intermediate
 
     %% --- Step 2: Scaling ---
     RawScores --> Scale(Scale: Divide by √d_k):::operation
-    Scale -- "Step 2: Scaling" --> ScaledScores[Scaled Scores]:::intermediate
+    Scale -- "Step 2: Attention Scores (logits)" --> ScaledScores[Attention Scores / Logits]:::intermediate
 
     %% --- Step 3: Softmax ---
     ScaledScores --> Softmax(Softmax Probability):::operation
-    Softmax -- "Step 3: The Attention Map (0.0 to 1.0)" --> AttnWeights[Attention Weights %]:::intermediate
+    Softmax -- "Step 3: Attention Weights (probabilities)" --> AttnWeights[Attention Weights %]:::intermediate
 
     %% --- Step 4: Weighted Sum ---
     AttnWeights --> MatMul2(MatMul: Weights x V):::operation
@@ -527,6 +527,18 @@ graph TD
     %% --- Link Styling ---
     %% Updated indices to 0,1,2 because the Note links are now defined first (at the top)
     linkStyle 0,1,2 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
+```
+
+```{important}
+**Terminology: Scores vs. Weights**
+
+It's crucial to understand the distinction between these two terms that are often confused:
+
+- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation (Step 2 output above). These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small).
+
+- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation (Step 3 output above). These always sum to 1.0 and represent the percentage of "attention" each position receives.
+
+When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
 ### Example Walkthrough: Crunching the Numbers
@@ -567,19 +579,7 @@ $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
 * **Probability (because):**
     $$P_3 = \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%}$$
 
-Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the attention! This matches what we'll see in the geometric visualization below.
-
-```{important}
-**Terminology: Scores vs. Weights**
-
-It's crucial to understand the distinction between these two terms that are often confused:
-
-- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation. These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small). In our example: 7.09, 4.96, and 3.54.
-
-- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation. These always sum to 1.0 and represent the percentage of "attention" each position receives. In our example: 87%, 10%, and 3%.
-
-When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
-```
+Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). This matches what we'll see in the geometric visualization below.
 
 ### Geometric View: The Four Steps of Attention
 
