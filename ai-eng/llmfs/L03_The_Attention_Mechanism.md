@@ -739,7 +739,7 @@ for i, b in enumerate(bars):
 
 ax.set_yticks(y, labels=names, fontsize=12)
 ax.invert_yaxis()
-ax.set_xlim(0, 1.0)
+ax.set_xlim(0, 1.3)
 ax.set_xlabel("attention weight", fontsize=12)
 ax.grid(True, axis="x", alpha=0.25)
 
@@ -747,7 +747,7 @@ for i, n in enumerate(names):
     ax.text(w[i] + 0.02, i, f"{w[i]*100:.0f}%  (logit={logits[i]:.2f})",
             va="center", fontsize=12)
 
-box(ax, 0.03, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
+box(ax, 0.3, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
     fs=11, va="bottom")
 
 plt.tight_layout()
