@@ -316,7 +316,28 @@ The attention mechanism achieves parallelism through **matrix multiplication**. 
 Modern GPUs are **optimized for matrix operations**, so computing attention for 100 words in parallel is barely slower than computing it for 10 words. This is why Transformers can handle such long contexts efficiently.
 
 ```{note}
-**The Trade-off:** Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths (up to thousands of tokens). Plus, the direct access enables better language understanding, especially for long-range dependencies.
+**The Trade-off: Speed vs. Memory**
+
+Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths. Plus, the direct access enables better language understanding, especially for long-range dependencies.
+
+**The Memory Bottleneck:**
+
+However, $O(n^2)$ complexity affects both computation AND **memory**. The attention matrix (scores for all word pairs) grows quadratically:
+
+- 1K tokens → 1M attention scores (1,000 × 1,000)
+- 2K tokens → 4M attention scores (2,000 × 2,000)
+- 4K tokens → 16M attention scores (4,000 × 4,000)
+- 8K tokens → 64M attention scores (8,000 × 8,000)
+
+This is why **context length** is a key specification in LLMs:
+- GPT-2 (2019): ~1K tokens
+- GPT-3 (2020): ~2K-4K tokens
+- GPT-3.5/GPT-4 (2022-23): 4K-32K tokens
+- Claude 2 (2023): 100K tokens
+- GPT-4 Turbo (2023): 128K tokens
+- Gemini 1.5 (2024): 1M+ tokens
+
+**Beyond this lesson:** Advanced techniques like Flash Attention (covered in [L16 - Attention Optimizations](../llmfs-scaling/L16_Attention_Optimizations.md)) reduce memory usage without changing the math, and sparse attention patterns can break the $O(n^2)$ barrier entirely. But for now, understand that memory—not speed—is what limits context length in transformers.
 ```
 
 Now let's see the math that makes this parallelism possible.
