@@ -147,6 +147,7 @@ site:
     style: ./custom.css
     favicon: favicon.ico
     logo_text: Chris Snow
+    analytics_google: G-7E3VJX5MQJ
     static:
       - digital-design/d-flip-flop-viz.html
       - googlea64efe48103f11c2.html
