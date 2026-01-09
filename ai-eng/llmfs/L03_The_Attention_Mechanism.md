@@ -884,11 +884,11 @@ it_idx = tokens.index("it")
 animal_idx = tokens.index("animal")
 street_idx = tokens.index("street")
 
-# Simulating ideal attention: "it" refers to "animal"
-data[it_idx, animal_idx] = 0.7   # Strong attention to "animal"
-data[it_idx, street_idx] = 0.05  # Weak attention to "street"
-data[it_idx, it_idx] = 0.15       # Some self-attention
-data[it_idx, 6] = 0.1            # Some attention to "because" (context)
+# Matching our worked example: "it" attends to animal (87%), street (10%), because (3%)
+because_idx = tokens.index("because")
+data[it_idx, animal_idx] = 0.87  # Strong attention to "animal" (matches calculation)
+data[it_idx, street_idx] = 0.10  # Weak attention to "street" (matches calculation)
+data[it_idx, because_idx] = 0.03 # Very weak attention to "because" (matches calculation)
 
 # Simple diagonal pattern for other words (attending to themselves)
 for i in range(len(tokens)):
@@ -904,7 +904,7 @@ plt.figure(figsize=(10, 8))
 plt.imshow(data, cmap='Blues', vmin=0, vmax=1)
 plt.xticks(range(len(tokens)), tokens, rotation=45, ha='right')
 plt.yticks(range(len(tokens)), tokens)
-plt.title("Self-Attention Pattern (Simplified Example)\nRow 'it' shows ~70% attention to 'animal'")
+plt.title("Self-Attention Pattern (Simplified Example)\nRow 'it' shows 87% attention to 'animal' (matching our worked example)")
 plt.xlabel("Key (attending TO)")
 plt.ylabel("Query (attending FROM)")
 plt.colorbar(label='Attention Weight')
@@ -912,7 +912,7 @@ plt.colorbar(label='Attention Weight')
 # Add text annotations for the "it" row to make it clearer
 for j, token in enumerate(tokens):
     weight = data[it_idx, j]
-    if weight > 0.1:  # Only annotate significant weights
+    if weight > 0.02:  # Annotate weights from our worked example (87%, 10%, 3%)
         plt.text(j, it_idx, f'{weight:.0%}',
                 ha='center', va='center', color='red', fontsize=9, fontweight='bold')
 
