@@ -481,6 +481,56 @@ Let's break down the equation step-by-step:
 3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
 4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
 
+```{mermaid}
+graph TD
+    %% --- Styling ---
+    classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:black;
+    classDef operation fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:black;
+    classDef intermediate fill:#e8f5e9,stroke:#388e3c,stroke-width:1px,stroke-dasharray: 5 5,color:black;
+    classDef output fill:#d1c4e9,stroke:#512da8,stroke-width:2px,color:black;
+
+    %% --- The Inputs ---
+    subgraph INPUTS [The Data]
+        Q(Q: Queries):::input
+        K(K: Keys):::input
+        V(V: Values):::input
+    end
+
+    %% --- Step 1: Scores ---
+    K -- Transpose --> KT(Kᵀ):::operation
+    Q --> MatMul1(MatMul: QKᵀ):::operation
+    KT --> MatMul1
+
+    MatMul1 -- "Step 1: The Scores" --> RawScores[Raw Scores Matrix]:::intermediate
+
+    %% --- Step 2: Scaling ---
+    RawScores --> Scale(Scale: Divide by √d_k):::operation
+    Scale -- "Step 2: Scaling" --> ScaledScores[Scaled Scores]:::intermediate
+
+    %% --- Step 3: Softmax ---
+    ScaledScores --> Softmax(Softmax Probability):::operation
+    Softmax -- "Step 3: The Attention Map (0.0 to 1.0)" --> AttnWeights[Attention Weights %]:::intermediate
+
+    %% --- Step 4: Weighted Sum ---
+    AttnWeights --> MatMul2(MatMul: Weights x V):::operation
+    V --> MatMul2
+
+    %% --- Final Output ---
+    MatMul2 -- "Step 4: The Weighted Sum" --> FinalOut(Final Context Vectors):::output
+
+    %% --- Analogy Labels (Optional Helpers) ---
+    style Q fill:#ffcccb,stroke:#d32f2f
+    style K fill:#bbdefb,stroke:#1976d2
+    style V fill:#c8e6c9,stroke:#388e3c
+
+    %% Add notes corresponding to the database analogy
+    noteQ[Note: What I'm looking for] -.-> Q
+    noteK[Note: Folder Labels] -.-> K
+    noteV[Note: The actual content] -.-> V
+
+    linkStyle 10,11,12 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
+```
+
 ### Example Walkthrough: Crunching the Numbers
 
 Let's trace the math using the **Exact Match** and **Key 3** vectors from the plot above.
