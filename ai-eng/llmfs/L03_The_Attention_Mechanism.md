@@ -315,7 +315,7 @@ The attention mechanism achieves parallelism through **matrix multiplication**. 
 
 Modern GPUs are **optimized for matrix operations**, so computing attention for 100 words in parallel is barely slower than computing it for 10 words. This is why Transformers can handle such long contexts efficiently.
 
-```{note}
+```{important}
 **The Trade-off: Speed vs. Memory**
 
 Attention is $O(n^2)$ in sequence length (every word looks at every other word), while RNNs are $O(n)$ (each word processed once). But because attention parallelizes perfectly on modern hardware while RNNs must run sequentially, attention is **much faster** in practice for typical sequence lengths. Plus, the direct access enables better language understanding, especially for long-range dependencies.
