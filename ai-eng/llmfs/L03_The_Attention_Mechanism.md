@@ -533,14 +533,17 @@ graph TD
 
 ### Example Walkthrough: Crunching the Numbers
 
-Let's trace the math using the **Exact Match** and **Key 3** vectors from the plot above.
+Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys).
+
 * **Query (Q):** `[3, 1]`
-* **Key (Exact Match):** `[3, 1]`
-* **Key 3 (Misaligned):** `[1, 4]`
+* **K_animal (Exact Match):** `[3, 1]`
+* **K_street (Misaligned):** `[1, 4]`
+* **K_because (Short, aligned):** `[1.5, 0.5]`
 
 **Step 1: The Dot Product ($QK^T$)** - Computing Raw Scores
-* Score (Exact Match): $(3 \times 3) + (1 \times 1) = 10$
-* Score (Misaligned): $(3 \times 1) + (1 \times 4) = 7$
+* Score (animal): $(3 \times 3) + (1 \times 1) = 10$
+* Score (street): $(3 \times 1) + (1 \times 4) = 7$
+* Score (because): $(3 \times 1.5) + (1 \times 0.5) = 5$
 
 ```{note}
 **Scaling to Real Models:** We used 2D vectors for easy visualization, but in practice, attention operates in **much higher dimensions** (typically 512D or more). The good news? The math is identical—we're still just computing dot products to measure alignment. The key difference is that in 512 dimensions, we're comparing 512-element vectors. The dot product still measures alignment, but now across hundreds of dimensions simultaneously, allowing the model to capture much richer relationships between words.
@@ -548,37 +551,41 @@ Let's trace the math using the **Exact Match** and **Key 3** vectors from the pl
 
 **Step 2: Scaling ($\sqrt{d_k}$)**
 We divide by $\sqrt{2} \approx 1.41$.
-* Scaled Score (Exact): $10 / 1.41 \approx 7.09$
-* Scaled Score (Misaligned): $7 / 1.41 \approx 4.96$
+* Scaled Score (animal): $10 / 1.41 \approx 7.09$
+* Scaled Score (street): $7 / 1.41 \approx 4.96$
+* Scaled Score (because): $5 / 1.41 \approx 3.54$
 
 **Step 3: Softmax**
 We exponentiate and normalize to get percentages using the Softmax formula:
 
 $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
 
-* **Probability (Exact Match):**
-    $$P_1 = \frac{e^{7.09}}{e^{7.09} + e^{4.96}} \approx \frac{1199}{1199 + 142} \approx \frac{1199}{1341} \approx \mathbf{89\%}$$
+* **Probability (animal):**
+    $$P_1 = \frac{e^{7.09}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{1199}{1199 + 142 + 34} \approx \frac{1199}{1375} \approx \mathbf{87\%}$$
 
-* **Probability (Misaligned):**
-    $$P_2 = \frac{e^{4.96}}{e^{7.09} + e^{4.96}} \approx \frac{142}{1341} \approx \mathbf{11\%}$$
+* **Probability (street):**
+    $$P_2 = \frac{e^{4.96}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{142}{1375} \approx \mathbf{10\%}$$
 
-Notice how the mechanism successfully identified the aligned vector as the important one, giving it 89% of the attention!
+* **Probability (because):**
+    $$P_3 = \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%}$$
+
+Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the attention! This matches what we'll see in the geometric visualization below.
 
 ```{important}
 **Terminology: Scores vs. Weights**
 
 It's crucial to understand the distinction between these two terms that are often confused:
 
-- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation. These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small). In our example: 7.09 and 4.96.
+- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation. These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small). In our example: 7.09, 4.96, and 3.54.
 
-- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation. These always sum to 1.0 and represent the percentage of "attention" each position receives. In our example: 89% and 11%.
+- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation. These always sum to 1.0 and represent the percentage of "attention" each position receives. In our example: 87%, 10%, and 3%.
 
 When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
 ### Geometric View: The Four Steps of Attention
 
-In the worked example above, we calculated that Q=[3, 1] attending to K=[3, 1] yields 89% attention weight. Let's visualize this step-by-step using those exact vectors to see how "it" computes its final context vector.
+In the worked example above, we calculated that Q=[3, 1] attending to K_animal=[3, 1], K_street=[1, 4], and K_because=[1.5, 0.5] yields attention weights of 87%, 10%, and 3%. Let's visualize this step-by-step using those exact vectors to see how "it" computes its final context vector.
 
 We'll break attention into its four steps:
 1. **Similarity**: Compute dot products Q·K (scores)
