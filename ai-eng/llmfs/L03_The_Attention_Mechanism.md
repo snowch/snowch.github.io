@@ -570,14 +570,13 @@ We exponentiate and normalize to get percentages using the Softmax formula:
 
 $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
 
-* **Probability (animal):**
-    $$P_1 = \frac{e^{7.09}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{1199}{1199 + 142 + 34} \approx \frac{1199}{1375} \approx \mathbf{87\%}$$
-
-* **Probability (street):**
-    $$P_2 = \frac{e^{4.96}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{142}{1375} \approx \mathbf{10\%}$$
-
-* **Probability (because):**
-    $$P_3 = \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%}$$
+$$
+\begin{align}
+P_1 &= \frac{e^{7.09}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{1199}{1199 + 142 + 34} \approx \frac{1199}{1375} \approx \mathbf{87\%} \quad \text{(animal)} \\
+P_2 &= \frac{e^{4.96}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{142}{1375} \approx \mathbf{10\%} \quad \text{(street)} \\
+P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%} \quad \text{(because)}
+\end{align}
+$$
 
 Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). This matches what we'll see in the geometric visualization below.
 
