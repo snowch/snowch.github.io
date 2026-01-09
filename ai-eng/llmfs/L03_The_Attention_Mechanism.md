@@ -211,10 +211,12 @@ This is the **breakthrough** that makes Transformers faster AND better at unders
 
 RNNs maintain a "hidden state"—a vector that **accumulates information** from all previous words. At each step, the hidden state combines the current word with everything seen so far.
 
+Let's trace a concrete example: **pronoun resolution**. When the model processes "it", how does it figure out that "it" refers to "bank"? We'll follow how information flows through the hidden states.
+
 ```
 Input: "The bank approved the loan because it was well-capitalized"
-        ↑                                  ↑
-      word 1                             word 8
+        ↑    ↑                              ↑
+      word 1  word 2                       word 7
 
 Step 1: "The"      → hidden_state_1 = f(embedding("The"))
                       ↓ Contains: [info about "The"]
@@ -227,24 +229,27 @@ Step 3: "approved" → hidden_state_3 = f(embedding("approved"), hidden_state_2)
 
 ...
 
-Step 8: "it"       → hidden_state_8 = f(embedding("it"), hidden_state_7)
-                      ↓ Contains: [ALL 8 words] compressed into a fixed-size vector
+Step 7: "it"       → hidden_state_7 = f(embedding("it"), hidden_state_6)
+                      ↓ Contains: [ALL 7 words] compressed into a fixed-size vector
 
-Problem: To understand what "it" refers to, the model must rely on information
-about "bank" (word 2) that has been:
-  1. Mixed with info about "The" → hidden_state_2
-  2. Then mixed with "approved" → hidden_state_3
-  3. Then mixed with "the" → hidden_state_4
-  4. Then mixed with "loan" → hidden_state_5
-  5. Then mixed with "because" → hidden_state_6
-  6. Then mixed with "it" → hidden_state_7
-  7. Then mixed with "was" → hidden_state_8
+Problem: To understand what "it" refers to, information about "bank" (word 2)
+must pass through a chain of compressions before reaching "it" (word 7):
 
-Each step compresses ALL previous information into a fixed-size vector. The more
-steps between "bank" and "it", the more diluted the information becomes.
+  hidden_state_2 (contains "bank" info)
+    ↓ compressed with "approved"
+  hidden_state_3
+    ↓ compressed with "the"
+  hidden_state_4
+    ↓ compressed with "loan"
+  hidden_state_5
+    ↓ compressed with "because"
+  hidden_state_6 (used by "it" at step 7)
+
+Information about "bank" has been compressed through 4 intermediate mixing steps.
+The more steps between "bank" and "it", the more diluted the information becomes.
 This is the "vanishing gradient" problem.
 
-Total: 8 sequential steps (MUST run one-by-one)
+Total: 7 sequential steps (MUST run one-by-one)
 ```
 
 **The Hidden State Bottleneck:**
@@ -257,6 +262,8 @@ It's like trying to fit an entire Wikipedia article into a tweet, then using onl
 
 **How Attention Processes the Same Sentence (Parallel):**
 
+Now let's see how attention solves **the same pronoun resolution task**: when "it" needs to figure out what it refers to.
+
 Instead of passing information through a chain of hidden states, attention allows **direct connections** between any two words.
 
 ```
@@ -264,7 +271,7 @@ Input: "The bank approved the loan because it was well-capitalized"
 
 Single Step: ALL words computed simultaneously via matrix operations:
 
-"it" (word 8) compares its Query directly against ALL Keys:
+"it" (word 7) compares its Query directly against ALL Keys:
   Q("it") · K("The")      = 0.05  → Low attention weight
   Q("it") · K("bank")     = 0.82  → HIGH attention weight! ✓
   Q("it") · K("approved") = 0.08  → Low attention weight
@@ -286,7 +293,7 @@ Total: 1 parallel step (all comparisons at once, then weighted sum)
 
 **Why Direct Access Matters:**
 
-1. **No information loss**: "it" doesn't need to hope that information about "bank" survived 6 sequential compressions
+1. **No information loss**: "it" doesn't need to hope that information about "bank" survived 4 intermediate compressions (hidden states 3→4→5→6)
 2. **Long-range dependencies**: Works just as well for word 100 referring to word 1 as for adjacent words
 3. **Symmetry**: "bank" can attend to "loan" just as easily as "loan" attends to "bank"
 4. **Multiple relationships**: Each word can attend strongly to multiple other words simultaneously (through the weighted sum)
@@ -318,7 +325,13 @@ Now let's see the math that makes this parallelism possible.
 
 ## Part 2: The Math of Similarity
 
-In transformers, to determine which words are relevant to each other, we use the **Dot Product**. This operation measures alignment: if two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative.
+In Part 1, we said that each word's **Query** compares against other words' **Keys** to find matches. But HOW do we "compare" two vectors? How do we measure if a Query is similar to a Key?
+
+The answer: the **Dot Product**.
+
+The dot product is a mathematical operation that measures alignment between two vectors. If two vectors point in the same direction, the result is large and positive. If they point in opposite directions, it is negative. If they're perpendicular, the result is zero.
+
+**This is how attention computes "relevance"**: Q("it") · K("bank") gives us a score measuring how much "it" should attend to "bank".
 
 ### Visualizing the "Magnitude Problem"
 
@@ -496,6 +509,8 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 ## Part 3: Visualizing the Attention Map
 
+So far we've focused on the "bank" example to understand how attention works. Now let's visualize attention patterns with a different example that we'll build on in [L04 - Multi-Head Attention](L04_Multi_Head_Attention.md).
+
 In trained models, attention patterns emerge that capture semantic relationships. The heatmap below shows a **simplified example** to illustrate what we might expect: brighter colors represent higher attention weights (post-softmax probabilities).
 
 ```{code-cell} ipython3
@@ -563,9 +578,11 @@ The pattern above shows the *ideal* behavior we'd hope to see—"it" resolving t
 
 ## Part 4: Implementation in PyTorch
 
+We've seen the intuition (Q/K/V filing cabinet), the math (dot products and scaling), and the visualization (attention heatmaps). Now let's see how remarkably simple the actual code is.
+
 We can implement this entire mechanism in fewer than 20 lines of code.
 
-Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](https://www.google.com/search?q=L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
+Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
 
 ```python
 import torch
@@ -606,8 +623,8 @@ class ScaledDotProductAttention(nn.Module):
 
 1. **Context Matters:** Standard embeddings are static. Attention makes them dynamic.
 2. **Q, K, V:** We project our input into "Queries" (Searches), "Keys" (Labels), and "Values" (Content).
-3. **Scaling:** We divide by  to stop the gradients from vanishing when vectors get large.
+3. **Scaling:** We divide by $\sqrt{d_k}$ to stop the gradients from vanishing when vectors get large.
 
-**Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it"  "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
+**Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it" → "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
 
 ---
