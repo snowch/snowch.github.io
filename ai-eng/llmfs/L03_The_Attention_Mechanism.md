@@ -491,9 +491,10 @@ graph TD
 
     %% --- The Inputs ---
     subgraph INPUTS [The Data]
-        Q(Q: Queries):::input
-        K(K: Keys):::input
-        V(V: Values):::input
+        %% 1. Define Notes inside so lines don't cross the Title
+        noteQ[Note: What I'm looking for] -.-> Q(Q: Queries):::input
+        noteK[Note: Folder Labels] -.-> K(K: Keys):::input
+        noteV[Note: The actual content] -.-> V(V: Values):::input
     end
 
     %% --- Step 1: Scores ---
@@ -501,15 +502,15 @@ graph TD
     Q --> MatMul1(MatMul: QKᵀ):::operation
     KT --> MatMul1
 
-    MatMul1 -- "Step 1: The Scores" --> RawScores[Raw Scores Matrix]:::intermediate
+    MatMul1 -- "Step 1: Raw Scores" --> RawScores[Raw Scores Matrix]:::intermediate
 
     %% --- Step 2: Scaling ---
     RawScores --> Scale(Scale: Divide by √d_k):::operation
-    Scale -- "Step 2: Scaling" --> ScaledScores[Scaled Scores]:::intermediate
+    Scale -- "Step 2: Attention Scores (logits)" --> ScaledScores[Attention Scores / Logits]:::intermediate
 
     %% --- Step 3: Softmax ---
     ScaledScores --> Softmax(Softmax Probability):::operation
-    Softmax -- "Step 3: The Attention Map (0.0 to 1.0)" --> AttnWeights[Attention Weights %]:::intermediate
+    Softmax -- "Step 3: Attention Weights (probabilities)" --> AttnWeights[Attention Weights %]:::intermediate
 
     %% --- Step 4: Weighted Sum ---
     AttnWeights --> MatMul2(MatMul: Weights x V):::operation
@@ -523,12 +524,21 @@ graph TD
     style K fill:#bbdefb,stroke:#1976d2
     style V fill:#c8e6c9,stroke:#388e3c
 
-    %% Add notes corresponding to the database analogy
-    noteQ[Note: What I'm looking for] -.-> Q
-    noteK[Note: Folder Labels] -.-> K
-    noteV[Note: The actual content] -.-> V
+    %% --- Link Styling ---
+    %% Updated indices to 0,1,2 because the Note links are now defined first (at the top)
+    linkStyle 0,1,2 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
+```
 
-    linkStyle 10,11,12 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
+```{important}
+**Terminology: Scores vs. Weights**
+
+It's crucial to understand the distinction between these two terms that are often confused:
+
+- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation (Step 2 output above). These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small).
+
+- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation (Step 3 output above). These always sum to 1.0 and represent the percentage of "attention" each position receives.
+
+When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
 ### Example Walkthrough: Crunching the Numbers
@@ -569,19 +579,7 @@ $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
 * **Probability (because):**
     $$P_3 = \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%}$$
 
-Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the attention! This matches what we'll see in the geometric visualization below.
-
-```{important}
-**Terminology: Scores vs. Weights**
-
-It's crucial to understand the distinction between these two terms that are often confused:
-
-- **Attention Scores** (also called "logits" or "raw scores"): The values **before** the softmax operation. These are the results of $\frac{QK^T}{\sqrt{d_k}}$ and can be any real number (positive, negative, large, small). In our example: 7.09, 4.96, and 3.54.
-
-- **Attention Weights** (also called "attention probabilities"): The values **after** the softmax operation. These always sum to 1.0 and represent the percentage of "attention" each position receives. In our example: 87%, 10%, and 3%.
-
-When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
-```
+Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). This matches what we'll see in the geometric visualization below.
 
 ### Geometric View: The Four Steps of Attention
 
@@ -631,13 +629,12 @@ K = {
 names = list(K.keys())
 scores = np.array([Q @ K[n] for n in names])
 
-# Use matplotlib default color cycle
+# Use matplotlib default color cycle (no hard-coded palette)
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 cQ = cycle[3 % len(cycle)]
 
-fig, ax = plt.subplots(figsize=(7.5, 6.8))
-ax.set_title("Step 1 — Similarity: score = Q·K", fontsize=16, fontweight="bold", pad=12)
+fig, ax = plt.subplots(figsize=(7.5, 9))
 
 # Offset Q slightly so it doesn't perfectly overlap K_animal
 q_hat = Q / np.linalg.norm(Q)
@@ -648,19 +645,38 @@ q_end = q_start + Q
 arrow(ax, (q_start[0], q_start[1]), (q_end[0], q_end[1]),
       color=cQ, lw=4, ls="--", z=5, ms=20)
 
-# Keys with thickness proportional to score
+# Keys with SAME thickness, but circle size proportional to score
 smax = scores.max()
 for i, n in enumerate(names):
     k = K[n]
-    lw = 2.5 + 6.5 * (scores[i] / smax)
-    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=lw, z=4, ms=18)
-    ax.scatter([k[0]], [k[1]], s=45, color=colors[n], alpha=0.9, zorder=6)
+    # Arrow points to the center of the circle at k[0], k[1]
+    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=3.5, z=4, ms=18)
+    # Circle size proportional to score, doubled
+    circle_size = 2 * (50 + 350 * (scores[i] / smax))
+    ax.scatter([k[0]], [k[1]], s=circle_size, color=colors[n], alpha=0.6, zorder=6, edgecolors='white', linewidths=1.5)
 
-legend_lines = [f"Q('it') = {Q.tolist()} (blue dashed)"]
-legend_lines += [f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}" for i, n in enumerate(names)]
-legend_lines.append("")
-legend_lines.append("Thicker arrow = bigger dot-product score")
-box(ax, 0.03, 0.97, "\n".join(legend_lines), fs=11)
+# Color-coded legend with colored markers
+from matplotlib.lines import Line2D
+legend_elements = []
+
+# Add Q line with note about offset
+legend_elements.append(Line2D([0], [0], color=cQ, linestyle='--', lw=3,
+                              label=f"Q('it') = {Q.tolist()} (offset for display)"))
+
+# Add colored entries for each key
+for i, n in enumerate(names):
+    label_text = f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}"
+    legend_elements.append(Line2D([0], [0], marker='o', color='w',
+                                  markerfacecolor=colors[n], markersize=10,
+                                  label=label_text))
+
+ax.legend(handles=legend_elements, loc='upper left', fontsize=10,
+          framealpha=0.95, edgecolor='0.65')
+
+# Add note about circle sizes
+ax.text(0.03, 0.02, "Circle size = dot-product score",
+        fontsize=10, ha='left', va='bottom', transform=ax.transAxes,
+        style='italic', alpha=0.7)
 
 ax.axhline(0, color="k", alpha=0.18)
 ax.axvline(0, color="k", alpha=0.18)
@@ -668,14 +684,14 @@ ax.grid(True, alpha=0.25)
 ax.set_aspect("equal")
 ax.set_xlabel("dim 1", fontsize=12)
 ax.set_ylabel("dim 2", fontsize=12)
-ax.set_xlim(-1.2, 4.8)
-ax.set_ylim(-1.2, 5.4)
+ax.set_xlim(-0.5, 4.8)
+ax.set_ylim(-0.5, 5.4)
 
 plt.tight_layout()
 plt.show()
 ```
 
-**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). Arrow thickness reflects the raw dot product scores—before any normalization.
+**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). **Circle size** reflects the raw dot product scores—before any normalization.
 
 #### Steps 2-3: Scaling and Softmax (Scores → Weights)
 
@@ -714,7 +730,6 @@ cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 
 fig, ax = plt.subplots(figsize=(8.5, 4.8))
-ax.set_title("Step 2–3 — Scale + Softmax → attention weights", fontsize=16, fontweight="bold", pad=12)
 
 y = np.arange(len(names))
 bars = ax.barh(y, w, height=0.55)
@@ -724,7 +739,7 @@ for i, b in enumerate(bars):
 
 ax.set_yticks(y, labels=names, fontsize=12)
 ax.invert_yaxis()
-ax.set_xlim(0, 1.0)
+ax.set_xlim(0, 1.3)
 ax.set_xlabel("attention weight", fontsize=12)
 ax.grid(True, axis="x", alpha=0.25)
 
@@ -732,7 +747,7 @@ for i, n in enumerate(names):
     ax.text(w[i] + 0.02, i, f"{w[i]*100:.0f}%  (logit={logits[i]:.2f})",
             va="center", fontsize=12)
 
-box(ax, 0.03, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
+box(ax, 0.3, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
     fs=11, va="bottom")
 
 plt.tight_layout()
@@ -785,7 +800,6 @@ colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
 cCTX = cycle[4 % len(cycle)]
 
 fig, ax = plt.subplots(figsize=(7.5, 6.8))
-ax.set_title("Step 4 — Copy from Values: context = Σ wᵢ·Vᵢ", fontsize=16, fontweight="bold", pad=12)
 
 # Plot value points
 for i, n in enumerate(names):
