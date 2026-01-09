@@ -805,11 +805,11 @@ fig, ax = plt.subplots(figsize=(7.5, 6.8))
 for i, n in enumerate(names):
     v = V[n]
     ax.scatter([v[0]], [v[1]], s=160, color=colors[n], alpha=0.95, zorder=4)
-    ax.text(v[0] + 0.10, v[1] + 0.06, f"V_{n}", fontsize=12)
+    ax.text(v[0] + 0.10, v[1] - 0.17, f"V_{n}", fontsize=12)
 
 # Context point
 ax.scatter([context[0]], [context[1]], s=260, color=cCTX, marker="*", zorder=6, alpha=0.95)
-ax.text(context[0] + 0.10, context[1] + 0.06, "context", fontsize=12)
+ax.text(context[0] + 0.10, context[1] - 0.27, "context", fontsize=12)
 
 # Pull lines from context to values (thickness ~ weight)
 for i, n in enumerate(names):
@@ -818,14 +818,31 @@ for i, n in enumerate(names):
     ax.plot([context[0], v[0]], [context[1], v[1]],
             linewidth=lw, alpha=0.22, color=colors[n], zorder=2)
 
-# Contribution summary box
-contrib_lines = [
-    f"{n:7s}: w={w[i]:.2f}  w·V≈[{(w[i]*V[n])[0]:.2f}, {(w[i]*V[n])[1]:.2f}]"
-    for i, n in enumerate(names)
-]
-contrib_lines.append("")
-contrib_lines.append(f"context≈[{context[0]:.2f}, {context[1]:.2f}]")
-box(ax, 0.03, 0.97, "Values live in a different space than Keys\n\n" + "\n".join(contrib_lines), fs=11)
+# Draw the header box for the contribution summary
+box(ax, 0.03, 0.95, "Values live in a different space than Keys", fs=11)
+
+# Calculate starting Y position for the colored text lines
+current_y = 0.86 # Adjusted to start below the header box
+
+# Add color-coded contribution lines
+for i, n in enumerate(names):
+    text_line = f"{n:7s}: w={w[i]:.2f}  w·V≈[{(w[i]*V[n])[0]:.2f}, {(w[i]*V[n])[1]:.2f}]"
+    ax.text(
+        0.03, current_y, text_line, fontsize=11, ha="left", va="top",
+        transform=ax.transAxes, color=colors[n]
+    )
+    current_y -= 0.04 # Move down for the next line
+
+# Add some spacing before the context line
+current_y -= 0.02
+
+# Add context line with its specific color
+ax.text(
+    0.03, current_y,
+    f"context≈[{context[0]:.2f}, {context[1]:.2f}]",
+    fontsize=11, ha="left", va="top",
+    transform=ax.transAxes, color=cCTX
+)
 
 ax.axhline(0, color="k", alpha=0.18)
 ax.axvline(0, color="k", alpha=0.18)
