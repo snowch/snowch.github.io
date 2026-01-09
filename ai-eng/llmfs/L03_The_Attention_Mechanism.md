@@ -247,7 +247,7 @@ must pass through a chain of compressions before reaching "it" (word 7):
 
 Information about "bank" has been compressed through 4 intermediate mixing steps.
 The more steps between "bank" and "it", the more diluted the information becomes.
-This is the "vanishing gradient" problem.
+This is the "vanishing gradient" problem (where gradient signals become too small to effectively update earlier layers during backpropagation).
 
 Total: 7 sequential steps (MUST run one-by-one)
 ```
@@ -476,7 +476,7 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 
 Let's break down the equation step-by-step:
 
-1.  **The Scores ($QK^T$):** We multiply the Query of the current word by the Keys of *all* words.
+1.  **The Scores ($QK^T$):** We multiply the Query of the current word by the Keys of *all* words. (The $T$ superscript means "transpose"—we flip rows and columns of the K matrix so the dimensions align for multiplication.)
 2.  **The Scaling ($\sqrt{d_k}$):** We shrink the scores to prevent exploding values.
 3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
 4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
@@ -543,7 +543,7 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 ### Example Walkthrough: Crunching the Numbers
 
-Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys).
+Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys). Note that we're reusing the same Q=[3,1] vector from the magnitude visualization—now applying it to a concrete language example.
 
 * **Query (Q):** `[3, 1]`
 * **K_animal (Exact Match):** `[3, 1]`
@@ -860,7 +860,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-**What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.79, 1.44]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
+**What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.78, 1.37]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
 
 **Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution via geometric alignment), but values determine *what* information to extract (semantic content).
 
