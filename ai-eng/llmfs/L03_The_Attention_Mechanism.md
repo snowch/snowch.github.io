@@ -914,7 +914,7 @@ for j, token in enumerate(tokens):
     weight = data[it_idx, j]
     if weight > 0.02:  # Annotate weights from our worked example (87%, 10%, 3%)
         plt.text(j, it_idx, f'{weight:.0%}',
-                ha='center', va='center', color='red', fontsize=9, fontweight='bold')
+                ha='center', va='center', color='white', fontsize=9, fontweight='bold')
 
 plt.tight_layout()
 plt.show()
