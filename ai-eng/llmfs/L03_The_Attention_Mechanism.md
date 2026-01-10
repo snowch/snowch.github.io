@@ -563,9 +563,16 @@ $$P(x_i) = \frac{e^{x_i}}{\sum e^{x_j}}$$
 
 $$
 \begin{align}
-P_1 &= \frac{e^{7.09}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{1199}{1199 + 142 + 34} \approx \frac{1199}{1375} \approx \mathbf{87\%} \quad \text{(animal)} \\
-P_2 &= \frac{e^{4.96}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{142}{1375} \approx \mathbf{10\%} \quad \text{(street)} \\
-P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \approx \mathbf{3\%} \quad \text{(because)}
+P_1 &= \frac{e^{7.09}}{e^{7.09} + e^{4.96} + e^{3.54}} \\
+    &\approx \frac{1199}{1199 + 142 + 34} \\
+    &\approx \frac{1199}{1375} \\
+    &\approx \mathbf{87\%} \quad \text{(animal)} \\[1em]
+P_2 &= \frac{e^{4.96}}{e^{7.09} + e^{4.96} + e^{3.54}} \\
+    &\approx \frac{142}{1375} \\
+    &\approx \mathbf{10\%} \quad \text{(street)} \\[1em]
+P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \\
+    &\approx \frac{34}{1375} \\
+    &\approx \mathbf{3\%} \quad \text{(because)}
 \end{align}
 $$
 
