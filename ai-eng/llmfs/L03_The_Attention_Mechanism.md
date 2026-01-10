@@ -535,6 +535,18 @@ Recall that:
 - **K (Keys)**: What each word advertises about itself (folder labels)
 - **V (Values)**: The actual semantic content to extract (the documents inside)
 
+```{note}
+**Where do Q, K, V come from?**
+
+In a real transformer, Q, K, and V aren't stored—they're **computed on the fly** from word embeddings using learned projection matrices:
+
+$$Q = X W_Q, \quad K = X W_K, \quad V = X W_V$$
+
+Where $X$ is the embedding for a word (e.g., "animal"), and $W_Q$, $W_K$, $W_V$ are learned weight matrices. Each word gets transformed into three different representations for the three different roles it plays in attention.
+
+For our pedagogical example below, we're using hand-picked 2D vectors that demonstrate the geometry clearly. In practice, these projections are high-dimensional (512D) and learned during training to optimize the model's language understanding.
+```
+
 **Inputs:**
 * **Query (Q):** `[3, 1]`
 * **Keys:**
