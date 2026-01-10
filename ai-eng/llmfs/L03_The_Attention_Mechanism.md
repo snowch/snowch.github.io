@@ -530,6 +530,11 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys). Note that we're reusing the same Q=[3,1] vector from the magnitude visualization—now applying it to a concrete language example.
 
+Recall that:
+- **Q (Query)**: What "it" is looking for (its search query)
+- **K (Keys)**: What each word advertises about itself (folder labels)
+- **V (Values)**: The actual semantic content to extract (the documents inside)
+
 **Inputs:**
 * **Query (Q):** `[3, 1]`
 * **Keys:**
