@@ -485,48 +485,33 @@ Let's break down the equation step-by-step:
 graph TD
     %% --- Styling ---
     classDef input fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:black;
-    classDef operation fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:black;
-    classDef intermediate fill:#e8f5e9,stroke:#388e3c,stroke-width:1px,stroke-dasharray: 5 5,color:black;
+    classDef step fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:black;
     classDef output fill:#d1c4e9,stroke:#512da8,stroke-width:2px,color:black;
 
     %% --- The Inputs ---
     subgraph INPUTS [The Data]
-        %% 1. Define Notes inside so lines don't cross the Title
-        noteQ[Note: What I'm looking for] -.-> Q(Q: Queries):::input
-        noteK[Note: Folder Labels] -.-> K(K: Keys):::input
-        noteV[Note: The actual content] -.-> V(V: Values):::input
+        Q(Q: Queries):::input
+        K(K: Keys):::input
+        V(V: Values):::input
     end
 
-    %% --- Step 1: Scores ---
-    K -- Transpose --> KT(Kᵀ):::operation
-    Q --> MatMul1(MatMul: QKᵀ):::operation
-    KT --> MatMul1
+    %% --- 4 Steps with Clear Results ---
+    Q --> Step1["Step 1: QK^T<br/>→ Raw Scores"]:::step
+    K --> Step1
 
-    MatMul1 -- "Step 1: Raw Scores" --> RawScores[Raw Scores Matrix]:::intermediate
+    Step1 --> Step2["Step 2: Divide by √d_k<br/>→ Attention Scores (logits)"]:::step
 
-    %% --- Step 2: Scaling ---
-    RawScores --> Scale(Scale: Divide by √d_k):::operation
-    Scale -- "Step 2: Attention Scores (logits)" --> ScaledScores[Attention Scores / Logits]:::intermediate
+    Step2 --> Step3["Step 3: Softmax<br/>→ Attention Weights (%)"]:::step
 
-    %% --- Step 3: Softmax ---
-    ScaledScores --> Softmax(Softmax Probability):::operation
-    Softmax -- "Step 3: Attention Weights (probabilities)" --> AttnWeights[Attention Weights %]:::intermediate
+    Step3 --> Step4["Step 4: Weights × V<br/>→ Context Vectors"]:::step
+    V --> Step4
 
-    %% --- Step 4: Weighted Sum ---
-    AttnWeights --> MatMul2(MatMul: Weights x V):::operation
-    V --> MatMul2
+    Step4 --> Output(Final Output):::output
 
-    %% --- Final Output ---
-    MatMul2 -- "Step 4: The Weighted Sum" --> FinalOut(Final Context Vectors):::output
-
-    %% --- Analogy Labels (Optional Helpers) ---
+    %% --- Styling for Q, K, V ---
     style Q fill:#ffcccb,stroke:#d32f2f
     style K fill:#bbdefb,stroke:#1976d2
     style V fill:#c8e6c9,stroke:#388e3c
-
-    %% --- Link Styling ---
-    %% Updated indices to 0,1,2 because the Note links are now defined first (at the top)
-    linkStyle 0,1,2 stroke-width:1px,fill:none,stroke:gray,stroke-dasharray: 3 3;
 ```
 
 ```{important}
