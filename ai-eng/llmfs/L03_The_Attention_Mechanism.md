@@ -467,7 +467,7 @@ We fix this by **Scaling**: we divide the result by the square root of the dimen
 
 The scaling factor isn't arbitrary. As dimension $d_k$ increases, dot products between random vectors grow proportionally to $d_k$. By dividing by $\sqrt{d_k}$, we keep the variance of the scores roughly constant regardless of dimensionality.
 
-More importantly, without this scaling, large dot products push the softmax function into regions where gradients are tiny (the "saturation" problem). When scores like 50 or 100 go into softmax, it becomes almost deterministic—one weight approaches 1.0, all others approach 0.0. This prevents the softmax from saturating, keeping gradients flowing during training and allowing the model to attend to multiple positions when needed.
+Without this scaling, models with larger dimensions (512, 1024, etc.) would produce extremely large scores, making the attention mechanism unstable. The square root relationship ensures that doubling the dimension only increases typical scores by √2 ≈ 1.4x, not 2x.
 ```
 
 ### The Formula
@@ -579,6 +579,14 @@ P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \
 $$
 
 Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). This matches what we'll see in the geometric visualization below.
+
+```{note}
+**Why Scaling Matters for Softmax**
+
+Remember we divided by √d_k in Step 2? Here's why that's critical for softmax. The exponential function $e^x$ grows extremely fast—$e^{50}$ is astronomically larger than $e^{48}$. If we fed unscaled scores (like 50 or 100) into softmax, one weight would approach 1.0 and all others would approach 0.0, making attention too "sharp" and rigid.
+
+By scaling first, we keep logits in a reasonable range (our 7.09, 4.96, 3.54), allowing softmax to produce a balanced distribution (87%, 10%, 3%). This prevents "saturation"—where gradients become tiny during training—and allows the model to flexibly attend to multiple positions when needed.
+```
 
 ### Geometric View: The Four Steps of Attention
 
