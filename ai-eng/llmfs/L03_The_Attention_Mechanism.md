@@ -530,10 +530,16 @@ When debugging attention mechanisms or reading research papers, knowing which on
 
 Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys). Note that we're reusing the same Q=[3,1] vector from the magnitude visualization—now applying it to a concrete language example.
 
+**Inputs:**
 * **Query (Q):** `[3, 1]`
-* **K_animal (Exact Match):** `[3, 1]`
-* **K_street (Misaligned):** `[1, 4]`
-* **K_because (Short, aligned):** `[1.5, 0.5]`
+* **Keys:**
+  * **K_animal (Exact Match):** `[3, 1]`
+  * **K_street (Misaligned):** `[1, 4]`
+  * **K_because (Short, aligned):** `[1.5, 0.5]`
+* **Values:**
+  * **V_animal:** `[2.0, 1.5]`
+  * **V_street:** `[0.5, 0.3]`
+  * **V_because:** `[-0.5, 1.2]`
 
 **Step 1: The Dot Product ($QK^T$)** - Computing Raw Scores
 * Score (animal): $(3 \times 3) + (1 \times 1) = 10$
@@ -563,7 +569,19 @@ P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \approx \frac{34}{1375} \
 \end{align}
 $$
 
-Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). This matches what we'll see in the geometric visualization below.
+**Step 4: Weighted Sum (Combining Values)**
+Now we multiply each attention weight by its corresponding Value vector and sum them:
+
+$$
+\begin{align}
+\text{Context} &= 0.87 \times V_{\text{animal}} + 0.10 \times V_{\text{street}} + 0.03 \times V_{\text{because}} \\
+&= 0.87 \times [2.0, 1.5] + 0.10 \times [0.5, 0.3] + 0.03 \times [-0.5, 1.2] \\
+&= [1.74, 1.31] + [0.05, 0.03] + [-0.01, 0.04] \\
+&\approx [1.78, 1.37]
+\end{align}
+$$
+
+Notice how the mechanism successfully identified the aligned vector ("animal") as the important one, giving it 87% of the **attention weights** (recall: weights are the post-softmax probabilities, while scores are the pre-softmax logits 7.09, 4.96, and 3.54). The final context vector [1.78, 1.37] is dominated by V_animal's contribution, as we'll see visualized below.
 
 ```{note}
 **Why Scaling Matters for Softmax**
