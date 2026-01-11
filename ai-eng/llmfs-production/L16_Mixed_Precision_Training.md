@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L15 - Mixed Precision Training [DRAFT]
+# L16 - Mixed Precision Training [DRAFT]
 
 *Train 2-3× faster with half the memory using FP16/BF16*
 

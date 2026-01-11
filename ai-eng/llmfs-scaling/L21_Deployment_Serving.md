@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L20 - Deployment & Serving [DRAFT]
+# L21 - Deployment & Serving [DRAFT]
 
 *From research code to production-ready LLM serving*
 

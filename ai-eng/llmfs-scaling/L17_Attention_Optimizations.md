@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L16 - Attention Optimizations [DRAFT]
+# L17 - Attention Optimizations [DRAFT]
 
 *Flash Attention, KV Cache, and making attention 10× faster*
 

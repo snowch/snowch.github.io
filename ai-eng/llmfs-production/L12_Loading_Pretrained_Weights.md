@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L11 - Loading Pretrained Weights & Transfer Learning [DRAFT]
+# L12 - Loading Pretrained Weights & Transfer Learning [DRAFT]
 
 *Starting from GPT-2 instead of random initialization*
 
