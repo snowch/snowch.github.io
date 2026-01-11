@@ -111,16 +111,8 @@ project:
 
         - title: "ML/AI Algorithms"
           children:
-            - title: "Alternating Least Squares (ALS)"
-              children:
-                - file: ai-eng/ml-algorithms/als/index.md
-                  title: "Introduction: Movie Recommendations with ALS"
-                - file: ai-eng/ml-algorithms/als/step_01_exploratory_analysis.ipynb
-                  title: "Step 01 - Exploratory Analysis"
-                - file: ai-eng/ml-algorithms/als/step_02_train_model.ipynb
-                  title: "Step 02 - Train Model"
-                - file: ai-eng/ml-algorithms/als/step_03_predict_ratings.ipynb
-                  title: "Step 03 - Predict Ratings"
+            - file: ai-eng/ml-algorithms/als/als_tutorial.md
+              title: "Alternating Least Squares (ALS) for Movie Recommendations"
 
     - file: embeddings.md
       title: Embeddings at Scale Book
