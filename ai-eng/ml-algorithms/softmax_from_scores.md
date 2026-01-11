@@ -39,6 +39,132 @@ plt.rcParams['axes.grid'] = False
 
 ---
 
+## Where Does Softmax Fit?
+
+Before diving into how softmax works, let's see where it sits in a classification pipeline. Here's a simple edge detection network:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, ax = plt.subplots(figsize=(14, 7))
+ax.set_xlim(0, 14)
+ax.set_ylim(0, 8)
+ax.axis('off')
+
+# Title
+ax.text(7, 7.5, 'Where Does Softmax Fit? Example: Edge Detection Network',
+        fontsize=14, fontweight='bold', ha='center')
+
+# Define vertical center for alignment
+vcenter = 3.6
+
+# Input layer - 5x5 grid centered vertically
+input_x = 1.5
+ax.text(input_x, 6.5, 'Input', fontsize=11, fontweight='bold', ha='center')
+ax.text(input_x, 6.0, '(25 pixels)', fontsize=9, ha='center', style='italic')
+
+# Draw a 5x5 grid centered at vcenter
+grid_size = 0.25
+grid_height = 5 * grid_size
+grid_start_y = vcenter + grid_height/2 - grid_size/2
+
+for i in range(5):
+    for j in range(5):
+        rect = plt.Rectangle((input_x - 0.625 + j*grid_size, grid_start_y - i*grid_size),
+                            grid_size*0.9, grid_size*0.9,
+                            facecolor='lightgray', edgecolor='black', linewidth=0.5)
+        ax.add_patch(rect)
+
+# Hidden layers (abstract representation) - centered at vcenter
+hidden_x = 5
+ax.text(hidden_x, 6.5, 'Hidden Layers', fontsize=11, fontweight='bold', ha='center')
+ax.text(hidden_x, 6.0, '(learns features)', fontsize=9, ha='center', style='italic')
+
+# Box centered at vcenter
+box_height = 2.5
+rect_hidden = plt.Rectangle((hidden_x - 1, vcenter - box_height/2), 2, box_height,
+                           facecolor='lightyellow', edgecolor='orange',
+                           linewidth=2, alpha=0.3)
+ax.add_patch(rect_hidden)
+ax.text(hidden_x, vcenter, '•  •  •', fontsize=20, ha='center', va='center')
+
+# Connection lines from input to hidden
+ax.plot([input_x + 0.65, hidden_x - 1], [vcenter + 0.5, vcenter + 0.3],
+        'gray', alpha=0.4, linewidth=2)
+ax.plot([input_x + 0.65, hidden_x - 1], [vcenter - 0.5, vcenter - 0.3],
+        'gray', alpha=0.4, linewidth=2)
+
+# Output scores (THE KEY PART) - centered around vcenter
+output_x = 9
+ax.text(output_x, 6.5, 'Output Layer', fontsize=11, fontweight='bold', ha='center')
+ax.text(output_x, 6.0, '(raw scores)', fontsize=9, ha='center', style='italic', color='#e67e22')
+
+# Two output neurons with scores, centered at vcenter
+neuron_spacing = 0.8
+output_ys = [vcenter + neuron_spacing/2, vcenter - neuron_spacing/2]
+output_labels = ['Edge', 'No Edge']
+scores = [2.5, 0.5]
+colors = ['#3498db', '#95a5a6']
+
+for y, label, score, color in zip(output_ys, output_labels, scores, colors):
+    circle = plt.Circle((output_x, y), 0.35, color=color, ec='black', linewidth=2, alpha=0.7)
+    ax.add_patch(circle)
+    ax.text(output_x - 0.9, y, label, fontsize=10, ha='right', va='center')
+    ax.text(output_x + 0.6, y, f'{score}', fontsize=11, ha='left', va='center',
+            fontweight='bold', family='monospace')
+
+# Connection from hidden to output
+ax.plot([hidden_x + 1, output_x - 0.35], [vcenter, output_ys[0]],
+        'gray', alpha=0.4, linewidth=2)
+ax.plot([hidden_x + 1, output_x - 0.35], [vcenter, output_ys[1]],
+        'gray', alpha=0.4, linewidth=2)
+
+# THE SOFTMAX OPERATION (highlighted)
+softmax_x = 11.5
+ax.text(softmax_x, 6.5, 'Softmax', fontsize=11, fontweight='bold', ha='center', color='green')
+ax.text(softmax_x, 6.0, r'(scores $\rightarrow$ probs)', fontsize=9, ha='center',
+        style='italic', color='green')
+
+# Big arrow pointing to softmax operation
+ax.annotate('', xy=(softmax_x - 0.8, vcenter), xytext=(output_x + 0.9, vcenter),
+           arrowprops=dict(arrowstyle='->', lw=3, color='green'))
+ax.text((output_x + softmax_x)/2 + 0.05, vcenter + 0.5, 'softmax', fontsize=10,
+        ha='center', fontweight='bold', color='green',
+        bbox=dict(boxstyle='round,pad=0.4', facecolor='lightgreen', ec='green', linewidth=2))
+
+# Result: Probabilities - same positions as output layer
+probs = [0.88, 0.12]
+for y, label, prob, color in zip(output_ys, output_labels, probs, colors):
+    circle = plt.Circle((softmax_x, y), 0.35, color=color, ec='green', linewidth=2.5, alpha=0.9)
+    ax.add_patch(circle)
+    ax.text(softmax_x + 0.7, y, f'{prob:.0%}', fontsize=11, ha='left', va='center',
+            fontweight='bold', family='monospace', color='green')
+
+# Annotations - positioned below the neurons
+ax.text(output_x, 1.8, 'Can be any number\n(positive or negative)',
+        ha='center', fontsize=9, style='italic', color='#666',
+        bbox=dict(boxstyle='round', facecolor='#fff9e6', alpha=0.7))
+
+ax.text(softmax_x, 1.8, 'Always positive\nSum = 1.0',
+        ha='center', fontsize=9, style='italic', color='#666',
+        bbox=dict(boxstyle='round', facecolor='#d5f4e6', alpha=0.7))
+
+# Bottom note
+ax.text(7, 0.5, 'This blog focuses on the softmax step: converting raw scores into probabilities',
+        ha='center', fontsize=10, style='italic', color='#555',
+        bbox=dict(boxstyle='round,pad=0.5', facecolor='white', ec='gray', linewidth=1.5))
+
+plt.tight_layout()
+plt.show()
+```
+
+The key point: **Softmax operates on the final layer's raw scores**, converting them into probabilities that sum to 1. The rest of this post explains how softmax works, regardless of the network architecture.
+
+---
+
 ## From Scores to Probabilities - Softmax
 
 In a classification model, the final layer produces **scores** (also called logits) — higher means the model favors that class more. But for classification, we need **probabilities**: "What's the chance this is an edge?"
