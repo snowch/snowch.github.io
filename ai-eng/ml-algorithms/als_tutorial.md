@@ -220,7 +220,9 @@ plt.scatter(
     movie.to_numpy(),
     user.to_numpy(),
     s=1,
-    edgecolor=colors)
+    c=colors,
+    edgecolors='none',
+    alpha=0.6)
 
 plt.legend(
     title='Rating',
@@ -237,11 +239,14 @@ plt.legend(
 plt.show()
 ```
 
-We can see some clear patterns. Vertical bands can indicate movies that are rated similarly by many users.
-Horizontal bands can indicate users who rate movies consistently—pale lines skew negative while darker red lines skew positive.
-There are also grey gaps where users have not rated movies, including a subtle arc-shaped region of missing ratings toward the upper-right of the plot.
+This visualization reveals the fundamental challenge in collaborative filtering: **data sparsity**. The grey background represents the complete user-item matrix, while colored points show actual ratings. Even though this looks quite dense, the matrix is actually very sparse—most user-movie combinations have no rating.
 
-**Key Observation:** The grey regions represent missing ratings. The goal of a recommender system is to **predict these missing values** based on the patterns in the observed ratings.
+At this scale with millions of data points compressed into a single visualization, individual patterns are hard to discern. However, there are subtle variations in density that hint at underlying structure:
+- Some vertical regions have higher density (popular movies rated by many users)
+- Some horizontal regions show consistent rating patterns (active users)
+- The transparency reveals areas where ratings are sparser
+
+**Key Observation:** Most of the potential user-movie pairs have no rating (the matrix is >95% sparse). The goal of a recommender system is to **predict these missing values** based on patterns learned from observed ratings.
 
 ```{code-cell} ipython3
 
