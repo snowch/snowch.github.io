@@ -24,7 +24,6 @@ This tutorial demonstrates how to build a movie recommendation system using **Al
 We'll explore the MovieLens dataset, visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions.
 
 ```{code-cell} ipython3
-:tags: [remove-output]
 
 import numpy as np
 import pandas as pd
@@ -45,7 +44,6 @@ plt.rcParams['axes.facecolor'] = 'white'
 The MovieLens dataset contains user ratings of movies on a scale of 1-5 stars. Let's simulate a subset of this data to understand the problem:
 
 ```{code-cell} ipython3
-:tags: [remove-output]
 
 # Simulate MovieLens-style data
 np.random.seed(42)
@@ -89,7 +87,6 @@ Sparsity: ~15% of possible ratings exist
 The key challenge in recommendation systems is **sparsity**—most users haven't rated most items. Let's visualize this:
 
 ```{code-cell} ipython3
-:tags: [remove-output]
 
 # Create a pivot table (users × movies)
 rating_matrix = df.pivot_table(
@@ -157,7 +154,6 @@ Where:
 ### Visualizing the Factorization
 
 ```{code-cell} ipython3
-:tags: [remove-output]
 
 fig, ax = plt.subplots(figsize=(14, 6))
 
@@ -396,7 +392,6 @@ for rank, (movie_id, score) in enumerate(recommendations, 1):
 Let's visualize what the model learned:
 
 ```{code-cell} ipython3
-:tags: [remove-output]
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
