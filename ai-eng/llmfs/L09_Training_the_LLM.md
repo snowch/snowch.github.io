@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L08 - Training the LLM: Learning to Speak [DRAFT]
+# L09 - Training the LLM: Learning to Speak [DRAFT]
 
 *Feeding the model data and watching its "Loss" collapse*
 
@@ -310,6 +310,6 @@ for i, (x, y) in enumerate(train_loader):
 4. **Learning Rate Scheduling:** Warmup and cosine decay help stabilize training and improve final performance.
 5. **Gradient Accumulation:** Enables training with large effective batch sizes despite memory constraints.
 
-**Next Up: L09 – Inference & Sampling.** Now that we have a trained brain, how do we actually get it to "talk" to us? We'll learn about **Temperature**, **Top-K**, and **Top-P** sampling to control the model's creativity.
+**Next Up: L10 – Inference & Sampling.** Now that we have a trained brain, how do we actually get it to "talk" to us? We'll learn about **Temperature**, **Top-K**, and **Top-P** sampling to control the model's creativity.
 
 ---

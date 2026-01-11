@@ -11,13 +11,13 @@ kernelspec:
   name: python3
 ---
 
-# L10 - Fine-tuning: From Completion to Conversation [DRAFT]
+# L11 - Fine-tuning: From Completion to Conversation [DRAFT]
 
 *Transforming a base LLM into a helpful Chat Assistant*
 
 ---
 
-We have reached the finish line. In [L09 Inference and Sampling](L09_Inference_and_Sampling.md), we saw that our model can complete text. However, if you ask a "Base" model: *"What is the capital of France?"*, it might respond with: *"...and what is the capital of Germany?"*
+We have reached the finish line. In [L10 Inference and Sampling](L10_Inference_and_Sampling.md), we saw that our model can complete text. However, if you ask a "Base" model: *"What is the capital of France?"*, it might respond with: *"...and what is the capital of Germany?"*
 
 This final post concludes the journey by explaining how we transition from a model that simply "predicts the next word" to a model that can actually follow instructions and act as a helpful assistant.
 
@@ -430,12 +430,12 @@ Over these 10 lessons, we have traveled from raw text to a functional, instructi
 * Normalization & Residuals: Making deep networks trainable
 * Causal Masking: Preventing cheating during training
 
-**L07-L09: Building and Using the Model**
+**L07-L10: Building and Using the Model**
 * Assembling the GPT: Stacking all components
 * Training: Teaching the model language through next-token prediction
 * Inference: Controlling creativity with temperature and sampling
 
-**L10: From Completion to Conversation**
+**L11: From Completion to Conversation**
 * SFT: Teaching the model to follow instructions
 * RLHF: Aligning with human preferences and values
 * Chat Templates: Structuring conversations

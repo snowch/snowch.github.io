@@ -11,13 +11,13 @@ kernelspec:
   name: python3
 ---
 
-# L09 - Inference & Sampling: Controlling the Creativity [DRAFT]
+# L10 - Inference & Sampling: Controlling the Creativity [DRAFT]
 
 *How to talk to a trained brain without it repeating itself*
 
 ---
 
-We have a trained GPT model from [L08 - Training the LLM](L08_Training_the_LLM.md). If we give it a prompt, the model will output a list of probabilities for the next word.
+We have a trained GPT model from [L09 - Training the LLM](L09_Training_the_LLM.md). If we give it a prompt, the model will output a list of probabilities for the next word.
 
 This post covers the "magic" of how an LLM actually generates text. Training is about building a probability map; **Inference** is about walking through that map. We will also explore the "knobs" we turn to make the model more creative or more factual.
 
@@ -350,6 +350,6 @@ Step 2: Expand both → ["The cat sat" (0.64), "The cat ran" (0.56),
 5. **Repetition Penalty** prevents the model from getting stuck in loops by penalizing already-used tokens.
 6. **Beam Search** offers a deterministic alternative to sampling, finding high-probability sequences for tasks requiring consistency.
 
-**Next Up: L10 – Fine-tuning (RLHF & Chat).** We have a model that can complete sentences. But how do we turn it into a helpful assistant that answers questions? We'll look at the final step: taking a "Base" model and turning it into a "Chat" model.
+**Next Up: L11 – Fine-tuning (RLHF & Chat).** We have a model that can complete sentences. But how do we turn it into a helpful assistant that answers questions? We'll look at the final step: taking a "Base" model and turning it into a "Chat" model.
 
 ---

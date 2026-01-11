@@ -34,7 +34,7 @@ This series covers the essential techniques used in production LLM workflows:
 ## Prerequisites
 
 You should have completed (or be familiar with):
-- The core [LLM From Scratch](../llmfs/index.md) series (L01-L10)
+- The core [LLM From Scratch](../llmfs/index.md) series (L01-L11)
 - Basic PyTorch training loops
 - Understanding of transformer architecture fundamentals
 
@@ -47,20 +47,20 @@ You should have completed (or be familiar with):
 * - Lesson
   - Title
   - What You'll Learn
-* - **L11**
-  - [Loading Pretrained Weights & Transfer Learning](L11_Loading_Pretrained_Weights.md)
-  - *Starting from GPT-2 instead of random* — Load HuggingFace weights, handle vocabulary mismatches, choose freezing strategies
 * - **L12**
-  - [Data Loading Pipelines at Scale](L12_Data_Loading_Pipelines.md)
-  - *From toy datasets to production* — Stream terabytes with WebDataset, quality filtering, deduplication, data mixing
+  - [Loading Pretrained Weights & Transfer Learning](L12_Loading_Pretrained_Weights.md)
+  - *Starting from GPT-2 instead of random* — Load HuggingFace weights, handle vocabulary mismatches, choose freezing strategies
 * - **L13**
-  - [Evaluation Frameworks](L13_Evaluation_Frameworks.md)
-  - *How do I know if my model is good?* — Perplexity, MMLU, HellaSwag, TruthfulQA, and custom benchmarks
+  - [Data Loading Pipelines at Scale](L13_Data_Loading_Pipelines.md)
+  - *From toy datasets to production* — Stream terabytes with WebDataset, quality filtering, deduplication, data mixing
 * - **L14**
-  - [Parameter-Efficient Fine-Tuning (LoRA)](L14_LoRA_PEFT.md)
-  - *Fine-tune 7B models on a single GPU* — Low-rank adaptation mathematics, QLoRA, adapter swapping
+  - [Evaluation Frameworks](L14_Evaluation_Frameworks.md)
+  - *How do I know if my model is good?* — Perplexity, MMLU, HellaSwag, TruthfulQA, and custom benchmarks
 * - **L15**
-  - [Mixed Precision Training](L15_Mixed_Precision_Training.md)
+  - [Parameter-Efficient Fine-Tuning (LoRA)](L15_LoRA_PEFT.md)
+  - *Fine-tune 7B models on a single GPU* — Low-rank adaptation mathematics, QLoRA, adapter swapping
+* - **L16**
+  - [Mixed Precision Training](L16_Mixed_Precision_Training.md)
   - *Train 2-3× faster with half the memory* — FP16, BF16, gradient scaling, PyTorch AMP
 ```
 
@@ -80,25 +80,25 @@ Production LLM work faces constraints that research doesn't:
 
 | **Constraint** | **Solution in This Series** |
 |---|---|
-| Can't train from scratch (too expensive) | L11: Load pretrained weights |
-| Can't fit model in GPU memory | L14: LoRA (14 GB → 4 GB) |
-| Can't wait weeks for training | L15: Mixed precision (2-3× speedup) |
-| Can't trust arbitrary benchmarks | L13: Comprehensive evaluation |
-| Can't load all data into RAM | L12: Streaming data pipelines |
+| Can't train from scratch (too expensive) | L12: Load pretrained weights |
+| Can't fit model in GPU memory | L15: LoRA (14 GB → 4 GB) |
+| Can't wait weeks for training | L16: Mixed precision (2-3× speedup) |
+| Can't trust arbitrary benchmarks | L14: Comprehensive evaluation |
+| Can't load all data into RAM | L13: Streaming data pipelines |
 
 ## Learning Path
 
 **Sequential approach (recommended)**:
-1. **L11**: Start here if you want to fine-tune existing models
-2. **L12**: Learn data engineering for real training runs
-3. **L13**: Understand how to measure success
-4. **L14**: Make fine-tuning practical on limited hardware
-5. **L15**: Speed up everything with mixed precision
+1. **L12**: Start here if you want to fine-tune existing models
+2. **L13**: Learn data engineering for real training runs
+3. **L14**: Understand how to measure success
+4. **L15**: Make fine-tuning practical on limited hardware
+5. **L16**: Speed up everything with mixed precision
 
 **Jump-in approach**:
-- Need to fine-tune **now**? → Start with L14 (LoRA)
-- Building a data pipeline? → Jump to L12
-- Choosing between models? → Go to L13 (Evaluation)
+- Need to fine-tune **now**? → Start with L15 (LoRA)
+- Building a data pipeline? → Jump to L13
+- Choosing between models? → Go to L14 (Evaluation)
 
 ## What's Next
 
@@ -120,7 +120,7 @@ After completing this series:
 
 Let's start by learning how to load pretrained weights like GPT-2 and fine-tune them for your tasks.
 
-**Next: [L11 - Loading Pretrained Weights & Transfer Learning →](L11_Loading_Pretrained_Weights.md)**
+**Next: [L12 - Loading Pretrained Weights & Transfer Learning →](L12_Loading_Pretrained_Weights.md)**
 
 ---
 

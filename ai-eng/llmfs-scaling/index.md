@@ -47,20 +47,20 @@ You should understand:
 * - Lesson
   - Title
   - What You'll Learn
-* - **L16**
-  - [Attention Optimizations](L16_Attention_Optimizations.md)
-  - *Making attention 10× faster* — Flash Attention, KV cache, Multi-Query/Grouped-Query Attention
 * - **L17**
-  - [Model Parallelism](L17_Model_Parallelism.md)
-  - *Training models too large for one GPU* — Data, pipeline, tensor parallelism, ZeRO optimizer
+  - [Attention Optimizations](L17_Attention_Optimizations.md)
+  - *Making attention 10× faster* — Flash Attention, KV cache, Multi-Query/Grouped-Query Attention
 * - **L18**
-  - [Long Context Handling](L18_Long_Context_Handling.md)
-  - *Extending from 2K to 100K+ tokens* — RoPE, ALiBi, position interpolation, sparse attention
+  - [Model Parallelism](L18_Model_Parallelism.md)
+  - *Training models too large for one GPU* — Data, pipeline, tensor parallelism, ZeRO optimizer
 * - **L19**
-  - [Quantization for Inference](L19_Quantization_Inference.md)
-  - *Shrink models 4-8× with minimal loss* — INT8, INT4, GPTQ, AWQ techniques
+  - [Long Context Handling](L19_Long_Context_Handling.md)
+  - *Extending from 2K to 100K+ tokens* — RoPE, ALiBi, position interpolation, sparse attention
 * - **L20**
-  - [Deployment & Serving](L20_Deployment_Serving.md)
+  - [Quantization for Inference](L20_Quantization_Inference.md)
+  - *Shrink models 4-8× with minimal loss* — INT8, INT4, GPTQ, AWQ techniques
+* - **L21**
+  - [Deployment & Serving](L21_Deployment_Serving.md)
   - *Production-ready LLM serving* — vLLM, continuous batching, speculative decoding, monitoring
 ```
 
@@ -72,36 +72,36 @@ Modern LLMs face challenges that fundamentally change how we build them:
 
 | **Challenge** | **Scale** | **Solution** |
 |---|---|---|
-| Attention is $O(n^2)$ | 100K token context | L16: Flash Attention, sparse patterns |
-| Model doesn't fit in GPU | 70B parameters | L17: Model parallelism, ZeRO |
-| Trained on 2K, need 32K | Context extension | L18: RoPE, ALiBi, interpolation |
-| 14GB too large for edge | Memory constraints | L19: INT4 quantization (3.5 GB) |
-| Sequential generation is slow | High throughput needs | L20: Continuous batching, speculation |
+| Attention is $O(n^2)$ | 100K token context | L17: Flash Attention, sparse patterns |
+| Model doesn't fit in GPU | 70B parameters | L18: Model parallelism, ZeRO |
+| Trained on 2K, need 32K | Context extension | L19: RoPE, ALiBi, interpolation |
+| 14GB too large for edge | Memory constraints | L20: INT4 quantization (3.5 GB) |
+| Sequential generation is slow | High throughput needs | L21: Continuous batching, speculation |
 
 ### Real-World Impact
 
 These aren't academic exercises—they're the techniques that make modern LLMs possible:
 
-- **GPT-4**: Uses speculative decoding (L20) for faster responses
-- **Llama 2**: Uses Grouped Query Attention (L16) and RoPE (L18)
-- **Claude**: Extended to 100K context using position interpolation (L18)
-- **Mixtral**: Uses model parallelism (L17) to split 8× 7B experts
-- **Most deployments**: Use INT4 quantization (L19) to reduce costs
+- **GPT-4**: Uses speculative decoding (L21) for faster responses
+- **Llama 2**: Uses Grouped Query Attention (L17) and RoPE (L19)
+- **Claude**: Extended to 100K context using position interpolation (L19)
+- **Mixtral**: Uses model parallelism (L18) to split 8× 7B experts
+- **Most deployments**: Use INT4 quantization (L20) to reduce costs
 
 ## Learning Path
 
 **Sequential approach (recommended)**:
-1. **L16**: Start with attention optimizations (most immediate impact)
-2. **L17**: Learn to scale across GPUs
-3. **L18**: Handle longer contexts
-4. **L19**: Prepare models for efficient inference
-5. **L20**: Deploy in production
+1. **L17**: Start with attention optimizations (most immediate impact)
+2. **L18**: Learn to scale across GPUs
+3. **L19**: Handle longer contexts
+4. **L20**: Prepare models for efficient inference
+5. **L21**: Deploy in production
 
 **Jump-in approach**:
-- Need **faster training**? → L16 (Flash Attention) + L17 (Parallelism)
-- Need **longer contexts**? → L18 (RoPE, ALiBi)
-- Need **cheaper inference**? → L19 (Quantization) + L20 (vLLM)
-- Building **production system**? → L20 (Deployment)
+- Need **faster training**? → L17 (Flash Attention) + L18 (Parallelism)
+- Need **longer contexts**? → L19 (RoPE, ALiBi)
+- Need **cheaper inference**? → L20 (Quantization) + L21 (vLLM)
+- Building **production system**? → L21 (Deployment)
 
 ## What's Different Here
 
@@ -153,18 +153,18 @@ By the end of this series, you'll be able to:
 
 Let's start by making attention—the core operation in transformers—10× faster with modern optimizations.
 
-**Next: [L16 - Attention Optimizations →](L16_Attention_Optimizations.md)**
+**Next: [L17 - Attention Optimizations →](L17_Attention_Optimizations.md)**
 
 ---
 
 ## Series Roadmap
 
 ```
-Core Series (L01-L10)
+Core Series (L01-L11)
 └── Fundamentals: Build GPT from scratch
-    └── Production Techniques (L11-L15)
+    └── Production Techniques (L12-L16)
         └── Real-world training and fine-tuning
-            └── Scaling & Optimization (L16-L20) ← You are here
+            └── Scaling & Optimization (L17-L21) ← You are here
                 └── Advanced techniques for scale
 ```
 
