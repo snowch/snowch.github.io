@@ -910,6 +910,9 @@ In trained models, attention patterns emerge that capture semantic relationships
 ```{code-cell} ipython3
 :tags: [remove-input]
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 # Simplified example: "The animal didn't cross the street because it was too tired"
 # In a real model, "it" would ideally learn to attend to "animal" (not "street")
 tokens = ["The", "animal", "didn't", "cross", "the", "street", "because", "it", "was", "too", "tired"]
@@ -948,12 +951,15 @@ plt.colorbar(label='Attention Weight')
 for j, token in enumerate(tokens):
     weight = data[it_idx, j]
     if weight > 0.02:  # Annotate weights from our worked example (87%, 10%, 3%)
+        if abs(weight - 0.87) < 0.001: # Check for the 87% weight
+            text_color = 'white'
+        else:
+            text_color = 'black'
         plt.text(j, it_idx, f'{weight:.0%}',
-                ha='center', va='center', color='white', fontsize=9, fontweight='bold')
+                ha='center', va='center', color=text_color, fontsize=9, fontweight='bold')
 
 plt.tight_layout()
 plt.show()
-
 
 ```
 
