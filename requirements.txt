@@ -2,9 +2,11 @@
 jupyter-book
 mystmd
 numpy
+pandas
 matplotlib
 matplotlib-venn
 scipy
+scikit-learn
 wavedrom
 graphviz
 PyYAML
