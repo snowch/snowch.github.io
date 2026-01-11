@@ -158,7 +158,7 @@ plt.legend(
 plt.show()
 ```
 
-In the plot, you can see the ratings color code. For example, User 1 has rated Movie 1 with the highest rating of 5.
+In the plot, you can see the ratings color code. For example, **User 4** has rated **Movie 2** with the highest **rating of 5**.
 Let's inspect the subset to confirm the values ...
 
 ```{code-cell} ipython3
