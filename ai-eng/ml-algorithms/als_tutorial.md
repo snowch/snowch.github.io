@@ -273,52 +273,160 @@ Where:
 
 ### Visualizing the Factorization
 
+The diagram below illustrates how ALS decomposes the sparse rating matrix into user and product features:
+
 ```{code-cell} ipython3
+:tags: [hide-input]
 
-fig, ax = plt.subplots(figsize=(14, 6))
+fig = plt.figure(figsize=(16, 7))
 
-# Draw the matrices
-user_matrix_pos = [0.05, 0.3, 0.15, 0.4]
-movie_matrix_pos = [0.4, 0.3, 0.15, 0.4]
-rating_matrix_pos = [0.75, 0.2, 0.2, 0.6]
+# Create main axis for global positioning
+ax_main = fig.add_subplot(111)
+ax_main.axis('off')
 
-# User matrix
-ax_user = fig.add_axes(user_matrix_pos)
-user_data = np.random.rand(6, 3)
-ax_user.imshow(user_data, cmap='Blues', aspect='auto')
-ax_user.set_title('User Features\n(Users × Factors)', fontsize=12, fontweight='bold')
-ax_user.set_ylabel('Users (m)', fontsize=10)
-ax_user.set_xlabel('Latent Factors (k)', fontsize=10)
-ax_user.set_xticks([])
-ax_user.set_yticks([])
+# --- Left: Rating Matrix ---
+ax_rating = plt.axes([0.05, 0.25, 0.25, 0.5])
 
-# Movie matrix
-ax_movie = fig.add_axes(movie_matrix_pos)
-movie_data = np.random.rand(3, 5)
-ax_movie.imshow(movie_data, cmap='Greens', aspect='auto')
-ax_movie.set_title('Movie Features^T\n(Factors × Movies)', fontsize=12, fontweight='bold')
-ax_movie.set_ylabel('Latent Factors (k)', fontsize=10)
-ax_movie.set_xlabel('Movies (n)', fontsize=10)
-ax_movie.set_xticks([])
-ax_movie.set_yticks([])
+# Create a sample rating matrix (9 users × 8 movies)
+n_users_viz, n_movies_viz = 9, 8
+rating_matrix_viz = np.full((n_users_viz, n_movies_viz), np.nan)
 
-# Rating matrix
-ax_rating = fig.add_axes(rating_matrix_pos)
-rating_data = np.random.rand(6, 5)
-ax_rating.imshow(rating_data, cmap='Reds', aspect='auto')
-ax_rating.set_title('Rating Matrix\n(Users × Movies)', fontsize=12, fontweight='bold')
-ax_rating.set_ylabel('Users (m)', fontsize=10)
-ax_rating.set_xlabel('Movies (n)', fontsize=10)
-ax_rating.set_xticks([])
-ax_rating.set_yticks([])
+# Add some sample ratings to highlight
+sample_ratings = [
+    (0, 1, 5), (1, 1, 5), (4, 4, 2), (5, 1, 4),
+    (6, 4, 4), (7, 1, 4), (7, 2, 3), (8, 1, 5)
+]
 
-# Add multiplication and approximation symbols
-ax.text(0.25, 0.5, '×', fontsize=40, ha='center', va='center', transform=fig.transFigure)
-ax.text(0.62, 0.5, '≈', fontsize=40, ha='center', va='center', transform=fig.transFigure)
+for u, m, r in sample_ratings:
+    rating_matrix_viz[u, m] = r
 
-ax.axis('off')
+# Plot the rating matrix
+im = ax_rating.imshow(np.ones_like(rating_matrix_viz), cmap='Greys', alpha=0.1,
+                       aspect='auto', extent=[0.5, n_movies_viz+0.5, n_users_viz+0.5, 0.5])
+
+# Draw grid
+for i in range(n_users_viz + 1):
+    ax_rating.axhline(i + 0.5, color='gray', linewidth=0.5)
+for j in range(n_movies_viz + 1):
+    ax_rating.axvline(j + 0.5, color='gray', linewidth=0.5)
+
+# Highlight filled cells with yellow background
+for u, m, r in sample_ratings:
+    rect = plt.Rectangle((m + 0.5, u + 0.5), 1, 1,
+                          facecolor='yellow', edgecolor='orange', linewidth=1.5)
+    ax_rating.add_patch(rect)
+    ax_rating.text(m + 1, u + 1, str(int(r)), ha='center', va='center',
+                   fontsize=11, fontweight='bold', color='blue')
+
+# Add labels
+ax_rating.set_xlim(0.5, n_movies_viz + 0.5)
+ax_rating.set_ylim(n_users_viz + 0.5, 0.5)
+ax_rating.set_xticks(range(1, n_movies_viz + 1))
+ax_rating.set_xticklabels(range(1, n_movies_viz + 1))
+ax_rating.set_yticks(range(1, n_users_viz + 1))
+ax_rating.set_yticklabels(range(1, n_users_viz + 1))
+ax_rating.set_xlabel('Item (movie) ID', fontsize=10, fontweight='bold')
+ax_rating.set_ylabel('User ID', fontsize=10, fontweight='bold')
+ax_rating.set_title('Rating Matrix\n(Sparse)', fontsize=11, fontweight='bold')
+
+# --- Middle: Approximation symbol ---
+ax_main.text(0.33, 0.5, '≈', fontsize=50, ha='center', va='center',
+             transform=fig.transFigure, fontweight='bold')
+
+# --- Right Top: User Features ---
+ax_user = plt.axes([0.40, 0.55, 0.12, 0.2])
+n_factors_viz = 5
+
+# Highlight one user (user 1)
+user_features_viz = np.full((n_users_viz, n_factors_viz), np.nan)
+user_features_viz[0, :] = 1  # User 1 features
+
+im_user = ax_user.imshow(np.ones_like(user_features_viz), cmap='Greys', alpha=0.1,
+                          aspect='auto', extent=[0.5, n_factors_viz+0.5, n_users_viz+0.5, 0.5])
+
+# Draw grid
+for i in range(n_users_viz + 1):
+    ax_user.axhline(i + 0.5, color='gray', linewidth=0.5)
+for j in range(n_factors_viz + 1):
+    ax_user.axvline(j + 0.5, color='gray', linewidth=0.5)
+
+# Highlight User 1 row
+for f in range(n_factors_viz):
+    rect = plt.Rectangle((f + 0.5, 0.5), 1, 1,
+                          facecolor='lightblue', edgecolor='blue', linewidth=1.5)
+    ax_user.add_patch(rect)
+    ax_user.text(f + 1, 1, '???', ha='center', va='center',
+                 fontsize=9, fontweight='bold', color='blue')
+
+ax_user.set_xlim(0.5, n_factors_viz + 0.5)
+ax_user.set_ylim(n_users_viz + 0.5, 0.5)
+ax_user.set_xticks(range(1, n_factors_viz + 1))
+ax_user.set_xticklabels([f'F{i}' for i in range(1, n_factors_viz + 1)], fontsize=9)
+ax_user.set_yticks([1, n_users_viz])
+ax_user.set_yticklabels(['1', '...'], fontsize=9)
+ax_user.tick_params(left=False, bottom=False)
+ax_user.set_title('User Features', fontsize=10, fontweight='bold')
+
+# --- Right Bottom: Product Features ---
+ax_product = plt.axes([0.40, 0.25, 0.12, 0.2])
+
+# Highlight one product (product 1)
+product_features_viz = np.full((n_factors_viz, n_movies_viz), np.nan)
+product_features_viz[:, 0] = 1  # Product 1 features
+
+im_prod = ax_product.imshow(np.ones_like(product_features_viz), cmap='Greys', alpha=0.1,
+                             aspect='auto', extent=[0.5, n_movies_viz+0.5, n_factors_viz+0.5, 0.5])
+
+# Draw grid
+for i in range(n_factors_viz + 1):
+    ax_product.axhline(i + 0.5, color='gray', linewidth=0.5)
+for j in range(n_movies_viz + 1):
+    ax_product.axvline(j + 0.5, color='gray', linewidth=0.5)
+
+# Highlight Product 1 column
+for f in range(n_factors_viz):
+    rect = plt.Rectangle((0.5, f + 0.5), 1, 1,
+                          facecolor='lightgreen', edgecolor='green', linewidth=1.5)
+    ax_product.add_patch(rect)
+    ax_product.text(1, f + 1, '???', ha='center', va='center',
+                    fontsize=9, fontweight='bold', color='green')
+
+ax_product.set_xlim(0.5, n_movies_viz + 0.5)
+ax_product.set_ylim(n_factors_viz + 0.5, 0.5)
+ax_product.set_xticks([1, n_movies_viz])
+ax_product.set_xticklabels(['1', '...'], fontsize=9)
+ax_product.set_yticks(range(1, n_factors_viz + 1))
+ax_product.set_yticklabels([f'F{i}' for i in range(1, n_factors_viz + 1)], fontsize=9)
+ax_product.tick_params(left=False, bottom=False)
+ax_product.set_title('Product Features', fontsize=10, fontweight='bold')
+
+# --- Explanatory Text Box ---
+explanation = (
+    "This example assumes there are 5 latent\n"
+    "factors (F1 to F5) and the job of ALS is to\n"
+    "find their values (shown as ???).\n\n"
+    "It is our job to experiment to find the\n"
+    "optimum number of latent factors."
+)
+
+ax_main.text(0.72, 0.5, explanation, fontsize=10, ha='left', va='center',
+             transform=fig.transFigure,
+             bbox=dict(boxstyle='round,pad=0.8', facecolor='lightyellow',
+                      edgecolor='orange', linewidth=2))
+
+plt.tight_layout()
 plt.show()
 ```
+
+**Understanding the Diagram:**
+
+The yellow highlighted cells in the **Rating Matrix** (left) represent observed ratings from users. The grey cells are **missing ratings** that we want to predict.
+
+ALS decomposes this sparse matrix into:
+- **User Features** (top right): Each user is represented by $k$ latent factors (F1-F5 in this example)
+- **Product Features** (bottom right): Each movie is represented by the same $k$ latent factors
+
+The "???" symbols indicate that these values are **unknown** and will be learned by the ALS algorithm.
 
 ### How ALS Works: The Algorithm
 
@@ -332,10 +440,35 @@ ALS **alternates** between optimizing user factors and movie factors:
    $$M_j = (U^T U + \lambda I)^{-1} U^T R_j$$
 4. **Repeat** steps 2-3 until convergence
 
-**Key Parameters:**
-- **$k$ (rank):** Number of latent factors (typically 5-50)
-- **$\lambda$ (regularization):** Prevents overfitting (typically 0.01-0.1)
-- **iterations:** Number of alternating optimization steps (typically 10-20)
+**The ALS process works approximately like this:**
+
+1. Generate random values for the **Product Features** matrix
+2. Fix Product Features and solve **User Features**, calculate least squares error
+3. Fix User Features and solve **Product Features**, calculate least squares error
+4. Repeat (Alternate) steps 2 and 3 for a specified number of iterations
+
+After each iteration, the least squares error decreases. The convergence pattern can be visualized in the training curve shown later in this tutorial.
+
+### Key Parameters
+
+**Number of Latent Factors ($k$, also called rank):**
+- Determines the dimensionality of the feature space (typically 5-50)
+- **Too few factors:** Model may be too simple and underfit the data
+- **Too many factors:** Model may overfit and not generalize well
+- **Finding the optimum:** Experiment with different values and evaluate on a validation set
+
+It may help intuitively if you think of latent features as representing movie attributes such as genre, actors, or release date—though the algorithm discovers these patterns automatically.
+
+**Regularization Parameter ($\lambda$):**
+- Prevents overfitting by adding a penalty term (typically 0.01-0.1)
+- **Why it's needed:** If ALS just solved using pure least squares, the generated User and Product features could be overfitted to the training data
+- **How it works:** The $\lambda I$ term in the equations above adds regularization
+- **Finding the optimum:** Experiment with different values (try 0.01, 0.05, 0.1, 0.5)
+
+**Number of Iterations:**
+- How many times to alternate between solving user and product features (typically 10-20)
+- **More iterations:** Generally better fit, but diminishing returns after a certain point
+- **Stopping criteria:** Monitor the training error—when it plateaus, additional iterations provide little benefit
 
 ---
 
