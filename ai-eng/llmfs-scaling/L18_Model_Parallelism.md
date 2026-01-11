@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L17 - Model Parallelism [DRAFT]
+# L18 - Model Parallelism [DRAFT]
 
 *Training models too large for a single GPU*
 

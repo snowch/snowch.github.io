@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L19 - Quantization for Inference [DRAFT]
+# L20 - Quantization for Inference [DRAFT]
 
 *Shrink models 4-8× with minimal quality loss*
 

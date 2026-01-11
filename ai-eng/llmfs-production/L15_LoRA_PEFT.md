@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# L14 - Parameter-Efficient Fine-Tuning (LoRA) [DRAFT]
+# L15 - Parameter-Efficient Fine-Tuning (LoRA) [DRAFT]
 
 *Fine-tune 7B models on a single GPU with Low-Rank Adaptation*
 
