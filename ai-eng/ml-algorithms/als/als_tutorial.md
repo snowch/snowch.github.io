@@ -24,6 +24,13 @@ This tutorial demonstrates how to build a movie recommendation system using **Al
 We'll explore the MovieLens dataset, visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions.
 
 ```{code-cell} ipython3
+:tags: [remove-input, remove-output]
+
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
 
 import numpy as np
 import pandas as pd
