@@ -160,12 +160,6 @@ plt.show()
 ```
 
 In the plot, you can see the ratings color code. For example, **User 4** has rated **Movie 2** with the highest **rating of 5**.
-Let's inspect the subset to confirm the values ...
-
-```{code-cell} ipython3
-
-# ratings_subset
-```
 
 The plot is as expected, so we can repeat this with the full data set.
 
