@@ -31,3 +31,10 @@ pre.myst-jp-stream-output code {
 :not(pre) > code {
   font-size: 0.95em;
 }
+
+/* 4. Dataframe Outputs (Pandas HTML tables) */
+.jp-RenderedHTMLCommon .dataframe,
+.jp-RenderedHTML .dataframe,
+.dataframe {
+  font-size: 0.85em;
+}
