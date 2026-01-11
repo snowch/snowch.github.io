@@ -607,6 +607,14 @@ P_3 &= \frac{e^{3.54}}{e^{7.09} + e^{4.96} + e^{3.54}} \\
 \end{align}
 $$
 
+<div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0;">
+
+**📘 Want to learn more about Softmax?**
+
+For a deeper dive into how softmax works, why we use exponentials, and numerical stability techniques, see our dedicated tutorial: [Softmax: From Scores to Probabilities](../ml-algorithms/softmax_from_scores.md)
+
+</div>
+
 **Step 4: Weighted Sum (Combining Values)**
 Now we multiply each attention weight by its corresponding Value vector and sum them:
 
