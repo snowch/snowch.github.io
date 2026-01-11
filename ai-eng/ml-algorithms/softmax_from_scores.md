@@ -17,6 +17,8 @@ kernelspec:
 
 ---
 
+This post is a standalone explanation of softmax that you can reference from any classifier walkthrough, whether it is an image model, a text model, or a simple toy example.
+
 ```{code-cell} ipython3
 :tags: [remove-input]
 
@@ -37,11 +39,11 @@ plt.rcParams['axes.grid'] = False
 
 ---
 
-## Part 3: From Scores to Probabilities - Softmax
+## From Scores to Probabilities - Softmax
 
-We saw that neurons produce **scores** — higher means better pattern match. But for classification, we need **probabilities**: "What's the chance this is an edge?"
+In a classification model, the final layer produces **scores** (also called logits) — higher means the model favors that class more. But for classification, we need **probabilities**: "What's the chance this is an edge?"
 
-Our network has two output neurons (one for "Edge", one for "No Edge"), each producing a score. So we have a **vector of scores** $\mathbf{z} = [z_{edge}, z_{no\_edge}]$. These raw scores can be any number — positive, negative, or zero.
+Suppose our model has two output neurons (one for "Edge", one for "No Edge"), each producing a score. So we have a **vector of scores** $\mathbf{z} = [z_{edge}, z_{no\_edge}]$. These raw scores can be any number — positive, negative, or zero.
 
 <div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0;">
 
