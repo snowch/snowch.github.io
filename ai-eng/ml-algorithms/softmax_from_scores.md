@@ -200,10 +200,11 @@ $$p_j = \frac{z_j}{\sum_k z_k}$$
 
 Where:
 - $j$ is the class index (e.g., $j=0$ for "Edge", $j=1$ for "No Edge")
-- $p_j$ is the probability for class $j$
+- $z_j$ is the raw score for class $j$
+- $p_j$ is the resulting probability for class $j$
 - The sum is over all classes $k$
 
-For example, scores $[3, 1]$ would give $P_0 = 3/(3+1) = 0.75$ and $P_1 = 1/(3+1) = 0.25$.
+For example, scores $[3, 1]$ would give $p_0 = 3/(3+1) = 0.75$ and $p_1 = 1/(3+1) = 0.25$.
 
 **The problem:** Scores can be negative or zero, which breaks this.
 
@@ -301,8 +302,76 @@ print(f"Probs p:  {p}")             # [0.88, 0.12]
 
 This computes all $p_j$ values at once: `p[j]` = $\frac{e^{z_j}}{\sum_k e^{z_k}}$
 
-> **Note:** In practice, we subtract the max for numerical stability. This prevents overflow with large scores but gives the same result:
+> **Note on Numerical Stability:**
+> In practice, we subtract the max score before exponentiating to prevent overflow. This is safe because the constants cancel in the ratio:
+>
+> $$\frac{e^{z_j - c}}{\sum_k e^{z_k - c}} = \frac{e^{z_j}/e^{c}}{\sum_k (e^{z_k}/e^{c})} = \frac{e^{z_j}}{\sum_k e^{z_k}}$$
+>
+> So we can choose $c = \max(z)$ without changing the result:
 > ```python
-> exp_z = np.exp(z - np.max(z))        # stable exponentiation
-> p = exp_z / np.sum(exp_z)            # normalize
+> exp_z = np.exp(z - np.max(z))        # stable: prevents overflow
+> p = exp_z / np.sum(exp_z)            # same result as before
 > ```
+
+### Multi-Class Example
+
+Softmax works for any number of classes, not just two. Here's a 3-class example:
+
+```python
+# Multi-class classification: Cat, Dog, Bird
+z = np.array([3.2, 1.3, 0.2])           # scores for each class
+
+exp_z = np.exp(z - np.max(z))           # stable computation
+p = exp_z / np.sum(exp_z)               # normalize
+
+print(f"Logits:  {z}")                  # [3.2, 1.3, 0.2]
+print(f"Probs:   {p}")                  # [0.70, 0.24, 0.06]
+print(f"Sum:     {p.sum():.1f}")        # 1.0
+
+# Interpretation: 70% Cat, 24% Dog, 6% Bird
+```
+
+The highest score (3.2 for Cat) gets the highest probability (70%), but the other classes still have non-zero probabilities. This is useful for understanding model confidence and handling uncertain predictions.
+
+---
+
+## Common Pitfalls
+
+<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0;">
+
+**⚠️ Things to Watch Out For**
+
+**1. Don't apply softmax to already-normalized outputs**
+- If your network already outputs probabilities (sum to 1), softmax is redundant
+- Example: Don't apply softmax after another softmax layer
+
+**2. Softmax is for classification, not regression**
+- Use softmax when predicting categories (cat, dog, bird)
+- Don't use it for continuous values (e.g., predicting temperature or price)
+- For regression, use raw outputs or other activation functions
+
+**3. Softmax is differentiable**
+- This is crucial for training neural networks with backpropagation
+- The gradient flows through softmax during training
+- You typically use cross-entropy loss with softmax for classification
+
+**4. Temperature scaling**
+- Dividing logits by temperature $T$ before softmax affects confidence:
+  - $T > 1$: Less confident, more uniform probabilities
+  - $T < 1$: More confident, sharper probabilities
+  - Default $T = 1$ (standard softmax)
+
+</div>
+
+---
+
+## Summary
+
+**Softmax** converts raw scores (logits) into probabilities:
+- **Input:** Raw scores that can be any number
+- **Output:** Probabilities between 0 and 1 that sum to 1
+- **Method:** Exponentiate to make positive, then normalize
+
+**Key formula:** $p_j = \frac{e^{z_j}}{\sum_k e^{z_k}}$
+
+This makes softmax the standard final layer activation for multi-class classification in neural networks.
