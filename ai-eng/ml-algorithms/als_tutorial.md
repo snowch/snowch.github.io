@@ -21,7 +21,7 @@ kernelspec:
 
 This tutorial demonstrates how to build a movie recommendation system using **Alternating Least Squares (ALS)**, a matrix factorization algorithm for collaborative filtering. ALS is the same family of techniques used by Netflix, Spotify, and other platforms to recommend content.
 
-We'll explore the MovieLens dataset, visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions.
+We'll explore a MovieLens-style dataset with built-in biases from my older (circa 10 years ago) Apache Spark movie recommender tutorial on IBM Bluemix, visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions. The original tutorial lives at [snowch/movie-recommender-demo](https://github.com/snowch/movie-recommender-demo).
 
 ```{code-cell} ipython3
 
@@ -41,44 +41,34 @@ plt.rcParams['axes.facecolor'] = 'white'
 
 ## Part 1: The Dataset and Sparsity Problem
 
-The MovieLens dataset contains user ratings of movies on a scale of 1-5 stars. Let's simulate a subset of this data to understand the problem:
+The dataset we use mirrors MovieLens ratings (1-5 stars) and includes realistic biases collected from the original demo. We'll pull it directly from GitHub so the tutorial stays reproducible:
 
 ```{code-cell} ipython3
 
-# Simulate MovieLens-style data
-np.random.seed(42)
+# Load MovieLens-style ratings with real-world bias patterns
+ratings_url = "https://raw.githubusercontent.com/snowch/movie-recommender-demo/master/web_app/data/ratings.dat"
+df = pd.read_csv(
+    ratings_url,
+    sep="::",
+    names=["user_id", "movie_id", "rating", "timestamp"],
+    engine="python"
+)
 
-# Create synthetic ratings data
-n_users = 100
-n_movies = 50
-n_ratings = 800  # Sparse: only ~16% of possible ratings exist
-
-user_ids = np.random.randint(1, n_users + 1, n_ratings)
-movie_ids = np.random.randint(1, n_movies + 1, n_ratings)
-ratings = np.random.choice([1, 2, 3, 4, 5], n_ratings, p=[0.05, 0.1, 0.25, 0.35, 0.25])
-
-# Create DataFrame
-df = pd.DataFrame({
-    'user_id': user_ids,
-    'movie_id': movie_ids,
-    'rating': ratings
-})
-
-# Remove duplicates (user can only rate a movie once)
-df = df.drop_duplicates(subset=['user_id', 'movie_id'])
+# Keep the columns we need for ALS
+df = df.drop(columns=["timestamp"])
 
 print(f"Total ratings: {len(df)}")
 print(f"Number of users: {df['user_id'].nunique()}")
 print(f"Number of movies: {df['movie_id'].nunique()}")
 print(f"\nRating distribution:\n{df['rating'].value_counts().sort_index()}")
-print(f"\nSparsity: {len(df) / (n_users * n_movies) * 100:.2f}% of possible ratings exist")
+print(f"\nSparsity: {len(df) / (df['user_id'].nunique() * df['movie_id'].nunique()) * 100:.2f}% of possible ratings exist")
 ```
 
 **Expected output:**
 ```
-Total ratings: ~750
-Number of users: ~95
-Number of movies: ~50
+Total ratings: (depends on dataset)
+Number of users: (dataset dependent)
+Number of movies: (dataset dependent)
 Sparsity: ~15% of possible ratings exist
 ```
 

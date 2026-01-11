@@ -111,7 +111,7 @@ project:
 
         - title: "ML/AI Algorithms"
           children:
-            - file: ai-eng/ml-algorithms/als/als_tutorial.md
+            - file: ai-eng/ml-algorithms/als_tutorial.md
               title: "Alternating Least Squares (ALS) for Movie Recommendations"
 
     - file: embeddings.md
