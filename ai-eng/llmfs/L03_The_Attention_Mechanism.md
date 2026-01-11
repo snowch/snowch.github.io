@@ -526,6 +526,26 @@ It's crucial to understand the distinction between these two terms that are ofte
 When debugging attention mechanisms or reading research papers, knowing which one is being discussed is critical. Scores are used for computing gradients, while weights are used for the final weighted sum with the Values.
 ```
 
+```{note}
+**Where do Q, K, V come from?**
+
+In a real transformer, Q, K, and V aren't stored—they're **computed on the fly** from word embeddings using learned projection matrices:
+
+$$Q = X W_Q, \quad K = X W_K, \quad V = X W_V$$
+
+Where $X$ is the embedding for a word (e.g., "animal"), and $W_Q$, $W_K$, $W_V$ are learned weight matrices. Each word gets transformed into three different representations for the three different roles it plays in attention.
+
+**The full pipeline in a real transformer:**
+1. **Token → Embedding**: Token "animal" → Embedding layer → $X_{animal}$ = [512D vector]
+2. **Embedding → Projections**: $X_{animal}$ gets multiplied by three learned matrices:
+   - $Q_{animal} = X_{animal} \times W_Q$ (What this word is searching for)
+   - $K_{animal} = X_{animal} \times W_K$ (What this word advertises about itself)
+   - $V_{animal} = X_{animal} \times W_V$ (The semantic content to extract)
+3. **Attention computation**: Use these Q, K, V vectors in the attention formula
+
+The projection matrices ($W_Q$, $W_K$, $W_V$) are learned during training to optimize the model's language understanding. They allow the same embedding to play three different roles in the attention mechanism.
+```
+
 ### Example Walkthrough: Crunching the Numbers
 
 Let's trace the math using vectors from the plot above. We'll use the pronoun resolution example: when "it" (query) attends to "animal", "street", and "because" (keys). Note that we're reusing the same Q=[3,1] vector from the magnitude visualization—now applying it to a concrete language example.
@@ -536,15 +556,9 @@ Recall that:
 - **V (Values)**: The actual semantic content to extract (the documents inside)
 
 ```{note}
-**Where do Q, K, V come from?**
+**A Note on the Example Values**
 
-In a real transformer, Q, K, and V aren't stored—they're **computed on the fly** from word embeddings using learned projection matrices:
-
-$$Q = X W_Q, \quad K = X W_K, \quad V = X W_V$$
-
-Where $X$ is the embedding for a word (e.g., "animal"), and $W_Q$, $W_K$, $W_V$ are learned weight matrices. Each word gets transformed into three different representations for the three different roles it plays in attention.
-
-For our pedagogical example below, we're using hand-picked 2D vectors that demonstrate the geometry clearly. In practice, these projections are high-dimensional (512D) and learned during training to optimize the model's language understanding.
+For this pedagogical example, we're using hand-picked 2D vectors (like Q=[3,1]) that clearly demonstrate the geometric alignment concept. In a real transformer, these would be 512-dimensional vectors computed from embeddings via learned projections, as explained above.
 ```
 
 **Inputs:**
