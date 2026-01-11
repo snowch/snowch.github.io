@@ -73,6 +73,18 @@ Instead, we hire a **Committee of 8 Experts**:
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
+:::{important} The Roles Are Learned, Not Assigned
+
+When we say "Head 1 (The Linguist)" we're using a metaphor for intuition. In reality:
+
+- **You only specify `num_heads=8`** in your code
+- **The model learns** what each head should focus on during training through backpropagation
+- **The "roles" are emergent** - they're patterns discovered by gradient descent, not programmed by you
+- **Descriptive, not prescriptive** - Labels like "Linguist" are what researchers assign *after* analyzing what a trained model learned
+
+You can't tell the model "Head 1, you focus on grammar!" - it discovers its own patterns that minimize loss. Different training runs or datasets might result in different specializations.
+:::
+
 Let's visualize this "filtering" process. In the plot below:
 * **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding ($d=512$).
 * **The Split (Equal Parts):** We project this into 8 **equal-sized** subspaces ($d_k = 64$).
