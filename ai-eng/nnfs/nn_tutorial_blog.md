@@ -111,21 +111,15 @@ Let's build up each piece.
 ```{code-cell} ipython3
 :tags: [remove-input]
 
-# Network architecture diagram with nodes and connections, plus softmax visualization
+# Network architecture diagram with nodes and connections
 import matplotlib.pyplot as plt
-import numpy as np
 plt.rcParams['text.usetex'] = False  # Use mathtext instead (more compatible)
 
-# Create figure with two subplots: main network diagram and softmax visualization
-fig = plt.figure(figsize=(14, 12))
-gs = fig.add_gridspec(2, 1, height_ratios=[2, 1], hspace=0.3)
-
-# ==================== TOP PANEL: Network Architecture ====================
-ax1 = fig.add_subplot(gs[0])
-ax1.set_xlim(0, 14)
-ax1.set_ylim(0, 10)
-ax1.axis('off')
-ax1.set_title(r'Our Edge Detection Network: 25 $\rightarrow$ 8 $\rightarrow$ 2', fontsize=14, fontweight='bold')
+fig, ax = plt.subplots(figsize=(14, 8))
+ax.set_xlim(0, 14)
+ax.set_ylim(0, 10)
+ax.axis('off')
+ax.set_title(r'Our Edge Detection Network: 25 $\rightarrow$ 8 $\rightarrow$ 2', fontsize=14, fontweight='bold')
 
 # Define layer positions
 input_x = 1.5
@@ -136,167 +130,69 @@ output_x = 12.5
 input_ys = [8, 6.5, 5, 3.5, 2]
 input_labels = [r'$x_0$', r'$x_1$', '...', r'$x_{23}$', r'$x_{24}$']
 
-ax1.text(input_x, 9.5, 'Input Layer', fontsize=11, fontweight='bold', ha='center')
-ax1.text(input_x, 9.0, r'($\mathbf{x}$: 25 pixels)', fontsize=9, ha='center', style='italic')
+ax.text(input_x, 9.5, 'Input Layer', fontsize=11, fontweight='bold', ha='center')
+ax.text(input_x, 9.0, r'($\mathbf{x}$: 25 pixels)', fontsize=9, ha='center', style='italic')
 
 for y, label in zip(input_ys, input_labels):
     if label == '...':
-        ax1.text(input_x, y, chr(8942), fontsize=20, ha='center', va='center')  # vertical ellipsis
+        ax.text(input_x, y, chr(8942), fontsize=20, ha='center', va='center')  # vertical ellipsis
     else:
         circle = plt.Circle((input_x, y), 0.35, color='lightblue', ec='black', linewidth=2)
-        ax1.add_patch(circle)
-        ax1.text(input_x, y, label, fontsize=9, ha='center', va='center')
+        ax.add_patch(circle)
+        ax.text(input_x, y, label, fontsize=9, ha='center', va='center')
 
 # Hidden layer - show subset of 8 nodes (elements of h vector)
 hidden_ys = [7.5, 6, 4.5, 3]
 hidden_labels = [r'$h_0$', r'$h_1$', '...', r'$h_7$']
 
-ax1.text(hidden_x, 9.5, 'Hidden Layer', fontsize=11, fontweight='bold', ha='center')
-ax1.text(hidden_x, 9.0, r'($\mathbf{h}$: 8 neurons + ReLU)', fontsize=9, ha='center', style='italic')
+ax.text(hidden_x, 9.5, 'Hidden Layer', fontsize=11, fontweight='bold', ha='center')
+ax.text(hidden_x, 9.0, r'($\mathbf{h}$: 8 neurons + ReLU)', fontsize=9, ha='center', style='italic')
 
 for y, label in zip(hidden_ys, hidden_labels):
     if label == '...':
-        ax1.text(hidden_x, y, chr(8942), fontsize=20, ha='center', va='center')
+        ax.text(hidden_x, y, chr(8942), fontsize=20, ha='center', va='center')
     else:
         circle = plt.Circle((hidden_x, y), 0.4, color='lightyellow', ec='orange', linewidth=2)
-        ax1.add_patch(circle)
-        ax1.text(hidden_x, y, label, fontsize=9, ha='center', va='center')
+        ax.add_patch(circle)
+        ax.text(hidden_x, y, label, fontsize=9, ha='center', va='center')
 
-# Output layer - 2 nodes (elements of z2 vector) with example values
+# Output layer - 2 nodes (elements of z2 vector)
 output_ys = [6, 4]
 output_labels = [r'$z_{2,0}$', r'$z_{2,1}$']
 output_names = ['Edge', 'No Edge']
-# Example raw scores
-example_scores = [2.5, -1.0]
 
-ax1.text(output_x, 9.5, 'Output Layer', fontsize=11, fontweight='bold', ha='center')
-ax1.text(output_x, 9.0, r'($\mathbf{z}_2$: 2 scores)', fontsize=9, ha='center', style='italic')
+ax.text(output_x, 9.5, 'Output Layer', fontsize=11, fontweight='bold', ha='center')
+ax.text(output_x, 9.0, r'($\mathbf{z}_2$: 2 scores)', fontsize=9, ha='center', style='italic')
 
-for y, label, name, score in zip(output_ys, output_labels, output_names, example_scores):
+for y, label, name in zip(output_ys, output_labels, output_names):
     circle = plt.Circle((output_x, y), 0.4, color='lightgreen', ec='green', linewidth=2)
-    ax1.add_patch(circle)
-    ax1.text(output_x, y, label, fontsize=9, ha='center', va='center')
-    # Show name and example score
-    ax1.text(output_x + 0.8, y+0.2, name, fontsize=10, ha='left', va='center', fontweight='bold')
-    ax1.text(output_x + 0.8, y-0.2, f'= {score}', fontsize=9, ha='left', va='center',
-             color='darkgreen', style='italic')
+    ax.add_patch(circle)
+    ax.text(output_x, y, label, fontsize=9, ha='center', va='center')
+    ax.text(output_x + 0.8, y, name, fontsize=10, ha='left', va='center')
 
 # Draw connections (simplified - just show some)
 for in_y in [8, 6.5, 3.5, 2]:
     for h_y in [7.5, 6, 3]:
-        ax1.plot([input_x + 0.35, hidden_x - 0.4], [in_y, h_y], 'gray', alpha=0.35, linewidth=0.8)
+        ax.plot([input_x + 0.35, hidden_x - 0.4], [in_y, h_y], 'gray', alpha=0.35, linewidth=0.8)
 
 for h_y in [7.5, 6, 3]:
     for out_y in [6, 4]:
-        ax1.plot([hidden_x + 0.4, output_x - 0.4], [h_y, out_y], 'gray', alpha=0.35, linewidth=0.8)
+        ax.plot([hidden_x + 0.4, output_x - 0.4], [h_y, out_y], 'gray', alpha=0.35, linewidth=0.8)
 
 # Formula annotations - using LaTeX mathtext for bold vectors
-ax1.annotate('', xy=(4.3, 5), xytext=(2.5, 5), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-ax1.text(3.4, 5.8, r'$\mathbf{z}_1 = \mathbf{x} \cdot W_1 + \mathbf{b}_1$', fontsize=11, ha='center', color='blue')
-ax1.text(3.4, 4.2, r'$\mathbf{h} = \mathrm{ReLU}(\mathbf{z}_1)$', fontsize=11, ha='center', color='blue')
+ax.annotate('', xy=(4.3, 5), xytext=(2.5, 5), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+ax.text(3.4, 5.8, r'$\mathbf{z}_1 = \mathbf{x} \cdot W_1 + \mathbf{b}_1$', fontsize=11, ha='center', color='blue')
+ax.text(3.4, 4.2, r'$\mathbf{h} = \mathrm{ReLU}(\mathbf{z}_1)$', fontsize=11, ha='center', color='blue')
 
-ax1.annotate('', xy=(10, 5), xytext=(8, 5), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-ax1.text(9, 5.8, r'$\mathbf{z}_2 = \mathbf{h} \cdot W_2 + \mathbf{b}_2$', fontsize=11, ha='center', color='green')
-ax1.text(9, 4.2, r'$\mathbf{p} = \mathrm{softmax}(\mathbf{z}_2)$', fontsize=11, ha='center', color='green')
+ax.annotate('', xy=(10, 5), xytext=(8, 5), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+ax.text(9, 5.8, r'$\mathbf{z}_2 = \mathbf{h} \cdot W_2 + \mathbf{b}_2$', fontsize=11, ha='center', color='green')
+ax.text(9, 4.2, r'$\mathbf{p} = \mathrm{softmax}(\mathbf{z}_2)$', fontsize=11, ha='center', color='green')
 
 # Weight matrix labels
-ax1.text(3.4, 1.3, r'$W_1$: 25×8 matrix' + '\n(200 weights)', fontsize=10, ha='center',
+ax.text(3.4, 1.3, r'$W_1$: 25×8 matrix' + '\n(200 weights)', fontsize=10, ha='center', 
         bbox=dict(boxstyle='round', facecolor='lightyellow', ec='orange'))
-ax1.text(9, 1.3, r'$W_2$: 8×2 matrix' + '\n(16 weights)', fontsize=10, ha='center',
+ax.text(9, 1.3, r'$W_2$: 8×2 matrix' + '\n(16 weights)', fontsize=10, ha='center',
         bbox=dict(boxstyle='round', facecolor='lightgreen', ec='green'))
-
-# Add annotation box explaining raw scores
-ax1.text(output_x, 1.5, 'Raw scores (logits)\nCan be any value\n$-\infty$ to $+\infty$',
-         fontsize=9, ha='center', va='center',
-         bbox=dict(boxstyle='round', facecolor='lightgreen', ec='green', alpha=0.3))
-
-# ==================== BOTTOM PANEL: Softmax Transformation ====================
-ax2 = fig.add_subplot(gs[1])
-ax2.set_xlim(0, 10)
-ax2.set_ylim(0, 6)
-ax2.axis('off')
-ax2.set_title('Softmax Transformation: Scores → Probabilities', fontsize=13, fontweight='bold', pad=10)
-
-# Calculate softmax of example scores
-scores = np.array([2.5, -1.0])
-exp_scores = np.exp(scores)
-probabilities = exp_scores / np.sum(exp_scores)
-
-# Left side: Raw Scores
-left_x = 1.5
-ax2.text(left_x, 5.5, 'Raw Scores', fontsize=11, fontweight='bold', ha='center')
-ax2.text(left_x, 5.1, r'$\mathbf{z}_2$', fontsize=10, ha='center', style='italic')
-
-# Draw bars for raw scores
-bar_width = 0.6
-bar_y_base = 2.5
-max_bar_height = 2.0
-
-# Edge score (positive, larger)
-edge_bar_height = (scores[0] / max(abs(scores))) * max_bar_height
-ax2.add_patch(plt.Rectangle((left_x - bar_width/2, bar_y_base), bar_width, edge_bar_height,
-                            color='lightcoral', ec='darkred', linewidth=2))
-ax2.text(left_x, bar_y_base + edge_bar_height + 0.15, f'{scores[0]:.1f}',
-         fontsize=11, ha='center', fontweight='bold', color='darkred')
-ax2.text(left_x, bar_y_base - 0.3, 'Edge', fontsize=9, ha='center')
-
-# No Edge score (negative, smaller)
-noedge_bar_height = (scores[1] / max(abs(scores))) * max_bar_height
-ax2.add_patch(plt.Rectangle((left_x + 1.2 - bar_width/2, bar_y_base), bar_width, noedge_bar_height,
-                            color='lightblue', ec='darkblue', linewidth=2))
-ax2.text(left_x + 1.2, bar_y_base + noedge_bar_height - 0.3, f'{scores[1]:.1f}',
-         fontsize=11, ha='center', fontweight='bold', color='darkblue')
-ax2.text(left_x + 1.2, bar_y_base - 0.3, 'No Edge', fontsize=9, ha='center')
-
-# Add note about raw scores
-ax2.text(left_x + 0.6, 1.3, 'Different scales\nCan be negative',
-         fontsize=8, ha='center', style='italic',
-         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.3))
-
-# Middle: Arrow with softmax formula
-arrow_x = 4.5
-ax2.annotate('', xy=(5.5, 3.5), xytext=(3.5, 3.5),
-            arrowprops=dict(arrowstyle='->', lw=3, color='purple'))
-ax2.text(arrow_x, 4.2, r'$\mathrm{softmax}$', fontsize=12, ha='center',
-         fontweight='bold', color='purple')
-ax2.text(arrow_x, 3.5, r'$p_i = \frac{e^{z_i}}{\sum e^{z_j}}$', fontsize=11, ha='center',
-         bbox=dict(boxstyle='round', facecolor='lavender', ec='purple', linewidth=2))
-ax2.text(arrow_x, 2.6, 'Normalizes to\nprobabilities', fontsize=8, ha='center', style='italic')
-
-# Right side: Probabilities
-right_x = 8.0
-ax2.text(right_x, 5.5, 'Probabilities', fontsize=11, fontweight='bold', ha='center')
-ax2.text(right_x, 5.1, r'$\mathbf{p}$', fontsize=10, ha='center', style='italic')
-
-# Draw bars for probabilities (scaled to show full probability range 0-1)
-prob_bar_scale = max_bar_height  # Full height = 100%
-
-# Edge probability
-edge_prob_height = probabilities[0] * prob_bar_scale
-ax2.add_patch(plt.Rectangle((right_x - bar_width/2, bar_y_base), bar_width, edge_prob_height,
-                            color='lightcoral', ec='darkred', linewidth=2))
-ax2.text(right_x, bar_y_base + edge_prob_height + 0.15, f'{probabilities[0]:.2f}',
-         fontsize=11, ha='center', fontweight='bold', color='darkred')
-ax2.text(right_x, bar_y_base - 0.3, 'Edge', fontsize=9, ha='center')
-
-# No Edge probability
-noedge_prob_height = probabilities[1] * prob_bar_scale
-ax2.add_patch(plt.Rectangle((right_x + 1.2 - bar_width/2, bar_y_base), bar_width, noedge_prob_height,
-                            color='lightblue', ec='darkblue', linewidth=2))
-ax2.text(right_x + 1.2, bar_y_base + noedge_prob_height + 0.15, f'{probabilities[1]:.2f}',
-         fontsize=11, ha='center', fontweight='bold', color='darkblue')
-ax2.text(right_x + 1.2, bar_y_base - 0.3, 'No Edge', fontsize=9, ha='center')
-
-# Add note about probabilities
-ax2.text(right_x + 0.6, 1.3, f'Range: [0, 1]\nSum = {probabilities.sum():.1f}',
-         fontsize=8, ha='center', style='italic',
-         bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.5))
-
-# Add scale reference on right side
-ax2.plot([right_x + 2.2, right_x + 2.2], [bar_y_base, bar_y_base + prob_bar_scale],
-         'k-', linewidth=1.5)
-ax2.text(right_x + 2.5, bar_y_base, '0%', fontsize=8, va='center')
-ax2.text(right_x + 2.5, bar_y_base + prob_bar_scale, '100%', fontsize=8, va='center')
 
 plt.tight_layout()
 plt.show()
