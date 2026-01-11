@@ -19,7 +19,7 @@ kernelspec:
 
 ## Overview
 
-This tutorial demonstrates how to build a movie recommendation system using **Alternating Least Squares (ALS)**, a matrix factorization algorithm for collaborative filtering. ALS is the same family of techniques used by Netflix, Spotify, and other platforms to recommend content.
+This tutorial demonstrates how to build a movie recommendation system using **Alternating Least Squares (ALS)**, a matrix factorization algorithm for collaborative filtering. ALS gained attention during the Netflix Prize era and still provides a clear, interpretable baseline, even though many production systems now favor more sophisticated hybrid or deep-learning approaches.
 
 It is adapted from an older tutorial I wrote around a decade ago on creating a movie recommender with Apache Spark on IBM Bluemix (see [movie-recommender-demo](https://github.com/snowch/movie-recommender-demo)), updated here for modern Python workflows and portability.
 
@@ -158,8 +158,8 @@ plt.legend(
 plt.show()
 ```
 
-In the plot, you can see the ratings color code. For example User 1 has rated movie 1 with the highest rating of 5.
-Let's dump the dataset to double check ...
+In the plot, you can see the ratings color code. For example, User 1 has rated Movie 1 with the highest rating of 5.
+Let's inspect the subset to confirm the values ...
 
 ```{code-cell} ipython3
 
@@ -241,9 +241,9 @@ plt.legend(
 plt.show()
 ```
 
-We can see some clear patterns. The vertical lines could indicate that the movie is rated similarly by all users.
-The horizontal lines could also indicate that a person ranks all movies fairly similarly - if a pale line, they tend to rate negatively and dark red positively.
-There are some interesting grey patterns too, where users have not rated movies. Notice the grey arc at the top right of the plot.
+We can see some clear patterns. Vertical bands can indicate movies that are rated similarly by many users.
+Horizontal bands can indicate users who rate movies consistently—pale lines skew negative while darker red lines skew positive.
+There are also grey gaps where users have not rated movies, including a subtle arc-shaped region of missing ratings toward the upper-right of the plot.
 
 **Key Observation:** The grey regions represent missing ratings. The goal of a recommender system is to **predict these missing values** based on the patterns in the observed ratings.
 
