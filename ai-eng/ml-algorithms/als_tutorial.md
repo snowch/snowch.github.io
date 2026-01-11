@@ -68,12 +68,23 @@ ratings = pd.read_csv(
     data_path,
     sep="::",
     engine="python",
-    names=["user", "product", "rating", "timestamp"]
+    names=["user", "movie", "rating", "timestamp"]
 ).drop(columns=["timestamp"])
 
-print(f"Total ratings: {len(ratings)}")
+n_users = ratings['user'].max()
+n_movies = ratings['movie'].max()
+n_ratings = len(ratings)
+
+print(f"Total ratings: {n_ratings}")
 print(f"Number of users: {ratings['user'].nunique()}")
-print(f"Number of movies: {ratings['product'].nunique()}")
+print(f"Number of movies: {ratings['movie'].nunique()}")
+
+# Calculate sparsity
+total_possible_ratings = n_users * n_movies
+sparsity_pct = 100 * (1 - n_ratings / total_possible_ratings)
+print(f"\nMatrix sparsity: {sparsity_pct:.2f}%")
+print(f"  ({n_ratings:,} ratings out of {total_possible_ratings:,} possible)")
+
 print(f"\nRating distribution:\n{ratings['rating'].value_counts().sort_index()}")
 ```
 
@@ -83,7 +94,7 @@ Let's take a subset of the data.
 
 ```{code-cell} ipython3
 
-ratings_subset = ratings.query("user < 20 and product < 20").copy()
+ratings_subset = ratings.query("user < 20 and movie < 20").copy()
 ratings_subset
 ```
 
@@ -93,7 +104,7 @@ Also normalise the rating value so that it is between 0 and 1. This is required 
 ```{code-cell} ipython3
 
 user = ratings_subset["user"].astype(int)
-movie = ratings_subset["product"].astype(int)
+movie = ratings_subset["movie"].astype(int)
 
 min_r = ratings_subset["rating"].min()
 max_r = ratings_subset["rating"].max()
@@ -117,8 +128,8 @@ import numpy as np
 
 min_user = ratings_subset["user"].min()
 max_user = ratings_subset["user"].max()
-min_movie = ratings_subset["product"].min()
-max_movie = ratings_subset["product"].max()
+min_movie = ratings_subset["movie"].min()
+max_movie = ratings_subset["movie"].max()
 
 width = 5
 height = 5
@@ -159,9 +170,9 @@ plt.legend(
 plt.show()
 ```
 
-In the plot, you can see the ratings color code. For example, **User 4** has rated **Movie 2** with the highest **rating of 5**.
+In this plot, you can see how the color coding represents rating values—lighter yellow for low ratings (1-2) and darker red for high ratings (4-5). Each colored square represents a user-movie rating, while the grey background shows positions where no rating exists.
 
-The plot is as expected, so we can repeat this with the full data set.
+Now that we understand the visualization, let's apply it to the full dataset.
 
 ### Visualise the ratings matrix using the full data set
 
@@ -177,7 +188,7 @@ Same functions as before ...
 ```{code-cell} ipython3
 
 user = ratings_full["user"].astype(int)
-movie = ratings_full["product"].astype(int)
+movie = ratings_full["movie"].astype(int)
 
 min_r = ratings_full["rating"].min()
 max_r = ratings_full["rating"].max()
@@ -200,7 +211,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 
 max_user = ratings_full["user"].max()
-max_movie = ratings_full["product"].max()
+max_movie = ratings_full["movie"].max()
 
 width = 10
 height = 10
@@ -246,11 +257,11 @@ At this scale with millions of data points compressed into a single visualizatio
 - Some horizontal regions show consistent rating patterns (active users)
 - The transparency reveals areas where ratings are sparser
 
-**Key Observation:** Most of the potential user-movie pairs have no rating (the matrix is >95% sparse). The goal of a recommender system is to **predict these missing values** based on patterns learned from observed ratings.
+**Key Observation:** The matrix is extremely sparse (as calculated above, >95% of potential ratings are missing). The goal of a recommender system is to **predict these missing values** based on patterns learned from the small fraction of observed ratings.
 
 ```{code-cell} ipython3
 
-df = ratings.rename(columns={"user": "user_id", "product": "movie_id"})
+df = ratings.rename(columns={"user": "user_id", "movie": "movie_id"})
 ```
 
 ---
@@ -419,7 +430,6 @@ ax_main.text(0.72, 0.5, explanation, fontsize=10, ha='left', va='center',
              bbox=dict(boxstyle='round,pad=0.8', facecolor='lightyellow',
                       edgecolor='orange', linewidth=2))
 
-plt.tight_layout()
 plt.show()
 ```
 
@@ -435,24 +445,21 @@ The "???" symbols indicate that these values are **unknown** and will be learned
 
 ### How ALS Works: The Algorithm
 
-ALS **alternates** between optimizing user factors and movie factors:
+ALS **alternates** between optimizing user factors and movie factors. Here's how it works:
 
-**Algorithm:**
-1. **Initialize** $U$ and $M$ with random values
-2. **Fix $M$**, solve for $U$ using least squares:
+**1. Initialize** - Generate small random values for both $U$ (user features) and $M$ (movie features)
+
+**2. Fix $M$, solve for $U$** - Keeping movie features constant, optimize each user's features using least squares:
    $$U_i = (M^T M + \lambda I)^{-1} M^T R_i$$
-3. **Fix $U$**, solve for $M$ using least squares:
+   Where $R_i$ is the vector of ratings from user $i$ (only for movies they rated)
+
+**3. Fix $U$, solve for $M$** - Keeping user features constant, optimize each movie's features using least squares:
    $$M_j = (U^T U + \lambda I)^{-1} U^T R_j$$
-4. **Repeat** steps 2-3 until convergence
+   Where $R_j$ is the vector of ratings for movie $j$ (only from users who rated it)
 
-**The ALS process works approximately like this:**
+**4. Repeat** - Alternate between steps 2 and 3 for a fixed number of iterations
 
-1. Generate random values for the **Product Features** matrix
-2. Fix Product Features and solve **User Features**, calculate least squares error
-3. Fix User Features and solve **Product Features**, calculate least squares error
-4. Repeat (Alternate) steps 2 and 3 for a specified number of iterations
-
-After each iteration, the least squares error decreases. The convergence pattern can be visualized in the training curve shown later in this tutorial.
+After each iteration, the reconstruction error (RMSE) decreases as the model learns better representations. The convergence pattern can be visualized in the training curve shown later in this tutorial.
 
 ### Key Parameters
 
@@ -507,12 +514,12 @@ class SimpleALS:
         self.user_id_map = {uid: idx for idx, uid in enumerate(self.user_ids)}
         self.movie_id_map = {mid: idx for idx, mid in enumerate(self.movie_ids)}
 
-        # Create rating matrix (sparse)
-        R = np.zeros((self.n_users, self.n_movies))
+        # Create rating matrix (dense for simplicity - production systems use sparse matrices)
+        self.R = np.zeros((self.n_users, self.n_movies))
         for _, row in ratings_df.iterrows():
             u_idx = self.user_id_map[row['user_id']]
             m_idx = self.movie_id_map[row['movie_id']]
-            R[u_idx, m_idx] = row['rating']
+            self.R[u_idx, m_idx] = row['rating']
 
         # Initialize user and movie factors
         self.U = np.random.rand(self.n_users, self.n_factors) * 0.01
@@ -524,12 +531,12 @@ class SimpleALS:
             # Fix M, solve for U
             for u in range(self.n_users):
                 # Get movies rated by user u
-                rated_movies = np.where(R[u, :] > 0)[0]
+                rated_movies = np.where(self.R[u, :] > 0)[0]
                 if len(rated_movies) == 0:
                     continue
 
                 M_u = self.M[rated_movies, :]
-                R_u = R[u, rated_movies]
+                R_u = self.R[u, rated_movies]
 
                 # Solve: U[u] = (M_u^T M_u + λI)^-1 M_u^T R_u
                 self.U[u, :] = np.linalg.solve(
@@ -540,12 +547,12 @@ class SimpleALS:
             # Fix U, solve for M
             for m in range(self.n_movies):
                 # Get users who rated movie m
-                rating_users = np.where(R[:, m] > 0)[0]
+                rating_users = np.where(self.R[:, m] > 0)[0]
                 if len(rating_users) == 0:
                     continue
 
                 U_m = self.U[rating_users, :]
-                R_m = R[rating_users, m]
+                R_m = self.R[rating_users, m]
 
                 # Solve: M[m] = (U_m^T U_m + λI)^-1 U_m^T R_m
                 self.M[m, :] = np.linalg.solve(
@@ -555,8 +562,8 @@ class SimpleALS:
 
             # Calculate loss (RMSE on observed ratings)
             predictions = self.U @ self.M.T
-            mask = R > 0
-            loss = np.sqrt(np.mean((R[mask] - predictions[mask]) ** 2))
+            mask = self.R > 0
+            loss = np.sqrt(np.mean((self.R[mask] - predictions[mask]) ** 2))
             self.losses.append(loss)
 
             if (iteration + 1) % 5 == 0:
@@ -581,10 +588,9 @@ class SimpleALS:
         scores = self.U[u_idx, :] @ self.M.T
 
         if exclude_rated:
-            # Set already rated movies to -inf
-            for m_idx, movie_id in enumerate(self.movie_ids):
-                if movie_id in self.user_id_map:  # Check if rated
-                    scores[m_idx] = -np.inf
+            # Exclude movies the user has already rated
+            rated_mask = self.R[u_idx, :] > 0
+            scores[rated_mask] = -np.inf
 
         top_indices = np.argsort(scores)[::-1][:n]
         recommendations = [(self.movie_ids[idx], scores[idx]) for idx in top_indices]
@@ -594,10 +600,24 @@ class SimpleALS:
 
 ### Training the Model
 
+First, let's split the data into training and test sets to properly evaluate the model:
+
 ```{code-cell} ipython3
-# Train the model
+# Split data into train/test (80/20 split)
+from sklearn.model_selection import train_test_split
+
+train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+
+print(f"Training samples: {len(train_df)}")
+print(f"Test samples: {len(test_df)}")
+```
+
+Now train the model on the training set:
+
+```{code-cell} ipython3
+# Train the model on training data only
 model = SimpleALS(n_factors=10, n_iterations=15, lambda_reg=0.1)
-model.fit(df)
+model.fit(train_df)
 
 # Plot training curve
 plt.figure(figsize=(10, 6))
@@ -696,23 +716,38 @@ Where $r_i$ is actual rating and $\hat{r}_i$ is predicted rating.
 - RMSE = 1.0: Predictions off by ~1 star on average
 
 ```{code-cell} ipython3
-# Calculate RMSE on all ratings
-predictions = []
-actuals = []
+# Evaluate on both training and test sets
+def evaluate_model(model, data_df, dataset_name):
+    """Calculate RMSE and MAE for a dataset."""
+    predictions = []
+    actuals = []
 
-for _, row in df.iterrows():
-    pred = model.predict(row['user_id'], row['movie_id'])
-    if not np.isnan(pred):
-        predictions.append(pred)
-        actuals.append(row['rating'])
+    for _, row in data_df.iterrows():
+        pred = model.predict(row['user_id'], row['movie_id'])
+        if not np.isnan(pred):
+            predictions.append(pred)
+            actuals.append(row['rating'])
 
-rmse = np.sqrt(mean_squared_error(actuals, predictions))
-mae = np.mean(np.abs(np.array(actuals) - np.array(predictions)))
+    rmse = np.sqrt(mean_squared_error(actuals, predictions))
+    mae = np.mean(np.abs(np.array(actuals) - np.array(predictions)))
+
+    return rmse, mae
+
+# Evaluate on training set
+train_rmse, train_mae = evaluate_model(model, train_df, "Training")
+
+# Evaluate on test set (unseen data)
+test_rmse, test_mae = evaluate_model(model, test_df, "Test")
 
 print(f"Evaluation Metrics:")
-print(f"  RMSE: {rmse:.4f} (average error in rating units)")
-print(f"  MAE:  {mae:.4f} (mean absolute error)")
-print(f"\nInterpretation: Predictions are off by ~{rmse:.2f} stars on average")
+print(f"\nTraining Set:")
+print(f"  RMSE: {train_rmse:.4f}")
+print(f"  MAE:  {train_mae:.4f}")
+print(f"\nTest Set (unseen data):")
+print(f"  RMSE: {test_rmse:.4f}")
+print(f"  MAE:  {test_mae:.4f}")
+print(f"\nInterpretation: On unseen data, predictions are off by ~{test_rmse:.2f} stars on average")
+print(f"Overfitting check: {'Minimal overfitting' if (test_rmse - train_rmse) < 0.1 else 'Some overfitting detected'}")
 ```
 
 ---
