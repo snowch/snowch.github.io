@@ -1027,8 +1027,63 @@ class ScaledDotProductAttention(nn.Module):
         output = torch.matmul(attn_weights, v)
         
         return output, attn_weights
+```
 
+### Using the Attention Layer
 
+Now let's see how to use this class in practice. We need to create the projection layers and show the complete flow from embeddings to attention output:
+
+```python
+import torch
+import torch.nn as nn
+
+# Example: Process a batch of 2 sequences, each with 10 tokens
+batch_size = 2
+seq_len = 10
+d_model = 512  # Embedding dimension
+d_k = 64       # Dimension for each head (in multi-head, we'll have multiple)
+
+# Step 1: Start with embeddings (normally from an embedding layer)
+# Shape: [batch, seq, d_model]
+embeddings = torch.randn(batch_size, seq_len, d_model)
+
+# Step 2: Create the projection layers (learned during training)
+# These transform embeddings into Q, K, V
+W_q = nn.Linear(d_model, d_k, bias=False)
+W_k = nn.Linear(d_model, d_k, bias=False)
+W_v = nn.Linear(d_model, d_k, bias=False)
+
+# Step 3: Project embeddings to create Q, K, V
+# This is the X × W_Q, X × W_K, X × W_V we discussed earlier
+q = W_q(embeddings)  # [batch, seq, d_k]
+k = W_k(embeddings)  # [batch, seq, d_k]
+v = W_v(embeddings)  # [batch, seq, d_k]
+
+# Step 4: Run attention
+attention = ScaledDotProductAttention(d_k=d_k)
+output, attn_weights = attention(q, k, v)
+
+print(f"Input embeddings shape: {embeddings.shape}")  # [2, 10, 512]
+print(f"Q, K, V shapes: {q.shape}")                   # [2, 10, 64]
+print(f"Attention output shape: {output.shape}")       # [2, 10, 64]
+print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10]
+#                                                        # ↑ each token's attention
+#                                                        # distribution over all tokens
+```
+
+**Key Points:**
+
+1. **Embeddings** (512D) are the starting point from L02
+2. **Projection layers** (W_q, W_k, W_v) transform embeddings into smaller Q, K, V vectors (64D in this example)
+3. **Attention** operates on these projected vectors
+4. The attention weights show how much each token attends to every other token
+
+```{note}
+**Why is d_k smaller than d_model?**
+
+In this example, we project from 512 dimensions down to 64. This is typical for a single attention head. In L04 (Multi-Head Attention), we'll see that d_model (512) gets split across 8 heads, so each head operates in a 64-dimensional subspace (512 ÷ 8 = 64).
+
+For this single-head example, we could use d_k = d_model = 512, but using d_k = 64 shows the typical setup you'll see in real transformers.
 ```
 
 ---
