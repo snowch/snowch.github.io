@@ -123,15 +123,19 @@ ax.plot([hidden_x + 1, output_x - 0.35], [vcenter, output_ys[1]],
         'gray', alpha=0.4, linewidth=2)
 
 # THE SOFTMAX OPERATION (highlighted)
-softmax_x = 11.5
+softmax_x = 12.0
 ax.text(softmax_x, 6.5, 'Softmax', fontsize=11, fontweight='bold', ha='center', color='green')
 ax.text(softmax_x, 6.0, r'(scores $\rightarrow$ probs)', fontsize=9, ha='center',
         style='italic', color='green')
 
-# Big arrow pointing to softmax operation
-ax.annotate('', xy=(softmax_x - 0.8, vcenter), xytext=(output_x + 0.9, vcenter),
+# Big arrow pointing to softmax operation - centered in whitespace
+arrow_start = output_x + 0.9
+arrow_end = softmax_x - 0.8
+arrow_center = (arrow_start + arrow_end) / 2
+
+ax.annotate('', xy=(arrow_end, vcenter), xytext=(arrow_start, vcenter),
            arrowprops=dict(arrowstyle='->', lw=3, color='green'))
-ax.text((output_x + softmax_x)/2 + 0.05, vcenter + 0.5, 'softmax', fontsize=10,
+ax.text(arrow_center, vcenter + 0.5, 'softmax', fontsize=10,
         ha='center', fontweight='bold', color='green',
         bbox=dict(boxstyle='round,pad=0.4', facecolor='lightgreen', ec='green', linewidth=2))
 
