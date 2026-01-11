@@ -108,6 +108,7 @@ ratingN = ratings_subset["rating"].apply(normalise)
 We can now plot the sparse matrix of ratings for this subset of users and movies.
 
 ```{code-cell} ipython3
+:tags: [hide-input]
 
 %matplotlib inline
 import matplotlib.pyplot as plt
@@ -163,7 +164,7 @@ Let's inspect the subset to confirm the values ...
 
 ```{code-cell} ipython3
 
-ratings_subset
+# ratings_subset
 ```
 
 The plot is as expected, so we can repeat this with the full data set.
@@ -197,6 +198,7 @@ ratingN = ratings_full["rating"].apply(normalise)
 Slightly modified chart, for example to print out smaller markers.
 
 ```{code-cell} ipython3
+:tags: [hide-input]
 
 %matplotlib inline
 import matplotlib.pyplot as plt
