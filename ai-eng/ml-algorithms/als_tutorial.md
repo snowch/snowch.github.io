@@ -21,7 +21,9 @@ kernelspec:
 
 This tutorial demonstrates how to build a movie recommendation system using **Alternating Least Squares (ALS)**, a matrix factorization algorithm for collaborative filtering. ALS is the same family of techniques used by Netflix, Spotify, and other platforms to recommend content.
 
-We'll explore the MovieLens dataset, visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions.
+It is adapted from an older tutorial I wrote around a decade ago on creating a movie recommender with Apache Spark on IBM Bluemix (see [movie-recommender-demo](https://github.com/snowch/movie-recommender-demo)), updated here for modern Python workflows and portability.
+
+We'll explore a MovieLens-style dataset (with some interesting rating biases), visualize the sparsity problem in recommendation systems, and understand how ALS factorizes the user-item rating matrix to make predictions.
 
 ```{code-cell} ipython3
 :tags: [remove-input, remove-output]
@@ -48,92 +50,207 @@ plt.rcParams['axes.facecolor'] = 'white'
 
 ## Part 1: The Dataset and Sparsity Problem
 
-The MovieLens dataset contains user ratings of movies on a scale of 1-5 stars. Let's simulate a subset of this data to understand the problem:
+We'll use the same MovieLens-style ratings dataset from the original Spark tutorial. It includes some interesting biases in how users rate movies, which makes the sparsity patterns more visible.
 
 ```{code-cell} ipython3
 
-# Simulate MovieLens-style data
-np.random.seed(42)
+from pathlib import Path
+from urllib.request import urlretrieve
 
-# Create synthetic ratings data
-n_users = 100
-n_movies = 50
-n_ratings = 800  # Sparse: only ~16% of possible ratings exist
+data_url = "https://raw.githubusercontent.com/snowch/movie-recommender-demo/master/web_app/data/ratings.dat"
+data_path = Path("data/ratings.dat")
+data_path.parent.mkdir(parents=True, exist_ok=True)
 
-user_ids = np.random.randint(1, n_users + 1, n_ratings)
-movie_ids = np.random.randint(1, n_movies + 1, n_ratings)
-ratings = np.random.choice([1, 2, 3, 4, 5], n_ratings, p=[0.05, 0.1, 0.25, 0.35, 0.25])
+if not data_path.exists():
+    urlretrieve(data_url, data_path)
 
-# Create DataFrame
-df = pd.DataFrame({
-    'user_id': user_ids,
-    'movie_id': movie_ids,
-    'rating': ratings
-})
+ratings = pd.read_csv(
+    data_path,
+    sep="::",
+    engine="python",
+    names=["user", "product", "rating", "timestamp"]
+).drop(columns=["timestamp"])
 
-# Remove duplicates (user can only rate a movie once)
-df = df.drop_duplicates(subset=['user_id', 'movie_id'])
-
-print(f"Total ratings: {len(df)}")
-print(f"Number of users: {df['user_id'].nunique()}")
-print(f"Number of movies: {df['movie_id'].nunique()}")
-print(f"\nRating distribution:\n{df['rating'].value_counts().sort_index()}")
-print(f"\nSparsity: {len(df) / (n_users * n_movies) * 100:.2f}% of possible ratings exist")
+print(f"Total ratings: {len(ratings)}")
+print(f"Number of users: {ratings['user'].nunique()}")
+print(f"Number of movies: {ratings['product'].nunique()}")
+print(f"\nRating distribution:\n{ratings['rating'].value_counts().sort_index()}")
 ```
 
-**Expected output:**
-```
-Total ratings: ~750
-Number of users: ~95
-Number of movies: ~50
-Sparsity: ~15% of possible ratings exist
-```
+### Visualise the ratings matrix using a subset of the data
 
-### Visualizing the Sparse Rating Matrix
-
-The key challenge in recommendation systems is **sparsity**—most users haven't rated most items. Let's visualize this:
+Let's take a subset of the data.
 
 ```{code-cell} ipython3
 
-# Create a pivot table (users × movies)
-rating_matrix = df.pivot_table(
-    index='user_id',
-    columns='movie_id',
-    values='rating'
-).fillna(0)
+ratings_subset = ratings.query("user < 20 and product < 20").copy()
+ratings_subset
+```
 
-print(f"Rating matrix shape: {rating_matrix.shape}")
-print(f"Non-zero entries: {np.count_nonzero(rating_matrix.values)}")
-print(f"Sparsity: {np.count_nonzero(rating_matrix.values) / rating_matrix.size * 100:.1f}%")
+Separate the x (user) values and also the y (movie) values for matplotlib.
+Also normalise the rating value so that it is between 0 and 1. This is required for coloring the markers.
 
-# Visualize a subset of the matrix (first 20 users and movies)
-fig, ax = plt.subplots(figsize=(12, 8))
+```{code-cell} ipython3
 
-subset = rating_matrix.iloc[:20, :20].values
-mask = subset == 0
+user = ratings_subset["user"].astype(int)
+movie = ratings_subset["product"].astype(int)
 
-# Create custom colormap (grey for missing, colors for ratings)
-im = ax.imshow(subset, cmap='YlOrRd', aspect='auto', vmin=0, vmax=5)
-ax.imshow(mask, cmap='Greys', aspect='auto', alpha=0.3, vmin=0, vmax=1)
+min_r = ratings_subset["rating"].min()
+max_r = ratings_subset["rating"].max()
 
-ax.set_xlabel('Movie ID', fontsize=12)
-ax.set_ylabel('User ID', fontsize=12)
-ax.set_title('Movie Rating Matrix (Subset)\nGrey = Missing, Colors = Ratings', fontsize=14, fontweight='bold')
+def normalise(x):
+    rating = (x - min_r) / (max_r - min_r)
+    return float(rating)
 
-# Add colorbar
-cbar = plt.colorbar(im, ax=ax)
-cbar.set_label('Rating', fontsize=12)
+ratingN = ratings_subset["rating"].apply(normalise)
+```
 
-# Add grid
-ax.set_xticks(np.arange(20))
-ax.set_yticks(np.arange(20))
-ax.grid(which='both', color='white', linestyle='-', linewidth=0.5)
+We can now plot the sparse matrix of ratings for this subset of users and movies.
 
-plt.tight_layout()
+```{code-cell} ipython3
+
+%matplotlib inline
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
+
+min_user = ratings_subset["user"].min()
+max_user = ratings_subset["user"].max()
+min_movie = ratings_subset["product"].min()
+max_movie = ratings_subset["product"].max()
+
+width = 5
+height = 5
+plt.figure(figsize=(width, height))
+plt.ylim([min_user-1, max_user+1])
+plt.xlim([min_movie-1, max_movie+1])
+plt.yticks(np.arange(min_user-1, max_user+1, 1))
+plt.xticks(np.arange(min_movie-1, max_movie+1, 1))
+plt.xlabel('Movie ID')
+plt.ylabel('User ID')
+plt.title('Movie Ratings')
+
+ax = plt.gca()
+ax.patch.set_facecolor('#898787') # dark grey background
+
+colors = plt.cm.YlOrRd(ratingN.to_numpy())
+
+plt.scatter(
+    movie.to_numpy(),
+    user.to_numpy(),
+    s=50,
+    marker="s",
+    color=colors,
+    edgecolor=colors)
+
+plt.legend(
+    title='Rating',
+    loc="upper left",
+    bbox_to_anchor=(1, 1),
+    handles=[
+        mpatches.Patch(color=plt.cm.YlOrRd(0),    label='1'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.25), label='2'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.5),  label='3'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.75), label='4'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.99), label='5')
+    ])
+
 plt.show()
 ```
 
+In the plot, you can see the ratings color code. For example User 1 has rated movie 1 with the highest rating of 5.
+Let's dump the dataset to double check ...
+
+```{code-cell} ipython3
+
+ratings_subset
+```
+
+The plot is as expected, so we can repeat this with the full data set.
+
+### Visualise the ratings matrix using the full data set
+
+This time we don't need to filter the data.
+
+```{code-cell} ipython3
+
+ratings_full = ratings.copy()
+```
+
+Same functions as before ...
+
+```{code-cell} ipython3
+
+user = ratings_full["user"].astype(int)
+movie = ratings_full["product"].astype(int)
+
+min_r = ratings_full["rating"].min()
+max_r = ratings_full["rating"].max()
+
+def normalise(x):
+    rating = (x - min_r) / (max_r - min_r)
+    return float(rating)
+
+ratingN = ratings_full["rating"].apply(normalise)
+```
+
+Slightly modified chart, for example to print out smaller markers.
+
+```{code-cell} ipython3
+
+%matplotlib inline
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
+
+max_user = ratings_full["user"].max()
+max_movie = ratings_full["product"].max()
+
+width = 10
+height = 10
+plt.figure(figsize=(width, height))
+plt.ylim([0, max_user])
+plt.xlim([0, max_movie])
+plt.ylabel('User ID')
+plt.xlabel('Movie ID')
+plt.title('Movie Ratings')
+
+ax = plt.gca()
+ax.patch.set_facecolor('#898787') # dark grey background
+
+colors = plt.cm.YlOrRd(ratingN.to_numpy())
+
+plt.scatter(
+    movie.to_numpy(),
+    user.to_numpy(),
+    s=1,
+    edgecolor=colors)
+
+plt.legend(
+    title='Rating',
+    loc="upper left",
+    bbox_to_anchor=(1, 1),
+    handles=[
+        mpatches.Patch(color=plt.cm.YlOrRd(0),    label='1'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.25), label='2'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.5),  label='3'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.75), label='4'),
+        mpatches.Patch(color=plt.cm.YlOrRd(0.99), label='5')
+    ])
+
+plt.show()
+```
+
+We can see some clear patterns. The vertical lines could indicate that the movie is rated similarly by all users.
+The horizontal lines could also indicate that a person ranks all movies fairly similarly - if a pale line, they tend to rate negatively and dark red positively.
+There are some interesting grey patterns too, where users have not rated movies. Notice the grey arc at the top right of the plot.
+
 **Key Observation:** The grey regions represent missing ratings. The goal of a recommender system is to **predict these missing values** based on the patterns in the observed ratings.
+
+```{code-cell} ipython3
+
+df = ratings.rename(columns={"user": "user_id", "product": "movie_id"})
+```
 
 ---
 
