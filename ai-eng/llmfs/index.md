@@ -23,7 +23,7 @@ This isn't just theory—by the end of this series, you'll understand every comp
 
 ## What You'll Build
 
-Over 10 lessons, we'll construct a complete GPT architecture:
+Over 11 lessons, we'll construct a complete GPT architecture:
 
 - A **Byte Pair Encoding tokenizer** that handles any text
 - **Embedding layers** that give words geometric meaning
@@ -90,7 +90,10 @@ Over 10 lessons, we'll construct a complete GPT architecture:
   - [Assembling the GPT](L07_Assembling_the_GPT.md)
   - *The grand finale* — Stack all components into a complete decoder-only Transformer
 * - **L08**
-  - [Training the LLM](L08_Training_the_LLM.md)
+  - [Architecture Design Choices](L08_Architecture_Design_Choices.md)
+  - *Choosing your hyperparameters* — Determine model size, number of heads, layers, and other design decisions
+* - **L09**
+  - [Training the LLM](L09_Training_the_LLM.md)
   - *Learning to speak* — Implement the training loop with AdamW, learning rate schedules, and gradient accumulation
 ```
 
@@ -103,11 +106,11 @@ Over 10 lessons, we'll construct a complete GPT architecture:
 * - Lesson
   - Title
   - What You'll Learn
-* - **L09**
-  - [Inference & Sampling](L09_Inference_and_Sampling.md)
-  - *Controlling the creativity* — Generate text with temperature, top-p sampling, and beam search
 * - **L10**
-  - [Fine-tuning: From Completion to Conversation](L10_Fine_tuning_and_Chat.md)
+  - [Inference & Sampling](L10_Inference_and_Sampling.md)
+  - *Controlling the creativity* — Generate text with temperature, top-p sampling, and beam search
+* - **L11**
+  - [Fine-tuning: From Completion to Conversation](L11_Fine_tuning_and_Chat.md)
   - *Transforming into a chat assistant* — Apply SFT and RLHF to create helpful, harmless AI assistants
 ```
 

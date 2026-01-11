@@ -271,6 +271,6 @@ class GPT(nn.Module):
 2. **Hidden States:** Each layer refine's the token's meaning based on context.
 3. **The Head:** The final layer is just a classifier that asks: "Based on everything I've seen, which token comes next?"
 
-**Next Up: L08 – Training the Model.** We have the machine, but it’s currently "brain dead" with random weights. We'll learn how to feed it data, compute the loss, and watch it learn to speak.
+**Next Up: L08 – Architecture Design Choices.** Now that you know how to build a GPT, we need to decide on the hyperparameters: How many layers? How many attention heads? What embedding dimension? We'll explore how to design your architecture for different use cases.
 
 ---

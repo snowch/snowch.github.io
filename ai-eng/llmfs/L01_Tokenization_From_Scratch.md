@@ -306,7 +306,7 @@ for w in test_words:
 
 Once we have merges, we can build a **vocabulary**: the set of tokens our tokenizer can produce on this corpus. Then we assign each token a unique integer **ID**.
 
-This list of integers (ids) is the actual input to our GPT. When we build the training loop in [L08_Training_the_LLM.md, we won't be feeding it English sentences; we will be feeding it these exact lists of numbers.
+This list of integers (ids) is the actual input to our GPT. When we build the training loop in [L09_Training_the_LLM.md, we won't be feeding it English sentences; we will be feeding it these exact lists of numbers.
 
 In the next blog, we will see how the model turns these simple integers into rich, high-dimensional vectors.
 
@@ -399,7 +399,7 @@ Production tokenizers include **special tokens** that aren't regular words but s
 
 These tokens are added to the vocabulary **before** training begins and are never broken down into smaller pieces. They act like "keywords" that tell the model about document structure and conversation flow.
 
-**Why they matter:** When fine-tuning for chat (as we'll see in L10), the model learns to generate `<|im_end|>` when it's done responding, telling the system to stop generating and return control to the user.
+**Why they matter:** When fine-tuning for chat (as we'll see in L11), the model learns to generate `<|im_end|>` when it's done responding, telling the system to stop generating and return control to the user.
 
 ---
 
