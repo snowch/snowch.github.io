@@ -98,36 +98,6 @@ So if `d_model=768`, then `d_ff=3072`.
 
 Let's look at how actual models are configured:
 
-```{code-cell} ipython3
-:tags: [remove-input]
-
-import pandas as pd
-
-# Real model configurations
-models = {
-    "Tiny (Custom)": {"d_model": 512, "n_layers": 6, "n_heads": 8, "params": "~40M"},
-    "GPT-2 Small": {"d_model": 768, "n_layers": 12, "n_heads": 12, "params": "124M"},
-    "GPT-2 Medium": {"d_model": 1024, "n_layers": 24, "n_heads": 16, "params": "355M"},
-    "GPT-2 Large": {"d_model": 1280, "n_layers": 36, "n_heads": 20, "params": "774M"},
-    "GPT-2 XL": {"d_model": 1600, "n_layers": 48, "n_heads": 25, "params": "1.5B"},
-    "GPT-3 Small": {"d_model": 2048, "n_layers": 24, "n_heads": 16, "params": "350M"},
-    "Llama 2 7B": {"d_model": 4096, "n_layers": 32, "n_heads": 32, "params": "7B"},
-    "Llama 2 13B": {"d_model": 5120, "n_layers": 40, "n_heads": 40, "params": "13B"},
-    "GPT-3 175B": {"d_model": 12288, "n_layers": 96, "n_heads": 96, "params": "175B"},
-}
-
-# Create table
-df = pd.DataFrame(models).T
-df.index.name = "Model"
-
-# Display as markdown table
-print("| Model | d_model | n_layers | n_heads | d_head | Parameters |")
-print("|-------|---------|----------|---------|--------|------------|")
-for model, row in df.iterrows():
-    d_head = row['d_model'] // row['n_heads']
-    print(f"| {model} | {row['d_model']} | {row['n_layers']} | {row['n_heads']} | {d_head} | {row['params']} |")
-```
-
 | Model | d_model | n_layers | n_heads | d_head | Parameters |
 |-------|---------|----------|---------|--------|------------|
 | Tiny (Custom) | 512 | 6 | 8 | 64 | ~40M |
