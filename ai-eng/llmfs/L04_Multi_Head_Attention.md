@@ -483,7 +483,7 @@ The Multi-Head Attention mechanism isn't a single black box; it is a specific se
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
-4.  **Final Linear (The Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
+4.  **Final Linear (Another Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
 
