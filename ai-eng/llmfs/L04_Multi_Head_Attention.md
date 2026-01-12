@@ -980,7 +980,9 @@ class MultiHeadAttention(nn.Module):
         # 3. Concatenate
         # Transpose back: [Batch, Seq, Heads, d_k]
         # Flatten: [Batch, Seq, d_model]
-        attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
+        attn_output = attn_output.transpose(1, 2)
+        attn_output = attn_output.contiguous()
+        attn_output = attn_output.view(batch_size, -1, self.d_model)
         
         # 4. Final Projection (The "Mix")
         return self.W_o(attn_output)
