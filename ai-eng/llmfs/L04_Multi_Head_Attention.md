@@ -594,7 +594,7 @@ plt.show()
 
 ## Part 4: Implementation in PyTorch
 
-Now let's see how to implement multi-head attention efficiently in code. Remember the key insight from our [Technical Note](technical-note-input-projections): we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
+Now let's see how to implement multi-head attention efficiently in code. If you want a visual refresher on the full pipeline, see the Mermaid flowchart in Part 2. Remember the key insight from our [Technical Note](technical-note-input-projections): we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
 
 For a single input vector, this is straightforward. But in practice, we process **batches** of sequences (e.g., batch=2, seq=10). We could loop through each head one at a time, but that would be too slow.
 

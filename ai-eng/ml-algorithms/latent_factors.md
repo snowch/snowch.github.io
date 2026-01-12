@@ -379,7 +379,7 @@ ax.text(input_x + input_w/2, input_y - 1.1,
         ha='center', fontsize=10, color='#555')
 
 # Arrow and projection
-ax.text(4.5, 4.5, r'$\xrightarrow{\text{Linear Projection}}$',
+ax.text(4.5, 4.5, "Linear Projection →",
         ha='center', va='center', fontsize=14)
 
 # Output heads
