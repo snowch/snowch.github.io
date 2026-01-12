@@ -243,6 +243,7 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)
 Let's visualize this flow:
 
 :::{mermaid}
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#ffffff' }}}%%
 graph TD
     subgraph Inputs
         Q["Query (Q)"]
