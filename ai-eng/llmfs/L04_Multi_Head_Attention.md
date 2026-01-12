@@ -479,11 +479,11 @@ The Multi-Head Attention mechanism isn't a single black box; it is a specific se
 
 **The 4-Step Process**
 
-1.  **Linear Projections (The Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
-4.  **Final Linear (The Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
+4.  **Final Linear (Another Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
 
