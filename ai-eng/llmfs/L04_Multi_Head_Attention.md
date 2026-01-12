@@ -223,6 +223,199 @@ The process happens in two specific steps:
 So, Head 1 *can* see the whole input, but the Linear Layer ensures that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
 :::
 
+Let's visualize this crucial distinction:
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+def plot_mix_then_split():
+    """
+    Visualizes the two-step process: Mix (Linear Transform) then Split (Reshape)
+    This clarifies that we DON'T just slice the input into chunks.
+    """
+    fig, axes = plt.subplots(2, 1, figsize=(14, 10))
+
+    # ========== SUBPLOT 1: WRONG APPROACH (Direct Split) ==========
+    ax1 = axes[0]
+    ax1.set_xlim(0, 14)
+    ax1.set_ylim(0, 6)
+    ax1.axis('off')
+
+    # Title
+    ax1.text(7, 5.5, "❌ WRONG: Direct Split (Naive Approach)",
+             ha='center', va='center', fontsize=18, fontweight='bold', color='#d32f2f')
+
+    # Input vector (colorful segments representing different kinds of information)
+    input_x = 1
+    input_y = 2
+    input_width = 4
+    input_height = 1.5
+
+    colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DFE6E9', '#FD79A8', '#FDCB6E']
+    segment_width = input_width / 8
+
+    for i in range(8):
+        rect = patches.Rectangle(
+            (input_x + i * segment_width, input_y),
+            segment_width, input_height,
+            facecolor=colors[i],
+            edgecolor='black',
+            linewidth=2
+        )
+        ax1.add_patch(rect)
+
+    ax1.text(input_x + input_width/2, input_y - 0.4,
+             "Input Vector (512 dims)\n[0-63][64-127][128-191]...[448-511]",
+             ha='center', va='top', fontsize=12, fontweight='bold')
+
+    # Arrow pointing to sliced outputs
+    arrow_start_x = input_x + input_width + 0.3
+    arrow_end_x = 9
+
+    # Three example heads
+    head_positions = [4.5, 2.5, 0.5]
+    head_labels = ["Head 1\n(dims 0-63)", "Head 2\n(dims 64-127)", "Head 8\n(dims 448-511)"]
+    head_colors_wrong = [colors[0], colors[1], colors[7]]
+
+    for i, (y_pos, label, color) in enumerate(zip(head_positions, head_labels, head_colors_wrong)):
+        # Arrow
+        arrow = patches.FancyArrowPatch(
+            (arrow_start_x, input_y + input_height/2),
+            (arrow_end_x, y_pos),
+            arrowstyle='-|>,head_width=0.5,head_length=0.8',
+            connectionstyle=f"arc3,rad={(i-1)*0.2}",
+            color=color,
+            lw=3,
+            alpha=0.7
+        )
+        ax1.add_patch(arrow)
+
+        # Head box
+        head_rect = patches.Rectangle((arrow_end_x + 0.2, y_pos - 0.4), 1.5, 0.8,
+                                       facecolor=color, edgecolor='black', linewidth=2)
+        ax1.add_patch(head_rect)
+        ax1.text(arrow_end_x + 0.95, y_pos, label, ha='center', va='center',
+                 fontsize=11, fontweight='bold')
+
+    # Problem annotation
+    ax1.text(7, 0.3,
+             "Problem: Each head only sees a fixed slice of the input.\nHead 1 can't access information in dimensions 64-511!",
+             ha='center', va='center', fontsize=12,
+             bbox=dict(facecolor='#ffcdd2', edgecolor='#d32f2f', boxstyle='round,pad=0.6', linewidth=2),
+             style='italic')
+
+    # ========== SUBPLOT 2: CORRECT APPROACH (Mix then Split) ==========
+    ax2 = axes[1]
+    ax2.set_xlim(0, 14)
+    ax2.set_ylim(0, 6)
+    ax2.axis('off')
+
+    # Title
+    ax2.text(7, 5.5, "✓ CORRECT: Mix (Linear Transform) then Split (Reshape)",
+             ha='center', va='center', fontsize=18, fontweight='bold', color='#2e7d32')
+
+    # Input vector
+    for i in range(8):
+        rect = patches.Rectangle(
+            (input_x + i * segment_width, input_y),
+            segment_width, input_height,
+            facecolor=colors[i],
+            edgecolor='black',
+            linewidth=2
+        )
+        ax2.add_patch(rect)
+
+    ax2.text(input_x + input_width/2, input_y - 0.4,
+             "Input Vector (512 dims)",
+             ha='center', va='top', fontsize=12, fontweight='bold')
+
+    # Linear transformation (Weight matrix)
+    matrix_x = 5.5
+    matrix_y = 2
+    matrix_width = 1.2
+    matrix_height = 1.5
+
+    # Draw weight matrix as a grid
+    matrix_rect = patches.Rectangle((matrix_x, matrix_y), matrix_width, matrix_height,
+                                     facecolor='#E8EAF6', edgecolor='#3F51B5', linewidth=3)
+    ax2.add_patch(matrix_rect)
+
+    # Grid pattern inside matrix
+    for i in range(5):
+        ax2.plot([matrix_x, matrix_x + matrix_width],
+                 [matrix_y + i*matrix_height/5, matrix_y + i*matrix_height/5],
+                 'k-', alpha=0.3, linewidth=0.5)
+        ax2.plot([matrix_x + i*matrix_width/5, matrix_x + i*matrix_width/5],
+                 [matrix_y, matrix_y + matrix_height],
+                 'k-', alpha=0.3, linewidth=0.5)
+
+    ax2.text(matrix_x + matrix_width/2, matrix_y + matrix_height + 0.3,
+             "$W^Q$ (512×512)", ha='center', va='bottom', fontsize=12, fontweight='bold', color='#3F51B5')
+    ax2.text(matrix_x + matrix_width/2, matrix_y - 0.3,
+             "Mixes ALL\n512 dims", ha='center', va='top', fontsize=10, style='italic', color='#3F51B5')
+
+    # Arrow from input to matrix
+    arrow1 = patches.FancyArrowPatch(
+        (input_x + input_width, input_y + input_height/2),
+        (matrix_x - 0.1, matrix_y + matrix_height/2),
+        arrowstyle='->,head_width=0.5,head_length=0.8',
+        color='black',
+        lw=3
+    )
+    ax2.add_patch(arrow1)
+    ax2.text((input_x + input_width + matrix_x)/2, input_y + input_height/2 + 0.4,
+             "Step 1: Mix", ha='center', fontsize=11, fontweight='bold', color='#1976D2')
+
+    # Transformed vector (still 512, but mixed)
+    transformed_x = 7.5
+    for i in range(8):
+        # Make colors slightly different/blended to show mixing
+        rect = patches.Rectangle(
+            (transformed_x + i * segment_width, input_y),
+            segment_width, input_height,
+            facecolor=colors[i],
+            edgecolor='black',
+            linewidth=2,
+            alpha=0.6,
+            hatch='//'
+        )
+        ax2.add_patch(rect)
+
+    # Arrow from matrix to transformed
+    arrow2 = patches.FancyArrowPatch(
+        (matrix_x + matrix_width + 0.1, matrix_y + matrix_height/2),
+        (transformed_x - 0.1, input_y + input_height/2),
+        arrowstyle='->,head_width=0.5,head_length=0.8',
+        color='black',
+        lw=3
+    )
+    ax2.add_patch(arrow2)
+
+    ax2.text(transformed_x + input_width/2, input_y - 0.4,
+             "Transformed Vector (512 dims)\nEach dim is a blend of ALL input dims",
+             ha='center', va='top', fontsize=11, fontweight='bold', style='italic')
+
+    # Split annotation
+    split_x = transformed_x + input_width + 0.3
+    ax2.text(split_x, input_y + input_height/2,
+             "Step 2: Reshape\n.view(8, 64)",
+             ha='left', va='center', fontsize=11, fontweight='bold',
+             color='#2e7d32',
+             bbox=dict(facecolor='#C8E6C9', edgecolor='#2e7d32', boxstyle='round,pad=0.5', linewidth=2))
+
+    # Benefit annotation
+    ax2.text(7, 0.3,
+             "✓ Each head receives 64 dims that contain information blended from ALL 512 input dims!\nThe weight matrix $W^Q$ learns to put relevant info in the right positions.",
+             ha='center', va='center', fontsize=12,
+             bbox=dict(facecolor='#c8e6c9', edgecolor='#2e7d32', boxstyle='round,pad=0.6', linewidth=2),
+             fontweight='bold')
+
+    plt.tight_layout()
+    plt.show()
+
+plot_mix_then_split()
+:::
+
 ---
 
 ## Part 2: The Multi-Head Pipeline
