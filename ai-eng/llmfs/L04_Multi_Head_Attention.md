@@ -225,8 +225,7 @@ So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights**
 
 **Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (see Part 2, Step 4).
 
-
-Let's visualize this crucial distinction:
+Let's visualize this crucial distinction (showing $W^Q$ as an example, but $W^K$ and $W^V$ work identically):
 
 :::{code-cell} ipython3
 :tags: [remove-input]
@@ -457,7 +456,7 @@ def plot_mix_then_split():
     # Key insight
     ax.text(
         8.5, 0.55,
-        "Key idea: The learned weight matrix $W^Q$ mixes ALL input dims, THEN we split.\nEach head receives features computed from the entire input.",
+        "Key idea: The learned weight matrix $W^Q$ mixes ALL input dims, THEN we split.\nEach head receives features computed from the entire input.\n(Same process applies to $W^K$ and $W^V$)",
         ha='center', va='center',
         fontsize=12, fontweight='bold'
     )
