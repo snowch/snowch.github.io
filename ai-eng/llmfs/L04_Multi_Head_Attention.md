@@ -209,7 +209,7 @@ def plot_multihead_projection_concept():
 plot_multihead_projection_concept()
 :::
 
-::::{important} Technical Note: What actually gets split?
+:::{important} Technical Note: What actually gets split? (The Input Projections)
 
 You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input?"*
 
@@ -217,10 +217,13 @@ You might look at the diagram and wonder: *"Does Head 1 just look at the first 6
 
 The process happens in two specific steps:
 
-1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by the weight matrix ($W$), which is **learned during training**. This operation has access to the **entire** input vector. It blends all the information together.
+1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by a weight matrix ($W^Q$, $W^K$, or $W^V$), which is **learned during training**. This operation has access to the **entire** input vector. It blends all the information together.
 2.  **The Split (Reshape):** The *result* of that multiplication is a new 512-dimensional vector. **This new vector** is what gets chopped into 8 chunks of 64.
 
 So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
+
+**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (see Part 2, Step 4).
+:::
 
 Let's visualize this crucial distinction:
 
