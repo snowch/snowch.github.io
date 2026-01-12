@@ -111,6 +111,8 @@ project:
 
         - title: "ML/AI Algorithms"
           children:
+            - file: ai-eng/ml-algorithms/latent_factors.md
+              title: "The Hidden Power of Latent Factors"
             - file: ai-eng/ml-algorithms/als_tutorial.md
               title: "Alternating Least Squares (ALS) for Movie Recommendations"
             - file: ai-eng/ml-algorithms/softmax_from_scores.md
