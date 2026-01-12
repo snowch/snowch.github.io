@@ -291,7 +291,7 @@ The split process happens in two specific steps:
 
 So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
 
-**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (Step 4).
+**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (Step 4 in the 4 step process, above).
 
 Let's visualize this crucial distinction (showing $W^Q$ as an example, but $W^K$ and $W^V$ work identically):
 
