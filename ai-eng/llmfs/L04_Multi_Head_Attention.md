@@ -217,10 +217,10 @@ You might look at the diagram and wonder: *"Does Head 1 just look at the first 6
 
 The process happens in two specific steps:
 
-1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by the weight matrix ($W$). This operation has access to the **entire** input vector. It blends all the information together.
+1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by the weight matrix ($W$), which is **learned during training**. This operation has access to the **entire** input vector. It blends all the information together.
 2.  **The Split (Reshape):** The *result* of that multiplication is a new 512-dimensional vector. **This new vector** is what gets chopped into 8 chunks of 64.
 
-So, Head 1 *can* see the whole input, but the Linear Layer ensures that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
+So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
 :::
 
 Let's visualize this crucial distinction:
@@ -454,7 +454,7 @@ def plot_mix_then_split():
     # Key insight
     ax.text(
         8.5, 0.55,
-        "Key idea: split happens AFTER mixing, so each head receives features computed from ALL inputs.",
+        "Key idea: The learned weight matrix $W^Q$ mixes ALL input dims, THEN we split.\nEach head receives features computed from the entire input.",
         ha='center', va='center',
         fontsize=12, fontweight='bold'
     )
@@ -601,126 +601,177 @@ Let's visualize these tensor transformations:
 :::{code-cell} ipython3
 :tags: [remove-input]
 
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-def draw_tensor_3d(ax, origin, dims, color, alpha=0.7, label='', edge_color='black'):
-    """
-    Draw a 3D box representing a tensor.
-    origin: (x, y, z) starting point
-    dims: (width, height, depth) corresponding to tensor dimensions
-    """
-    x, y, z = origin
-    w, h, d = dims
-
-    # Define the 8 vertices of the box
-    vertices = [
-        [x, y, z], [x+w, y, z], [x+w, y+h, z], [x, y+h, z],  # bottom face
-        [x, y, z+d], [x+w, y, z+d], [x+w, y+h, z+d], [x, y+h, z+d]  # top face
-    ]
-
-    # Define the 6 faces using vertex indices
-    faces = [
-        [vertices[0], vertices[1], vertices[5], vertices[4]],  # front
-        [vertices[2], vertices[3], vertices[7], vertices[6]],  # back
-        [vertices[0], vertices[3], vertices[7], vertices[4]],  # left
-        [vertices[1], vertices[2], vertices[6], vertices[5]],  # right
-        [vertices[0], vertices[1], vertices[2], vertices[3]],  # bottom
-        [vertices[4], vertices[5], vertices[6], vertices[7]]   # top
-    ]
-
-    # Create the 3D polygon collection
-    poly = Poly3DCollection(faces, alpha=alpha, facecolor=color, edgecolor=edge_color, linewidth=1.5)
-    ax.add_collection3d(poly)
-
-    return vertices
-
 def plot_tensor_transformations():
-    """Visualize the view() and transpose() operations in multi-head attention."""
-    fig = plt.figure(figsize=(16, 10))
+    """Visualize the view() and transpose() operations as 2D horizontal flow."""
+    fig, ax = plt.subplots(1, 1, figsize=(16, 7))
+    ax.set_xlim(0, 17)
+    ax.set_ylim(0, 7)
+    ax.axis('off')
 
-    # We'll create 3 subplots showing the key transformations
-    steps = [
-        {
-            'title': 'Step 1: After Linear Projection',
-            'shape': '[2, 10, 512]',
-            'dims': (4, 2, 1),  # visual dimensions (not actual values)
-            'labels': ['Seq=10', 'Batch=2', 'D_model=512'],
-            'color': '#90CAF9',
-            'description': 'Flat 512-dimensional vectors\nfor each token in sequence'
-        },
-        {
-            'title': 'Step 2: After .view(2, 10, 8, 64)',
-            'shape': '[2, 10, 8, 64]',
-            'dims': (4, 2, 1.5),  # slightly taller to show split
-            'labels': ['Seq=10', 'Batch=2', 'Heads=8\n×\nD_k=64'],
-            'color': '#FFB74D',
-            'description': 'Split 512 dims into 8 heads × 64 dims\n(no data movement, just reshape)'
-        },
-        {
-            'title': 'Step 3: After .transpose(1, 2)',
-            'shape': '[2, 8, 10, 64]',
-            'dims': (2, 4, 1.5),  # swap width and height
-            'labels': ['Heads=8', 'Batch=2', 'Seq=10\n×\nD_k=64'],
-            'color': '#81C784',
-            'description': 'Swap axes: Heads and Seq dimensions\nNow heads are independent!'
-        }
-    ]
+    # Dimensions for visual representation
+    y_center = 3.5
+    box_width = 3.5
+    box_height = 1.3
 
-    for idx, step in enumerate(steps):
-        ax = fig.add_subplot(1, 3, idx+1, projection='3d')
+    # -------------------------
+    # Step 1: [2, 10, 512] - After W_q(x)
+    # -------------------------
+    x1 = 1.0
+    ax.add_patch(
+        patches.Rectangle(
+            (x1, y_center - box_height/2), box_width, box_height,
+            facecolor='#90CAF9',
+            edgecolor='#1976D2',
+            linewidth=3
+        )
+    )
 
-        # Draw the tensor
-        origin = (0, 0, 0)
-        draw_tensor_3d(ax, origin, step['dims'], step['color'], alpha=0.7)
+    ax.text(x1 + box_width/2, y_center, "[2, 10, 512]",
+            ha='center', va='center', fontsize=14, fontweight='bold', color='#0D47A1')
 
-        # Set labels for axes
-        w, h, d = step['dims']
-        ax.text(w/2, -0.5, 0, step['labels'][0], ha='center', fontsize=11, fontweight='bold')
-        ax.text(-0.5, h/2, 0, step['labels'][1], ha='center', fontsize=11, fontweight='bold', rotation=90)
-        ax.text(w + 0.3, h, d/2, step['labels'][2], ha='left', fontsize=11, fontweight='bold')
+    ax.text(x1 + box_width/2, y_center + box_height/2 + 0.4,
+            "After $W^Q(x)$",
+            ha='center', va='bottom', fontsize=13, fontweight='bold')
 
-        # Title and shape
-        ax.text2D(0.5, 0.95, step['title'], transform=ax.transAxes,
-                  ha='center', fontsize=13, fontweight='bold')
-        ax.text2D(0.5, 0.88, f"Shape: {step['shape']}", transform=ax.transAxes,
-                  ha='center', fontsize=11, color='#333', style='italic')
+    ax.text(x1 + box_width/2, y_center - box_height/2 - 0.15,
+            "Flat 512 dims",
+            ha='center', va='top', fontsize=10, style='italic', color='#555')
 
-        # Description
-        ax.text2D(0.5, 0.08, step['description'], transform=ax.transAxes,
-                  ha='center', fontsize=10, style='italic',
-                  bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.5', alpha=0.8))
+    # -------------------------
+    # Arrow + .view() operation
+    # -------------------------
+    arrow1_start = x1 + box_width + 0.1
+    arrow1_end = x1 + box_width + 0.8
+    ax.add_patch(
+        patches.FancyArrowPatch(
+            (arrow1_start, y_center),
+            (arrow1_end, y_center),
+            arrowstyle='->,head_width=0.5,head_length=0.6',
+            lw=4,
+            color='#FF6F00'
+        )
+    )
 
-        # Set axis limits
-        ax.set_xlim([-1, max(w, h, d) + 1])
-        ax.set_ylim([-1, max(w, h, d) + 1])
-        ax.set_zlim([-0.5, max(w, h, d) + 0.5])
+    ax.text((arrow1_start + arrow1_end)/2, y_center + 0.5,
+            ".view(2, 10, 8, 64)",
+            ha='center', va='bottom', fontsize=11, fontweight='bold',
+            color='#FF6F00',
+            bbox=dict(facecolor='#FFF3E0', edgecolor='#FF6F00', boxstyle='round,pad=0.3', linewidth=2))
 
-        # Remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_zticks([])
+    # -------------------------
+    # Step 2: [2, 10, 8, 64] - After view
+    # -------------------------
+    x2 = arrow1_end + 0.1
 
-        # Set viewing angle
-        ax.view_init(elev=20, azim=45)
-        ax.set_box_aspect([1, 1, 0.8])
+    # Draw as stacked layers to show the split
+    n_layers = 8
+    layer_height = box_height / n_layers
+    for i in range(n_layers):
+        ax.add_patch(
+            patches.Rectangle(
+                (x2, y_center - box_height/2 + i * layer_height),
+                box_width, layer_height,
+                facecolor='#FFB74D',
+                edgecolor='#F57C00',
+                linewidth=1.5,
+                alpha=0.85
+            )
+        )
 
-    # Add arrows between subplots to show progression
-    fig.text(0.31, 0.5, '→\n.view()', ha='center', va='center', fontsize=16, fontweight='bold', color='#FF6F00')
-    fig.text(0.64, 0.5, '→\n.transpose(1,2)', ha='center', va='center', fontsize=16, fontweight='bold', color='#FF6F00')
+    ax.text(x2 + box_width/2, y_center, "[2, 10, 8, 64]",
+            ha='center', va='center', fontsize=14, fontweight='bold', color='#E65100')
 
-    # Add overall title
-    fig.suptitle('Tensor Shape Transformations in Multi-Head Attention',
-                 fontsize=16, fontweight='bold', y=0.98)
+    ax.text(x2 + box_width/2, y_center + box_height/2 + 0.4,
+            "After .view()",
+            ha='center', va='bottom', fontsize=13, fontweight='bold')
 
-    # Key insight box
-    fig.text(0.5, 0.02,
-             'Key Insight: After transpose, each head is independent and can be processed in parallel!\n'
-             'PyTorch treats [Batch × Heads] as a combined batch dimension.',
-             ha='center', fontsize=11, style='italic',
-             bbox=dict(facecolor='#E3F2FD', edgecolor='#1976D2', boxstyle='round,pad=0.8', linewidth=2))
+    ax.text(x2 + box_width/2, y_center - box_height/2 - 0.15,
+            "8 heads × 64 dims",
+            ha='center', va='top', fontsize=10, style='italic', color='#555')
 
-    plt.tight_layout(rect=[0, 0.06, 1, 0.96])
+    # -------------------------
+    # Arrow + .transpose() operation
+    # -------------------------
+    arrow2_start = x2 + box_width + 0.1
+    arrow2_end = x2 + box_width + 0.9
+    ax.add_patch(
+        patches.FancyArrowPatch(
+            (arrow2_start, y_center),
+            (arrow2_end, y_center),
+            arrowstyle='->,head_width=0.5,head_length=0.6',
+            lw=4,
+            color='#2E7D32'
+        )
+    )
+
+    ax.text((arrow2_start + arrow2_end)/2, y_center + 0.5,
+            ".transpose(1, 2)",
+            ha='center', va='bottom', fontsize=11, fontweight='bold',
+            color='#2E7D32',
+            bbox=dict(facecolor='#E8F5E9', edgecolor='#2E7D32', boxstyle='round,pad=0.3', linewidth=2))
+
+    # -------------------------
+    # Step 3: [2, 8, 10, 64] - After transpose
+    # -------------------------
+    x3 = arrow2_end + 0.1
+
+    # Draw as horizontal segments to show heads are now independent
+    n_segments = 8
+    segment_width = box_width / n_segments
+    for i in range(n_segments):
+        ax.add_patch(
+            patches.Rectangle(
+                (x3 + i * segment_width, y_center - box_height/2),
+                segment_width, box_height,
+                facecolor='#81C784',
+                edgecolor='#388E3C',
+                linewidth=1.8,
+                alpha=0.9
+            )
+        )
+        # Label each head
+        ax.text(x3 + i * segment_width + segment_width/2, y_center,
+                f"H{i+1}",
+                ha='center', va='center', fontsize=8, fontweight='bold', color='white')
+
+    ax.text(x3 + box_width/2, y_center + box_height/2 + 0.4,
+            "After .transpose(1, 2)",
+            ha='center', va='bottom', fontsize=13, fontweight='bold')
+
+    ax.text(x3 + box_width/2, y_center + box_height/2 + 0.75,
+            "[2, 8, 10, 64]",
+            ha='center', va='bottom', fontsize=14, fontweight='bold', color='#1B5E20')
+
+    ax.text(x3 + box_width/2, y_center - box_height/2 - 0.15,
+            "Heads are independent!",
+            ha='center', va='top', fontsize=10, style='italic', color='#555')
+
+    # -------------------------
+    # Annotations explaining each step
+    # -------------------------
+    # Top annotations (dimension explanations)
+    ax.text(x1 + box_width/2, y_center + box_height/2 + 1.2,
+            "Batch=2, Seq=10\nD_model=512",
+            ha='center', va='bottom', fontsize=9, color='#666',
+            bbox=dict(facecolor='white', edgecolor='#90CAF9', boxstyle='round,pad=0.25', linewidth=1))
+
+    ax.text(x2 + box_width/2, y_center + box_height/2 + 1.2,
+            "Batch=2, Seq=10\nHeads=8, D_k=64",
+            ha='center', va='bottom', fontsize=9, color='#666',
+            bbox=dict(facecolor='white', edgecolor='#FFB74D', boxstyle='round,pad=0.25', linewidth=1))
+
+    ax.text(x3 + box_width/2, y_center + box_height/2 + 1.55,
+            "Batch=2, Heads=8\nSeq=10, D_k=64",
+            ha='center', va='bottom', fontsize=9, color='#666',
+            bbox=dict(facecolor='white', edgecolor='#81C784', boxstyle='round,pad=0.25', linewidth=1))
+
+    # Bottom key insight
+    ax.text(8.5, 0.65,
+            "Key Insight: After transpose, PyTorch processes all 8 heads in parallel\nby treating [Batch × Heads] as a combined batch dimension.",
+            ha='center', va='center', fontsize=12, fontweight='bold',
+            bbox=dict(facecolor='#E3F2FD', edgecolor='#1976D2', boxstyle='round,pad=0.6', linewidth=2))
+
+    plt.tight_layout()
     plt.show()
 
 plot_tensor_transformations()
