@@ -589,18 +589,17 @@ plt.show()
 
 ## Part 4: Implementation in PyTorch
 
-Implementing this efficiently requires some tensor gymnastics. We don't actually run a `for` loop over the 8 heads. That would be too slow.
+Now let's see how to implement multi-head attention efficiently in code. Remember the key insight from our Technical Note: we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
 
-Instead, we use a single large matrix multiply and then **reshape** (view/transpose) the tensor to create a "heads" dimension.
+For a single input vector, this is straightforward. But in practice, we process **batches** of sequences (e.g., batch=2, seq=10). We could loop through each head one at a time, but that would be too slow.
 
-The shape transformation looks like this:
-1.  **Input:** `[Batch, Seq_Len, D_Model]`
-2.  **Linear & Reshape:** `[Batch, Seq_Len, Heads, D_Head]`
-3.  **Transpose:** `[Batch, Heads, Seq_Len, D_Head]`
+Instead, PyTorch uses clever **tensor reshaping** to process all heads in parallel:
+
+1. **Single matrix multiply:** Apply $W^Q$ to the entire batch at once → `[Batch, Seq_Len, D_Model]`
+2. **Reshape (view):** Split the 512 dimensions into 8 heads × 64 dims → `[Batch, Seq_Len, Heads, D_Head]`
+3. **Transpose:** Swap axes so heads can be processed in parallel → `[Batch, Heads, Seq_Len, D_Head]`
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
-
-**Connection to the Technical Note:** Remember from our earlier discussion that the weight matrix $W^Q$ mixes information from ALL 512 input dimensions before we split. The `.view()` operation below implements that split (Step 2 from the Technical Note), and `.transpose()` enables parallel processing across all heads.
 
 Let's visualize these tensor transformations:
 
