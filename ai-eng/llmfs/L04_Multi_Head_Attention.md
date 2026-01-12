@@ -601,180 +601,314 @@ Let's visualize these tensor transformations:
 :::{code-cell} ipython3
 :tags: [remove-input]
 
-def plot_tensor_transformations():
-    """Visualize the view() and transpose() operations as 2D horizontal flow."""
-    fig, ax = plt.subplots(1, 1, figsize=(16, 7))
-    ax.set_xlim(0, 17)
-    ax.set_ylim(0, 7)
-    ax.axis('off')
+import matplotlib.patheffects as pe
 
-    # Dimensions for visual representation
-    y_center = 3.5
+def plot_tensor_transformations(light_scale=2.0):
+    """
+    Visualize the view() and transpose() operations as a clean 2D horizontal flow.
+
+    Fixes:
+      - Orange box main dimension label contrast (adds light bbox + darker text)
+      - Green head labels larger + outlined for readability
+      - light_scale=2.0 doubles grey/italic captions + top annotation boxes
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(18, 9))
+    ax.set_xlim(0, 17)
+    ax.set_ylim(0, 9)
+    ax.axis("off")
+
+    # ---- layout ----
+    y_center = 4.75
     box_width = 3.5
-    box_height = 1.3
+    box_height = 1.4
+
+    # Fonts
+    main_dim_fs = 16
+    header_fs = 15
+    op_fs = 12
+    light_fs = int(round(10 * light_scale))  # grey/italic captions
+    anno_fs = int(round(9 * light_scale))    # top annotation boxes
+    key_fs = 13
+    head_fs = 11  # increased for H1..H8
+
+    def op_bbox(face, edge):
+        return dict(facecolor=face, edgecolor=edge, boxstyle="round,pad=0.35", linewidth=2)
 
     # -------------------------
-    # Step 1: [2, 10, 512] - After W_q(x)
+    # Step 1: [2, 10, 512]
     # -------------------------
     x1 = 1.0
     ax.add_patch(
         patches.Rectangle(
-            (x1, y_center - box_height/2), box_width, box_height,
-            facecolor='#90CAF9',
-            edgecolor='#1976D2',
-            linewidth=3
+            (x1, y_center - box_height / 2),
+            box_width,
+            box_height,
+            facecolor="#90CAF9",
+            edgecolor="#1976D2",
+            linewidth=3,
         )
     )
 
-    ax.text(x1 + box_width/2, y_center, "[2, 10, 512]",
-            ha='center', va='center', fontsize=14, fontweight='bold', color='#0D47A1')
+    ax.text(
+        x1 + box_width / 2,
+        y_center,
+        "[2, 10, 512]",
+        ha="center",
+        va="center",
+        fontsize=main_dim_fs,
+        fontweight="bold",
+        color="#0D47A1",
+    )
 
-    ax.text(x1 + box_width/2, y_center + box_height/2 + 0.4,
-            "After $W^Q(x)$",
-            ha='center', va='bottom', fontsize=13, fontweight='bold')
+    ax.text(
+        x1 + box_width / 2,
+        y_center + box_height / 2 + 0.70,
+        r"After $W^Q(x)$",
+        ha="center",
+        va="bottom",
+        fontsize=header_fs,
+        fontweight="bold",
+    )
 
-    ax.text(x1 + box_width/2, y_center - box_height/2 - 0.15,
-            "Flat 512 dims",
-            ha='center', va='top', fontsize=10, style='italic', color='#555')
+    ax.text(
+        x1 + box_width / 2,
+        y_center - box_height / 2 - 0.45,
+        "Flat 512 dims",
+        ha="center",
+        va="top",
+        fontsize=light_fs,
+        style="italic",
+        color="#555",
+    )
 
     # -------------------------
-    # Arrow + .view() operation
+    # Arrow + .view()
     # -------------------------
-    arrow1_start = x1 + box_width + 0.1
-    arrow1_end = x1 + box_width + 0.8
+    arrow1_start = x1 + box_width + 0.15
+    arrow1_end = x1 + box_width + 0.95
     ax.add_patch(
         patches.FancyArrowPatch(
             (arrow1_start, y_center),
             (arrow1_end, y_center),
-            arrowstyle='->,head_width=0.5,head_length=0.6',
+            arrowstyle="->,head_width=0.55,head_length=0.65",
             lw=4,
-            color='#FF6F00'
+            color="#FF6F00",
         )
     )
 
-    ax.text((arrow1_start + arrow1_end)/2, y_center + 0.5,
-            ".view(2, 10, 8, 64)",
-            ha='center', va='bottom', fontsize=11, fontweight='bold',
-            color='#FF6F00',
-            bbox=dict(facecolor='#FFF3E0', edgecolor='#FF6F00', boxstyle='round,pad=0.3', linewidth=2))
+    ax.text(
+        (arrow1_start + arrow1_end) / 2,
+        y_center + 0.85,
+        ".view(2, 10, 8, 64)",
+        ha="center",
+        va="bottom",
+        fontsize=op_fs,
+        fontweight="bold",
+        color="#FF6F00",
+        bbox=op_bbox("#FFF3E0", "#FF6F00"),
+    )
 
     # -------------------------
-    # Step 2: [2, 10, 8, 64] - After view
+    # Step 2: [2, 10, 8, 64]
     # -------------------------
-    x2 = arrow1_end + 0.1
+    x2 = arrow1_end + 0.15
 
-    # Draw as stacked layers to show the split
     n_layers = 8
     layer_height = box_height / n_layers
     for i in range(n_layers):
         ax.add_patch(
             patches.Rectangle(
-                (x2, y_center - box_height/2 + i * layer_height),
-                box_width, layer_height,
-                facecolor='#FFB74D',
-                edgecolor='#F57C00',
-                linewidth=1.5,
-                alpha=0.85
+                (x2, y_center - box_height / 2 + i * layer_height),
+                box_width,
+                layer_height,
+                facecolor="#FFB74D",
+                edgecolor="#F57C00",
+                linewidth=1.4,
+                alpha=0.88,
             )
         )
 
-    ax.text(x2 + box_width/2, y_center, "[2, 10, 8, 64]",
-            ha='center', va='center', fontsize=14, fontweight='bold', color='#E65100')
+    # Contrast fix: darker text + light background behind it
+    ax.text(
+        x2 + box_width / 2,
+        y_center,
+        "[2, 10, 8, 64]",
+        ha="center",
+        va="center",
+        fontsize=main_dim_fs,
+        fontweight="bold",
+        color="#2D1B00",
+        bbox=dict(facecolor="white", alpha=0.65, edgecolor="none", boxstyle="round,pad=0.22"),
+    )
 
-    ax.text(x2 + box_width/2, y_center + box_height/2 + 0.4,
-            "After .view()",
-            ha='center', va='bottom', fontsize=13, fontweight='bold')
+    ax.text(
+        x2 + box_width / 2,
+        y_center + box_height / 2 + 0.70,
+        "After .view()",
+        ha="center",
+        va="bottom",
+        fontsize=header_fs,
+        fontweight="bold",
+    )
 
-    ax.text(x2 + box_width/2, y_center - box_height/2 - 0.15,
-            "8 heads × 64 dims",
-            ha='center', va='top', fontsize=10, style='italic', color='#555')
+    ax.text(
+        x2 + box_width / 2,
+        y_center - box_height / 2 - 0.45,
+        "8 heads × 64 dims",
+        ha="center",
+        va="top",
+        fontsize=light_fs,
+        style="italic",
+        color="#555",
+    )
 
     # -------------------------
-    # Arrow + .transpose() operation
+    # Arrow + .transpose()
     # -------------------------
-    arrow2_start = x2 + box_width + 0.1
-    arrow2_end = x2 + box_width + 0.9
+    arrow2_start = x2 + box_width + 0.15
+    arrow2_end = x2 + box_width + 1.05
     ax.add_patch(
         patches.FancyArrowPatch(
             (arrow2_start, y_center),
             (arrow2_end, y_center),
-            arrowstyle='->,head_width=0.5,head_length=0.6',
+            arrowstyle="->,head_width=0.55,head_length=0.65",
             lw=4,
-            color='#2E7D32'
+            color="#2E7D32",
         )
     )
 
-    ax.text((arrow2_start + arrow2_end)/2, y_center + 0.5,
-            ".transpose(1, 2)",
-            ha='center', va='bottom', fontsize=11, fontweight='bold',
-            color='#2E7D32',
-            bbox=dict(facecolor='#E8F5E9', edgecolor='#2E7D32', boxstyle='round,pad=0.3', linewidth=2))
+    ax.text(
+        (arrow2_start + arrow2_end) / 2,
+        y_center + 0.85,
+        ".transpose(1, 2)",
+        ha="center",
+        va="bottom",
+        fontsize=op_fs,
+        fontweight="bold",
+        color="#2E7D32",
+        bbox=op_bbox("#E8F5E9", "#2E7D32"),
+    )
 
     # -------------------------
-    # Step 3: [2, 8, 10, 64] - After transpose
+    # Step 3: [2, 8, 10, 64]
     # -------------------------
-    x3 = arrow2_end + 0.1
+    x3 = arrow2_end + 0.15
 
-    # Draw as horizontal segments to show heads are now independent
     n_segments = 8
     segment_width = box_width / n_segments
     for i in range(n_segments):
         ax.add_patch(
             patches.Rectangle(
-                (x3 + i * segment_width, y_center - box_height/2),
-                segment_width, box_height,
-                facecolor='#81C784',
-                edgecolor='#388E3C',
+                (x3 + i * segment_width, y_center - box_height / 2),
+                segment_width,
+                box_height,
+                facecolor="#81C784",
+                edgecolor="#388E3C",
                 linewidth=1.8,
-                alpha=0.9
+                alpha=0.92,
             )
         )
-        # Label each head
-        ax.text(x3 + i * segment_width + segment_width/2, y_center,
-                f"H{i+1}",
-                ha='center', va='center', fontsize=8, fontweight='bold', color='white')
+        t = ax.text(
+            x3 + i * segment_width + segment_width / 2,
+            y_center,
+            f"H{i+1}",
+            ha="center",
+            va="center",
+            fontsize=head_fs,
+            fontweight="bold",
+            color="white",
+        )
+        # Outline makes white text readable against mid-tone greens
+        t.set_path_effects([pe.withStroke(linewidth=2.5, foreground="black")])
 
-    ax.text(x3 + box_width/2, y_center + box_height/2 + 0.4,
-            "After .transpose(1, 2)",
-            ha='center', va='bottom', fontsize=13, fontweight='bold')
+    ax.text(
+        x3 + box_width / 2,
+        y_center + box_height / 2 + 0.70,
+        "After .transpose(1, 2)",
+        ha="center",
+        va="bottom",
+        fontsize=header_fs,
+        fontweight="bold",
+    )
 
-    ax.text(x3 + box_width/2, y_center + box_height/2 + 0.75,
-            "[2, 8, 10, 64]",
-            ha='center', va='bottom', fontsize=14, fontweight='bold', color='#1B5E20')
+    ax.text(
+        x3 + box_width / 2,
+        y_center + box_height / 2 + 1.10,
+        "[2, 8, 10, 64]",
+        ha="center",
+        va="bottom",
+        fontsize=main_dim_fs,
+        fontweight="bold",
+        color="#1B5E20",
+    )
 
-    ax.text(x3 + box_width/2, y_center - box_height/2 - 0.15,
-            "Heads are independent!",
-            ha='center', va='top', fontsize=10, style='italic', color='#555')
+    ax.text(
+        x3 + box_width / 2,
+        y_center - box_height / 2 - 0.45,
+        "Heads are independent!",
+        ha="center",
+        va="top",
+        fontsize=light_fs,
+        style="italic",
+        color="#555",
+    )
 
     # -------------------------
-    # Annotations explaining each step
+    # Top annotations
     # -------------------------
-    # Top annotations (dimension explanations)
-    ax.text(x1 + box_width/2, y_center + box_height/2 + 1.2,
-            "Batch=2, Seq=10\nD_model=512",
-            ha='center', va='bottom', fontsize=9, color='#666',
-            bbox=dict(facecolor='white', edgecolor='#90CAF9', boxstyle='round,pad=0.25', linewidth=1))
+    top_y = y_center + box_height / 2 + 2.10
+    ax.text(
+        x1 + box_width / 2,
+        top_y,
+        "Batch=2, Seq=10\nD_model=512",
+        ha="center",
+        va="bottom",
+        fontsize=anno_fs,
+        color="#666",
+        bbox=dict(facecolor="white", edgecolor="#90CAF9", boxstyle="round,pad=0.30", linewidth=1.2),
+    )
 
-    ax.text(x2 + box_width/2, y_center + box_height/2 + 1.2,
-            "Batch=2, Seq=10\nHeads=8, D_k=64",
-            ha='center', va='bottom', fontsize=9, color='#666',
-            bbox=dict(facecolor='white', edgecolor='#FFB74D', boxstyle='round,pad=0.25', linewidth=1))
+    ax.text(
+        x2 + box_width / 2,
+        top_y,
+        "Batch=2, Seq=10\nHeads=8, D_k=64",
+        ha="center",
+        va="bottom",
+        fontsize=anno_fs,
+        color="#666",
+        bbox=dict(facecolor="white", edgecolor="#FFB74D", boxstyle="round,pad=0.30", linewidth=1.2),
+    )
 
-    ax.text(x3 + box_width/2, y_center + box_height/2 + 1.55,
-            "Batch=2, Heads=8\nSeq=10, D_k=64",
-            ha='center', va='bottom', fontsize=9, color='#666',
-            bbox=dict(facecolor='white', edgecolor='#81C784', boxstyle='round,pad=0.25', linewidth=1))
+    ax.text(
+        x3 + box_width / 2,
+        top_y,
+        "Batch=2, Heads=8\nSeq=10, D_k=64",
+        ha="center",
+        va="bottom",
+        fontsize=anno_fs,
+        color="#666",
+        bbox=dict(facecolor="white", edgecolor="#81C784", boxstyle="round,pad=0.30", linewidth=1.2),
+    )
 
+    # -------------------------
     # Bottom key insight
-    ax.text(8.5, 0.65,
-            "Key Insight: After transpose, PyTorch processes all 8 heads in parallel\nby treating [Batch × Heads] as a combined batch dimension.",
-            ha='center', va='center', fontsize=12, fontweight='bold',
-            bbox=dict(facecolor='#E3F2FD', edgecolor='#1976D2', boxstyle='round,pad=0.6', linewidth=2))
+    # -------------------------
+    ax.text(
+        8.5,
+        1.05,
+        "Key Insight: After transpose, PyTorch processes all 8 heads in parallel\n"
+        "by treating [Batch × Heads] as a combined batch dimension.",
+        ha="center",
+        va="center",
+        fontsize=key_fs,
+        fontweight="bold",
+        bbox=dict(facecolor="#E3F2FD", edgecolor="#1976D2", boxstyle="round,pad=0.70", linewidth=2),
+    )
 
     plt.tight_layout()
     plt.show()
 
-plot_tensor_transformations()
+plot_tensor_transformations(light_scale=2.0)
 :::
 
 ### Shape Transformation Table
