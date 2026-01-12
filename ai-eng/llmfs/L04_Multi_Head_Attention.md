@@ -467,6 +467,8 @@ def plot_mix_then_split():
 plot_mix_then_split()
 :::
 
+::::
+
 ---
 
 ## Part 2: The Multi-Head Pipeline
