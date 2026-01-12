@@ -589,7 +589,7 @@ plt.show()
 
 ## Part 4: Implementation in PyTorch
 
-Now let's see how to implement multi-head attention efficiently in code. Remember the key insight from our Technical Note: we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
+Now let's see how to implement multi-head attention efficiently in code. Remember the key insight from our [Technical Note](technical-note-input-projections): we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
 
 For a single input vector, this is straightforward. But in practice, we process **batches** of sequences (e.g., batch=2, seq=10). We could loop through each head one at a time, but that would be too slow.
 
@@ -600,6 +600,14 @@ Instead, PyTorch uses clever **tensor reshaping** to process all heads in parall
 3. **Transpose:** Swap axes so heads can be processed in parallel → `[Batch, Heads, Seq_Len, D_Head]`
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
+
+:::{tip} Quick Recap from Technical Note
+Remember: $W^Q$ mixes information from **all** 512 input dimensions before we split. The diagram showed:
+
+**Input (512) → $W^Q$ (Mix ALL dims) → Mixed vector (512) → Split → 8 heads × 64 dims**
+
+Now we'll see how to implement this efficiently for batches using `.view()` and `.transpose()`.
+:::
 
 Let's visualize these tensor transformations:
 
