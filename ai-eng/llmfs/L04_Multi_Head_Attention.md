@@ -602,6 +602,14 @@ Instead, PyTorch uses clever **tensor reshaping** to process all heads in parall
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
+:::{tip} Quick Recap from Technical Note
+Remember: $W^Q$ mixes information from **all** 512 input dimensions before we split. The diagram showed:
+
+**Input (512) → $W^Q$ (Mix ALL dims) → Mixed vector (512) → Split → 8 heads × 64 dims**
+
+Now we'll see how to implement this efficiently for batches using `.view()` and `.transpose()`.
+:::
+
 Let's visualize these tensor transformations:
 
 :::{code-cell} ipython3
