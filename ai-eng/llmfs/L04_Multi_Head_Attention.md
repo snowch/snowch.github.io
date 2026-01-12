@@ -209,6 +209,7 @@ def plot_multihead_projection_concept():
 plot_multihead_projection_concept()
 :::
 
+(technical-note-input-projections)=
 ::::{important} Technical Note: What actually gets split? (The Input Projections)
 
 You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input?"*

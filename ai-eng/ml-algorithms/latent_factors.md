@@ -49,8 +49,9 @@ import torch
 # Configure matplotlib
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
+# Note: LaTeX rendering disabled to avoid build issues
+# plt.rc('text', usetex=True)
+# plt.rc('font', family='serif')
 ```
 
 ---
@@ -93,21 +94,21 @@ sorted_variance = np.sort(variance_explained)[::-1]
 cumulative_variance = np.cumsum(sorted_variance) / np.sum(sorted_variance)
 
 ax1.bar(range(50), sorted_variance[:50], color='steelblue', alpha=0.7)
-ax1.set_xlabel(r'Dimension (sorted by variance)', fontsize=12)
-ax1.set_ylabel(r'Variance', fontsize=12)
-ax1.set_title(r'\textbf{Most Dimensions Contain Noise}', fontsize=14)
+ax1.set_xlabel('Dimension (sorted by variance)', fontsize=12)
+ax1.set_ylabel('Variance', fontsize=12)
+ax1.set_title('Most Dimensions Contain Noise', fontsize=14, fontweight='bold')
 ax1.axvline(x=10, color='red', linestyle='--', linewidth=2, label='Signal cutoff')
 ax1.legend(fontsize=10)
 ax1.grid(True, alpha=0.3)
 
 # Right: Cumulative variance explained
 ax2.plot(range(1, 101), cumulative_variance[:100], linewidth=3, color='darkgreen')
-ax2.axhline(y=0.95, color='red', linestyle='--', linewidth=2, label=r'95\% variance')
+ax2.axhline(y=0.95, color='red', linestyle='--', linewidth=2, label='95% variance')
 ax2.axvline(x=15, color='red', linestyle='--', linewidth=2, alpha=0.5)
 ax2.fill_between(range(1, 101), 0, cumulative_variance[:100], alpha=0.2, color='green')
-ax2.set_xlabel(r'Number of Dimensions', fontsize=12)
-ax2.set_ylabel(r'Cumulative Variance Explained', fontsize=12)
-ax2.set_title(r'\textbf{First Few Dimensions Capture Most Signal}', fontsize=14)
+ax2.set_xlabel('Number of Dimensions', fontsize=12)
+ax2.set_ylabel('Cumulative Variance Explained', fontsize=12)
+ax2.set_title('First Few Dimensions Capture Most Signal', fontsize=14, fontweight='bold')
 ax2.legend(fontsize=10)
 ax2.grid(True, alpha=0.3)
 ax2.set_xlim(0, 100)
