@@ -73,6 +73,23 @@ Instead, we hire a **Committee of 8 Experts**:
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
+:::{note} Why Lower Dimensions? Why Not Give Each Head the Full 512 Dimensions?
+
+**The Short Answer:** Computational efficiency and forced specialization.
+
+If each of the 8 heads used the full $d_{model} = 512$ dimensions:
+- We'd need **8× the parameters** ($W^Q, W^K, W^V$ for each head would each be $512 \times 512$ instead of $512 \times 64$)
+- We'd need **8× the computation** (each attention operation scales with $d_k$)
+- Heads might learn **redundant patterns** rather than specializing
+
+By splitting the dimensions ($d_k = d_{model}/h = 64$):
+- **Total parameters stay constant:** 8 heads × 64 dims ≈ 1 head × 512 dims
+- **Computational cost is comparable** to single-head attention
+- **The constraint forces specialization:** Each head must compress its focus into fewer dimensions, encouraging it to capture distinct linguistic patterns
+
+Think of it like hiring specialists with limited notepads. If each expert had unlimited space, they might all write the same general report. But with only 64 dimensions, each head is forced to be selective and focus on what matters most to its specialized role.
+:::
+
 :::{important} The Roles Are Learned, Not Assigned
 
 When we say "Head 1 (The Linguist)" we're using a metaphor for intuition. In reality:
