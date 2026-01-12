@@ -209,8 +209,7 @@ def plot_multihead_projection_concept():
 plot_multihead_projection_concept()
 :::
 
-(technical-note-input-projections)=
-:::{important} Technical Note: What actually gets split? (The Input Projections)
+::::{important} Technical Note: What actually gets split? (The Input Projections)
 
 You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input?"*
 
@@ -224,7 +223,7 @@ The process happens in two specific steps:
 So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
 
 **Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (see Part 2, Step 4).
-:::
+
 
 Let's visualize this crucial distinction:
 
