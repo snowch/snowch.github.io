@@ -215,6 +215,7 @@ plot_multihead_projection_concept()
 You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input embedding?"*
 
 **No.** Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) mixes information from **all 512 input dimensions** into a new 512-dim vector.  
+
 **That projected vector** is then reshaped into **8 × 64**, and each head takes one slice.
 
 So each head is getting a different **learned view of the whole token**, not a fixed chunk of the original embedding. (We’ll unpack the “mix → reshape” details next.)
