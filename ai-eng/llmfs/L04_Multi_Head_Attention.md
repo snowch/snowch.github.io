@@ -596,6 +596,8 @@ The shape transformation looks like this:
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
+**Connection to the Technical Note:** Remember from our earlier discussion that the weight matrix $W^Q$ mixes information from ALL 512 input dimensions before we split. The `.view()` operation below implements that split (Step 2 from the Technical Note), and `.transpose()` enables parallel processing across all heads.
+
 Let's visualize these tensor transformations:
 
 :::{code-cell} ipython3
