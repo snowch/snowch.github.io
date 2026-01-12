@@ -212,18 +212,84 @@ plot_multihead_projection_concept()
 (technical-note-input-projections)=
 ::::{important} Technical Note: What actually gets split? (The Input Projections)
 
-You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input?"*
+You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input embedding?"*
 
-**No.** That would be disastrous, because the first 64 numbers of the embedding might not contain the specific grammar information Head 1 needs.
+**No.** Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) mixes information from **all 512 input dimensions** into a new 512-dim vector.  
+**That projected vector** is then reshaped into **8 × 64**, and each head takes one slice.
 
-The process happens in two specific steps:
+So each head is getting a different **learned view of the whole token**, not a fixed chunk of the original embedding. (We’ll unpack the “mix → reshape” details next.)
+
+::::
+
+---
+
+## Part 2: The Multi-Head Pipeline
+
+Now that we understand the "why" (Specialization), let's look at the "how" (The Pipeline).
+
+The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
+
+**The 4-Step Process**
+
+1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
+    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
+3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
+4.  **Final Linear (Another Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
+
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+
+Let's visualize this flow:
+
+:::{mermaid}
+graph TD
+    subgraph Inputs
+        Q["Query (Q)"]
+        K["Key (K)"]
+        V["Value (V)"]
+    end
+
+    WQ["W^Q"]
+    WK["W^K"]
+    WV["W^V"]
+    WO["W^O"]
+
+    Q --> WQ --> LQ["1. Linear Projection (Q)"]
+    K --> WK --> LK["1. Linear Projection (K)"]
+    V --> WV --> LV["1. Linear Projection (V)"]
+
+    LQ --> H1["2. Head 1 Attention"]
+    LK --> H1
+    LV --> H1
+
+    LQ --> H2["2. Head ... Attention"]
+    LK --> H2
+    LV --> H2
+
+    LQ --> H8["2. Head 8 Attention"]
+    LK --> H8
+    LV --> H8
+
+    H1 --> C["3. Concatenate"]
+    H2 --> C
+    H8 --> C
+
+    C --> WO --> O["4. Final Linear Transform"]
+    O --> Out["Multi-Head Output"]
+
+    style C fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style O fill:#ffecb3,stroke:#ff6f00,stroke-width:2px
+    style Out fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+:::
+
+The split process happens in two specific steps:
 
 1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by a weight matrix ($W^Q$, $W^K$, or $W^V$), which is **learned during training**. This operation has access to the **entire** input vector. It blends all the information together.
 2.  **The Split (Reshape):** The *result* of that multiplication is a new 512-dimensional vector. **This new vector** is what gets chopped into 8 chunks of 64.
 
 So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
 
-**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (see Part 2, Step 4).
+**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (Step 4).
 
 Let's visualize this crucial distinction (showing $W^Q$ as an example, but $W^K$ and $W^V$ work identically):
 
@@ -465,69 +531,6 @@ def plot_mix_then_split():
     plt.show()
 
 plot_mix_then_split()
-:::
-
-::::
-
----
-
-## Part 2: The Multi-Head Pipeline
-
-Now that we understand the "why" (Specialization), let's look at the "how" (The Pipeline).
-
-The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
-
-**The 4-Step Process**
-
-1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
-2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
-    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
-3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
-4.  **Final Linear (Another Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
-
-$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
-
-Let's visualize this flow:
-
-:::{mermaid}
-graph TD
-    subgraph Inputs
-        Q["Query (Q)"]
-        K["Key (K)"]
-        V["Value (V)"]
-    end
-
-    WQ["W^Q"]
-    WK["W^K"]
-    WV["W^V"]
-    WO["W^O"]
-
-    Q --> WQ --> LQ["1. Linear Projection (Q)"]
-    K --> WK --> LK["1. Linear Projection (K)"]
-    V --> WV --> LV["1. Linear Projection (V)"]
-
-    LQ --> H1["2. Head 1 Attention"]
-    LK --> H1
-    LV --> H1
-
-    LQ --> H2["2. Head ... Attention"]
-    LK --> H2
-    LV --> H2
-
-    LQ --> H8["2. Head 8 Attention"]
-    LK --> H8
-    LV --> H8
-
-    H1 --> C["3. Concatenate"]
-    H2 --> C
-    H8 --> C
-
-    C --> WO --> O["4. Final Linear Transform"]
-    O --> Out["Multi-Head Output"]
-
-    style C fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
-    style O fill:#ffecb3,stroke:#ff6f00,stroke-width:2px
-    style Out fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
 :::
 
 ---
