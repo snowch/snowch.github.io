@@ -477,6 +477,178 @@ Now that we understand the "why" (Specialization), let's look at the "how" (The 
 
 The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
 
+Let's start with the complete picture, then we'll zoom into each step:
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+def plot_complete_mha_pipeline():
+    """
+    Shows the complete multi-head attention pipeline:
+    Input → (W^Q, W^K, W^V + split) → Attention per head → Concat → W^O → Output
+    """
+    fig, ax = plt.subplots(1, 1, figsize=(18, 8))
+    ax.set_xlim(0, 18)
+    ax.set_ylim(0, 8)
+    ax.axis('off')
+
+    # Color scheme
+    input_color = '#90CAF9'
+    proj_color = '#E8EAF6'
+    head_color = '#81C784'
+    concat_color = '#FFB74D'
+    output_color = '#CE93D8'
+
+    y_base = 4.0
+    box_h = 0.8
+    box_w = 1.2
+
+    # -------------------------
+    # Step 0: Input
+    # -------------------------
+    x_input = 1.0
+    ax.add_patch(patches.Rectangle((x_input, y_base - box_h/2), box_w, box_h,
+                                     facecolor=input_color, edgecolor='black', linewidth=2))
+    ax.text(x_input + box_w/2, y_base, "Input\n(512)", ha='center', va='center',
+            fontsize=10, fontweight='bold')
+
+    # -------------------------
+    # Step 1: Linear Projections (W^Q, W^K, W^V)
+    # -------------------------
+    x_proj = x_input + box_w + 0.8
+    proj_labels = [r"$W^Q$", r"$W^K$", r"$W^V$"]
+    proj_y = [y_base + 1.5, y_base, y_base - 1.5]
+
+    for i, (label, y) in enumerate(zip(proj_labels, proj_y)):
+        # Matrix box
+        ax.add_patch(patches.Rectangle((x_proj, y - box_h/2), box_w*0.7, box_h,
+                                         facecolor=proj_color, edgecolor='#3F51B5', linewidth=2))
+        ax.text(x_proj + box_w*0.35, y, label, ha='center', va='center',
+                fontsize=11, fontweight='bold', color='#3F51B5')
+
+        # Arrow from input
+        ax.add_patch(patches.FancyArrowPatch(
+            (x_input + box_w, y_base), (x_proj - 0.1, y),
+            arrowstyle='->,head_width=0.3,head_length=0.4', lw=2, color='gray'))
+
+    # Label: Step 1
+    ax.text(x_proj + box_w*0.35, proj_y[0] + 1.0, "Step 1: Project",
+            ha='center', fontsize=10, fontweight='bold', color='#3F51B5',
+            bbox=dict(facecolor='white', edgecolor='#3F51B5', boxstyle='round,pad=0.3'))
+
+    # -------------------------
+    # Split arrow and heads
+    # -------------------------
+    x_split = x_proj + box_w*0.7 + 0.5
+    x_heads = x_split + 1.0
+
+    # Draw 8 small head boxes for Q, K, V
+    head_w = 0.25
+    head_h = 0.5
+    head_spacing = 0.35
+
+    for row_idx, y in enumerate(proj_y):
+        # Split annotation
+        ax.text(x_split - 0.2, y, "split\n↓", ha='center', va='center',
+                fontsize=8, style='italic', color='#555')
+
+        # 8 heads
+        for i in range(8):
+            head_x = x_heads + i * head_spacing
+            head_y = y - head_h/2
+            ax.add_patch(patches.Rectangle((head_x, head_y), head_w, head_h,
+                                             facecolor=head_color, edgecolor='#388E3C',
+                                             linewidth=1, alpha=0.8))
+            if row_idx == 0:  # Only label on top row
+                ax.text(head_x + head_w/2, head_y - 0.15, f"H{i+1}",
+                        ha='center', va='top', fontsize=6)
+
+        # Arrow from projection to heads
+        ax.add_patch(patches.FancyArrowPatch(
+            (x_proj + box_w*0.7, y), (x_heads - 0.1, y),
+            arrowstyle='->,head_width=0.3,head_length=0.4', lw=2, color='gray'))
+
+    # Label: Step 2
+    ax.text(x_heads + 1.0, proj_y[0] + 1.0, "Step 2: Attention\n(per head)",
+            ha='center', fontsize=10, fontweight='bold', color='#388E3C',
+            bbox=dict(facecolor='white', edgecolor='#388E3C', boxstyle='round,pad=0.3'))
+
+    # -------------------------
+    # Step 3: Concatenate
+    # -------------------------
+    x_concat = x_heads + 8*head_spacing + 0.8
+
+    # Arrows from heads to concat point
+    for i in range(8):
+        head_x = x_heads + i * head_spacing + head_w
+        ax.add_patch(patches.FancyArrowPatch(
+            (head_x, proj_y[0]), (x_concat - 0.3, y_base),
+            arrowstyle='->,head_width=0.2,head_length=0.3', lw=1.5,
+            color='gray', alpha=0.5, connectionstyle=f"arc3,rad={0.15*(4-i)}"))
+
+    # Concat box
+    ax.add_patch(patches.Rectangle((x_concat, y_base - box_h/2), box_w*0.8, box_h,
+                                     facecolor=concat_color, edgecolor='#F57C00', linewidth=2))
+    ax.text(x_concat + box_w*0.4, y_base, "Concat\n(512)", ha='center', va='center',
+            fontsize=10, fontweight='bold')
+
+    # Label: Step 3
+    ax.text(x_concat + box_w*0.4, y_base + 1.3, "Step 3: Concat",
+            ha='center', fontsize=10, fontweight='bold', color='#F57C00',
+            bbox=dict(facecolor='white', edgecolor='#F57C00', boxstyle='round,pad=0.3'))
+
+    # -------------------------
+    # Step 4: W^O (Final projection)
+    # -------------------------
+    x_wo = x_concat + box_w*0.8 + 0.8
+    ax.add_patch(patches.Rectangle((x_wo, y_base - box_h/2), box_w*0.7, box_h,
+                                     facecolor=proj_color, edgecolor='#7B1FA2', linewidth=2))
+    ax.text(x_wo + box_w*0.35, y_base, r"$W^O$", ha='center', va='center',
+            fontsize=11, fontweight='bold', color='#7B1FA2')
+
+    # Arrow concat -> W^O
+    ax.add_patch(patches.FancyArrowPatch(
+        (x_concat + box_w*0.8, y_base), (x_wo - 0.1, y_base),
+        arrowstyle='->,head_width=0.3,head_length=0.4', lw=2, color='gray'))
+
+    # Label: Step 4
+    ax.text(x_wo + box_w*0.35, y_base + 1.3, "Step 4: Final Mix",
+            ha='center', fontsize=10, fontweight='bold', color='#7B1FA2',
+            bbox=dict(facecolor='white', edgecolor='#7B1FA2', boxstyle='round,pad=0.3'))
+
+    # -------------------------
+    # Output
+    # -------------------------
+    x_output = x_wo + box_w*0.7 + 0.6
+    ax.add_patch(patches.Rectangle((x_output, y_base - box_h/2), box_w, box_h,
+                                     facecolor=output_color, edgecolor='black', linewidth=2))
+    ax.text(x_output + box_w/2, y_base, "Output\n(512)", ha='center', va='center',
+            fontsize=10, fontweight='bold')
+
+    # Arrow W^O -> output
+    ax.add_patch(patches.FancyArrowPatch(
+        (x_wo + box_w*0.7, y_base), (x_output - 0.1, y_base),
+        arrowstyle='->,head_width=0.3,head_length=0.4', lw=2, color='gray'))
+
+    # -------------------------
+    # Key annotations
+    # -------------------------
+    # Mix-then-split reminder
+    ax.text(x_split - 0.2, proj_y[2] - 1.0,
+            "Each $W$ mixes all 512 dims,\nthen splits into 8×64",
+            ha='center', fontsize=8, style='italic', color='#555',
+            bbox=dict(facecolor='#f9f9f9', edgecolor='#ccc', boxstyle='round,pad=0.3'))
+
+    # Title
+    ax.text(9, 7.2, "Complete Multi-Head Attention Pipeline",
+            ha='center', fontsize=14, fontweight='bold')
+
+    plt.tight_layout()
+    plt.show()
+
+plot_complete_mha_pipeline()
+:::
+
 **The 4-Step Process**
 
 1.  **Linear Projections (The Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
