@@ -549,6 +549,136 @@ The shape transformation looks like this:
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
+Let's visualize these tensor transformations:
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+def draw_tensor_3d(ax, origin, dims, color, alpha=0.7, label='', edge_color='black'):
+    """
+    Draw a 3D box representing a tensor.
+    origin: (x, y, z) starting point
+    dims: (width, height, depth) corresponding to tensor dimensions
+    """
+    x, y, z = origin
+    w, h, d = dims
+
+    # Define the 8 vertices of the box
+    vertices = [
+        [x, y, z], [x+w, y, z], [x+w, y+h, z], [x, y+h, z],  # bottom face
+        [x, y, z+d], [x+w, y, z+d], [x+w, y+h, z+d], [x, y+h, z+d]  # top face
+    ]
+
+    # Define the 6 faces using vertex indices
+    faces = [
+        [vertices[0], vertices[1], vertices[5], vertices[4]],  # front
+        [vertices[2], vertices[3], vertices[7], vertices[6]],  # back
+        [vertices[0], vertices[3], vertices[7], vertices[4]],  # left
+        [vertices[1], vertices[2], vertices[6], vertices[5]],  # right
+        [vertices[0], vertices[1], vertices[2], vertices[3]],  # bottom
+        [vertices[4], vertices[5], vertices[6], vertices[7]]   # top
+    ]
+
+    # Create the 3D polygon collection
+    poly = Poly3DCollection(faces, alpha=alpha, facecolor=color, edgecolor=edge_color, linewidth=1.5)
+    ax.add_collection3d(poly)
+
+    return vertices
+
+def plot_tensor_transformations():
+    """Visualize the view() and transpose() operations in multi-head attention."""
+    fig = plt.figure(figsize=(16, 10))
+
+    # We'll create 3 subplots showing the key transformations
+    steps = [
+        {
+            'title': 'Step 1: After Linear Projection',
+            'shape': '[2, 10, 512]',
+            'dims': (4, 2, 1),  # visual dimensions (not actual values)
+            'labels': ['Seq=10', 'Batch=2', 'D_model=512'],
+            'color': '#90CAF9',
+            'description': 'Flat 512-dimensional vectors\nfor each token in sequence'
+        },
+        {
+            'title': 'Step 2: After .view(2, 10, 8, 64)',
+            'shape': '[2, 10, 8, 64]',
+            'dims': (4, 2, 1.5),  # slightly taller to show split
+            'labels': ['Seq=10', 'Batch=2', 'Heads=8\n×\nD_k=64'],
+            'color': '#FFB74D',
+            'description': 'Split 512 dims into 8 heads × 64 dims\n(no data movement, just reshape)'
+        },
+        {
+            'title': 'Step 3: After .transpose(1, 2)',
+            'shape': '[2, 8, 10, 64]',
+            'dims': (2, 4, 1.5),  # swap width and height
+            'labels': ['Heads=8', 'Batch=2', 'Seq=10\n×\nD_k=64'],
+            'color': '#81C784',
+            'description': 'Swap axes: Heads and Seq dimensions\nNow heads are independent!'
+        }
+    ]
+
+    for idx, step in enumerate(steps):
+        ax = fig.add_subplot(1, 3, idx+1, projection='3d')
+
+        # Draw the tensor
+        origin = (0, 0, 0)
+        draw_tensor_3d(ax, origin, step['dims'], step['color'], alpha=0.7)
+
+        # Set labels for axes
+        w, h, d = step['dims']
+        ax.text(w/2, -0.5, 0, step['labels'][0], ha='center', fontsize=11, fontweight='bold')
+        ax.text(-0.5, h/2, 0, step['labels'][1], ha='center', fontsize=11, fontweight='bold', rotation=90)
+        ax.text(w + 0.3, h, d/2, step['labels'][2], ha='left', fontsize=11, fontweight='bold')
+
+        # Title and shape
+        ax.text2D(0.5, 0.95, step['title'], transform=ax.transAxes,
+                  ha='center', fontsize=13, fontweight='bold')
+        ax.text2D(0.5, 0.88, f"Shape: {step['shape']}", transform=ax.transAxes,
+                  ha='center', fontsize=11, color='#333', style='italic')
+
+        # Description
+        ax.text2D(0.5, 0.08, step['description'], transform=ax.transAxes,
+                  ha='center', fontsize=10, style='italic',
+                  bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.5', alpha=0.8))
+
+        # Set axis limits
+        ax.set_xlim([-1, max(w, h, d) + 1])
+        ax.set_ylim([-1, max(w, h, d) + 1])
+        ax.set_zlim([-0.5, max(w, h, d) + 0.5])
+
+        # Remove axis ticks
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_zticks([])
+
+        # Set viewing angle
+        ax.view_init(elev=20, azim=45)
+        ax.set_box_aspect([1, 1, 0.8])
+
+    # Add arrows between subplots to show progression
+    fig.text(0.31, 0.5, '→\n.view()', ha='center', va='center', fontsize=16, fontweight='bold', color='#FF6F00')
+    fig.text(0.64, 0.5, '→\n.transpose(1,2)', ha='center', va='center', fontsize=16, fontweight='bold', color='#FF6F00')
+
+    # Add overall title
+    fig.suptitle('Tensor Shape Transformations in Multi-Head Attention',
+                 fontsize=16, fontweight='bold', y=0.98)
+
+    # Key insight box
+    fig.text(0.5, 0.02,
+             'Key Insight: After transpose, each head is independent and can be processed in parallel!\n'
+             'PyTorch treats [Batch × Heads] as a combined batch dimension.',
+             ha='center', fontsize=11, style='italic',
+             bbox=dict(facecolor='#E3F2FD', edgecolor='#1976D2', boxstyle='round,pad=0.8', linewidth=2))
+
+    plt.tight_layout(rect=[0, 0.06, 1, 0.96])
+    plt.show()
+
+plot_tensor_transformations()
+:::
+
 ### Shape Transformation Table
 
 Let's trace the exact tensor shapes through a concrete example with **batch=2, seq=10, d_model=512, heads=8**:
