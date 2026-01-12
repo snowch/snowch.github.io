@@ -233,17 +233,18 @@ def plot_mix_then_split():
     Visualizes the two-step process: Mix (Linear Transform) then Split (Reshape)
     This clarifies that we DON'T just slice the input into chunks.
     """
-    fig, axes = plt.subplots(2, 1, figsize=(14, 10))
+    fig, axes = plt.subplots(2, 1, figsize=(14, 11))
 
     # ========== SUBPLOT 1: WRONG APPROACH (Direct Split) ==========
     ax1 = axes[0]
     ax1.set_xlim(0, 14)
-    ax1.set_ylim(0, 6)
+    ax1.set_ylim(0, 6.5)
     ax1.axis('off')
 
     # Title
-    ax1.text(7, 5.5, "❌ WRONG: Direct Split (Naive Approach)",
-             ha='center', va='center', fontsize=18, fontweight='bold', color='#d32f2f')
+    ax1.text(7, 6, "WRONG: Direct Split (Naive Approach)",
+             ha='center', va='center', fontsize=18, fontweight='bold', color='#d32f2f',
+             bbox=dict(facecolor='#ffcdd2', edgecolor='#d32f2f', boxstyle='round,pad=0.7', linewidth=2))
 
     # Input vector (colorful segments representing different kinds of information)
     input_x = 1
@@ -307,12 +308,13 @@ def plot_mix_then_split():
     # ========== SUBPLOT 2: CORRECT APPROACH (Mix then Split) ==========
     ax2 = axes[1]
     ax2.set_xlim(0, 14)
-    ax2.set_ylim(0, 6)
+    ax2.set_ylim(0, 6.5)
     ax2.axis('off')
 
     # Title
-    ax2.text(7, 5.5, "✓ CORRECT: Mix (Linear Transform) then Split (Reshape)",
-             ha='center', va='center', fontsize=18, fontweight='bold', color='#2e7d32')
+    ax2.text(7, 6, "CORRECT: Mix (Linear Transform) then Split (Reshape)",
+             ha='center', va='center', fontsize=18, fontweight='bold', color='#2e7d32',
+             bbox=dict(facecolor='#c8e6c9', edgecolor='#2e7d32', boxstyle='round,pad=0.7', linewidth=2))
 
     # Input vector
     for i in range(8):
@@ -405,12 +407,12 @@ def plot_mix_then_split():
 
     # Benefit annotation
     ax2.text(7, 0.3,
-             "✓ Each head receives 64 dims that contain information blended from ALL 512 input dims!\nThe weight matrix $W^Q$ learns to put relevant info in the right positions.",
+             "Each head receives 64 dims that contain information blended from ALL 512 input dims!\nThe weight matrix $W^Q$ learns to put relevant info in the right positions.",
              ha='center', va='center', fontsize=12,
              bbox=dict(facecolor='#c8e6c9', edgecolor='#2e7d32', boxstyle='round,pad=0.6', linewidth=2),
              fontweight='bold')
 
-    plt.tight_layout()
+    plt.subplots_adjust(hspace=0.3)
     plt.show()
 
 plot_mix_then_split()
