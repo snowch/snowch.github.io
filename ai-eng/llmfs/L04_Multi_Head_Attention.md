@@ -229,21 +229,17 @@ So each head is getting a different **learned view of the whole token**, not a f
 
 Now that we understand the "why" (Specialization), let's look at the "how" (The Pipeline).
 
-The Multi-Head Attention mechanism isn't a single black box; it is a specific sequence of operations. It allows the model to process information in parallel and then synthesize the results.
+The Multi-Head Attention mechanism isn't a single black box; it is a **specific sequence of operations**. It allows the model to process information in parallel and then synthesize the results.
 
 **The 4-Step Process**
 
 1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
-3.  **Concatenation:** We take the output vectors from all 8 heads and glue them back together side-by-side.
-4.  **Final Linear (Another Mix):** We pass this long concatenated vector through one last linear layer ($W^O$) to blend the insights from all the experts into a single unified vector.
+3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
+4.  **Final Linear (Another Mix):** Apply one last learned last linear layer ($W^O$) to blend to blend the heads into a single unified vector.
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
-
-:::{important}
-**Key Concept:** Remember from our [earlier Technical Note](technical-note-input-projections) that $W^Q$, $W^K$, and $W^V$ each mix information from **all 512 input dimensions** before we split into heads. The "Linear Projection" step below isn't just slicing the input—it's a learned transformation that blends all input dimensions, and then that result gets split into 8 heads × 64 dims.
-:::
 
 Let's visualize this flow:
 
@@ -285,16 +281,23 @@ graph TD
     O --> Out["Multi-Head Output"]
 :::
 
-The split process happens in two specific steps:
+### The subtle (but crucial) detail in Step 1
 
-1.  **The Mix (Linear Layer):** First, the input vector (512) is multiplied by a weight matrix ($W^Q$, $W^K$, or $W^V$), which is **learned during training**. This operation has access to the **entire** input vector. It blends all the information together.
-2.  **The Split (Reshape):** The *result* of that multiplication is a new 512-dimensional vector. **This new vector** is what gets chopped into 8 chunks of 64.
+The step most people misinterpret is **Step 1**.
 
-So, Head 1 *can* see the whole input, but the Linear Layer's **learned weights** ensure that the information Head 1 needs ends up in the "first chunk" (indices 0-63) of the output.
+It’s tempting to think multi-head attention “just splits the 512 dims into 8 chunks.”  
+That’s **not** what happens.
 
-**Note:** This happens for each of the three input projections (Query, Key, Value). Later, after all heads complete their attention computations and get concatenated, there's one more linear transformation ($W^O$) that mixes the results from all heads (Step 4 in the 4 step process, above).
+Instead, the split happens in two stages:
 
-Let's visualize this crucial distinction (showing $W^Q$ as an example, but $W^K$ and $W^V$ work identically):
+1. **Mix (learned linear layer):** We first apply a learned matrix ($W^Q$, $W^K$, $W^V$). This operation has access to **all 512 input dimensions** at once. It can combine any input feature with any other.
+2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
+
+This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
+
+(If you want more background on why these projections are “full mixes” rather than slices, see the earlier Technical Note: [technical-note-input-projections](technical-note-input-projections).)
+
+Let’s visualize that “Mix → Split” distinction (shown for $W^Q$, but $W^K$ and $W^V$ work identically):
 
 :::{code-cell} ipython3
 :tags: [remove-input]
