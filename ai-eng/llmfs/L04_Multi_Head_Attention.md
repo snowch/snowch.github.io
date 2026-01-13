@@ -627,9 +627,13 @@ Let's visualize these tensor transformations:
 :::{code-cell} ipython3
 :tags: [remove-input]
 
+from matplotlib import pyplot as plt
+import numpy as np
+from matplotlib import patches
+
 import matplotlib.patheffects as pe
 
-def plot_tensor_transformations(light_scale=2.0):
+def plot_tensor_transformations(light_scale=2.3, figsize=(20.7, 10.35)):
     """
     Visualize the view() and transpose() operations as a clean 2D horizontal flow.
 
@@ -638,24 +642,24 @@ def plot_tensor_transformations(light_scale=2.0):
       - Green head labels larger + outlined for readability
       - light_scale=2.0 doubles grey/italic captions + top annotation boxes
     """
-    fig, ax = plt.subplots(1, 1, figsize=(18, 9))
-    ax.set_xlim(0, 17)
-    ax.set_ylim(0, 9)
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    ax.set_xlim(0, 17 * (figsize[0]/18))
+    ax.set_ylim(0, 9 * (figsize[1]/9))
     ax.axis("off")
 
     # ---- layout ----
-    y_center = 4.75
-    box_width = 3.5
-    box_height = 1.4
+    y_center = 4.75 * (figsize[1]/9)
+    box_width = 3.5 * (figsize[0]/18)
+    box_height = 1.4 * (figsize[1]/9)
 
     # Fonts
-    main_dim_fs = 16
-    header_fs = 15
-    op_fs = 12
+    main_dim_fs = 18 # 16 * 1.15 = 18.4
+    header_fs = 17 # 15 * 1.15 = 17.25
+    op_fs = 14 # 12 * 1.15 = 13.8
     light_fs = int(round(10 * light_scale))  # grey/italic captions
     anno_fs = int(round(9 * light_scale))    # top annotation boxes
-    key_fs = 13
-    head_fs = 11  # increased for H1..H8
+    key_fs = 15 # 13 * 1.15 = 14.95
+    head_fs = 13 # 11 * 1.15 = 12.65
 
     def op_bbox(face, edge):
         return dict(facecolor=face, edgecolor=edge, boxstyle="round,pad=0.35", linewidth=2)
@@ -663,7 +667,7 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Step 1: [2, 10, 512]
     # -------------------------
-    x1 = 1.0
+    x1 = 1.0 * (figsize[0]/18)
     ax.add_patch(
         patches.Rectangle(
             (x1, y_center - box_height / 2),
@@ -688,7 +692,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x1 + box_width / 2,
-        y_center + box_height / 2 + 0.70,
+        y_center + box_height / 2 + 0.70 * (figsize[1]/9),
         r"After $W^Q(x)$",
         ha="center",
         va="bottom",
@@ -698,7 +702,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x1 + box_width / 2,
-        y_center - box_height / 2 - 0.45,
+        y_center - box_height / 2 - 0.45 * (figsize[1]/9),
         "Flat 512 dims",
         ha="center",
         va="top",
@@ -710,8 +714,8 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Arrow + .view()
     # -------------------------
-    arrow1_start = x1 + box_width + 0.15
-    arrow1_end = x1 + box_width + 0.95
+    arrow1_start = x1 + box_width + 0.15 * (figsize[0]/18)
+    arrow1_end = x1 + box_width + 0.95 * (figsize[0]/18)
     ax.add_patch(
         patches.FancyArrowPatch(
             (arrow1_start, y_center),
@@ -724,7 +728,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         (arrow1_start + arrow1_end) / 2,
-        y_center + 0.85,
+        y_center + 0.85 * (figsize[1]/9),
         ".view(2, 10, 8, 64)",
         ha="center",
         va="bottom",
@@ -737,7 +741,7 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Step 2: [2, 10, 8, 64]
     # -------------------------
-    x2 = arrow1_end + 0.15
+    x2 = arrow1_end + 0.15 * (figsize[0]/18)
 
     n_layers = 8
     layer_height = box_height / n_layers
@@ -769,7 +773,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x2 + box_width / 2,
-        y_center + box_height / 2 + 0.70,
+        y_center + box_height / 2 + 0.70 * (figsize[1]/9),
         "After .view()",
         ha="center",
         va="bottom",
@@ -779,7 +783,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x2 + box_width / 2,
-        y_center - box_height / 2 - 0.45,
+        y_center - box_height / 2 - 0.45 * (figsize[1]/9),
         "8 heads × 64 dims",
         ha="center",
         va="top",
@@ -791,8 +795,8 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Arrow + .transpose()
     # -------------------------
-    arrow2_start = x2 + box_width + 0.15
-    arrow2_end = x2 + box_width + 1.05
+    arrow2_start = x2 + box_width + 0.15 * (figsize[0]/18)
+    arrow2_end = x2 + box_width + 1.05 * (figsize[0]/18)
     ax.add_patch(
         patches.FancyArrowPatch(
             (arrow2_start, y_center),
@@ -805,7 +809,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         (arrow2_start + arrow2_end) / 2,
-        y_center + 0.85,
+        y_center + 0.85 * (figsize[1]/9),
         ".transpose(1, 2)",
         ha="center",
         va="bottom",
@@ -818,7 +822,7 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Step 3: [2, 8, 10, 64]
     # -------------------------
-    x3 = arrow2_end + 0.15
+    x3 = arrow2_end + 0.15 * (figsize[0]/18)
 
     n_segments = 8
     segment_width = box_width / n_segments
@@ -849,7 +853,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x3 + box_width / 2,
-        y_center + box_height / 2 + 0.70,
+        y_center + box_height / 2 + 0.70 * (figsize[1]/9),
         "After .transpose(1, 2)",
         ha="center",
         va="bottom",
@@ -859,7 +863,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x3 + box_width / 2,
-        y_center + box_height / 2 + 1.10,
+        y_center + box_height / 2 + 1.10 * (figsize[1]/9),
         "[2, 8, 10, 64]",
         ha="center",
         va="bottom",
@@ -870,7 +874,7 @@ def plot_tensor_transformations(light_scale=2.0):
 
     ax.text(
         x3 + box_width / 2,
-        y_center - box_height / 2 - 0.45,
+        y_center - box_height / 2 - 0.45 * (figsize[1]/9),
         "Heads are independent!",
         ha="center",
         va="top",
@@ -882,7 +886,7 @@ def plot_tensor_transformations(light_scale=2.0):
     # -------------------------
     # Top annotations
     # -------------------------
-    top_y = y_center + box_height / 2 + 2.10
+    top_y = y_center + box_height / 2 + 2.10 * (figsize[1]/9)
     ax.text(
         x1 + box_width / 2,
         top_y,
@@ -920,8 +924,8 @@ def plot_tensor_transformations(light_scale=2.0):
     # Bottom key insight
     # -------------------------
     ax.text(
-        8.5,
-        1.05,
+        8.5 * (figsize[0]/18),
+        1.05 * (figsize[1]/9),
         "Key Insight: After transpose, PyTorch processes all 8 heads in parallel\n"
         "by treating [Batch × Heads] as a combined batch dimension.",
         ha="center",
@@ -934,7 +938,7 @@ def plot_tensor_transformations(light_scale=2.0):
     plt.tight_layout()
     plt.show()
 
-plot_tensor_transformations(light_scale=2.0)
+plot_tensor_transformations(light_scale=2.3, figsize=(20.7, 10.35))
 :::
 
 ### Shape Transformation Table
