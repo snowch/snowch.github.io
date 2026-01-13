@@ -291,7 +291,7 @@ Instead, the split happens in two stages:
 
 This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
 
-Let’s visualize that “Mix → Split” distinction (shown for **$W^Q$**, but $W^K$ and $W^V$ work identically):
+Let’s visualize that “Mix → Split” distinction (shown for $\mathbf{W^Q}$, but $W^K$ and $W^V$ work identically):
 
 :::{code-cell} ipython3
 :tags: [remove-input]
