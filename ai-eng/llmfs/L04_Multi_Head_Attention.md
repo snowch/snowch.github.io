@@ -728,6 +728,20 @@ So:
 - A **batch** stacks multiple sequences: $[B,S,D]=[2,10,512]$
 :::
 
+:::{note} Why do we keep both $S$ (sequence) and $D$ (embedding)?
+A Transformer doesn’t store “a sentence embedding” at this stage — it stores **one embedding per token**.
+
+In our example, a 10-token sentence becomes **$[S,D]=[10,512]$**: 10 token vectors, each 512-dimensional.
+
+Think of $[S,D]$ as a table:
+- $S$ rows = **token positions** (so token *i* can attend to token *j*)
+- $D$ columns = **features per token** (used to form $Q,K,V$)
+
+If we collapsed $S$, we’d lose token-to-token relationships (“it” can’t point to “mat” if there’s no position axis).
+If we collapsed $D$, we’d lose the rich representation needed for meaningful dot-products in attention.
+:::
+
+
 Instead of looping over heads, PyTorch reshapes tensors so all heads run in parallel.
 
 We’ll use $H=8$ heads and $d_k = D/H = 64$ dims per head.
