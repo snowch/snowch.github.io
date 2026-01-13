@@ -224,6 +224,7 @@ So each head is getting a different **learned view of the whole token**, not a f
 
 ---
 
+(l04-part2-pipeline)=
 ## Part 2: The Multi-Head Pipeline
 
 Now that we understand the "why" (Specialization), let's look at the "how" (The Pipeline).
@@ -599,7 +600,9 @@ plt.show()
 
 ## Part 4: Implementation in PyTorch
 
-Now let's see how to implement multi-head attention efficiently in code. If you want a visual refresher on the full pipeline, see the Mermaid flowchart in Part 2. Remember the key insight from our [Technical Note](technical-note-input-projections): we multiply by $W^Q$ (which mixes ALL 512 input dimensions), then split the result into 8 heads.
+Now let's see how to implement multi-head attention efficiently in code. If you want a quick refresher on where each step fits, jump back to [Part 2](l04-part2-pipeline) (the Mermaid flowchart).
+
+The key thing to keep in mind: the linear layers ($W^Q$, $W^K$, $W^V$) **mix across all 512 input dimensions**, and only **after that** do we reshape/split into **8 heads × 64 dims**.
 
 For a single input vector, this is straightforward. But in practice, we process **batches** of sequences (e.g., batch=2, seq=10). We could loop through each head one at a time, but that would be too slow.
 
@@ -611,12 +614,12 @@ Instead, PyTorch uses clever **tensor reshaping** to process all heads in parall
 
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
-:::{tip} Quick Recap from Technical Note
-Remember: $W^Q$ mixes information from **all** 512 input dimensions before we split. The diagram showed:
+:::{tip} Quick Recap from Part 2 (Mix → Split)
+From [Part 2](l04-part2-pipeline): the projection step **mixes**, then the reshape step **splits**.
 
-**Input (512) → $W^Q$ (Mix ALL dims) → Mixed vector (512) → Split → 8 heads × 64 dims**
+**Input (512) → $W^Q$ (Mix) → Mixed vector (512) → Reshape → 8 heads × 64 dims**
 
-Now we'll see how to implement this efficiently for batches using `.view()` and `.transpose()`.
+Now we’ll implement the batch-friendly version using `.view()` and `.transpose()`.
 :::
 
 Let's visualize these tensor transformations:
