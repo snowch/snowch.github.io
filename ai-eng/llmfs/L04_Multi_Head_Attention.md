@@ -256,10 +256,10 @@ graph TD
         V["Value (V)"]
     end
 
-    WQ["W^Q"]
-    WK["W^K"]
-    WV["W^V"]
-    WO["W^O"]
+    WQ["$$W^{Q}$$"]
+    WK["$$W^{K}$$"]
+    WV["$$W^{V}$$"]
+    WO["$$W^{O}$$"]
 
     Q --> WQ --> LQ["1. Linear Projection (Q)"]
     K --> WK --> LK["1. Linear Projection (K)"]
