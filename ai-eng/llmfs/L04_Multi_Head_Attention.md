@@ -617,8 +617,6 @@ plt.show()
 
 Now let's see how to implement multi-head attention efficiently in code. If you want a quick refresher on where each step fits, jump back to [Part 2](l04-part2-pipeline).
 
-The key thing to keep in mind: the linear layers ($W^Q$, $W^K$, $W^V$) **mix across all 512 input dimensions**, and only **after that** do we reshape/split into **8 heads × 64 dims**.
-
 In practice, we don’t run attention on a single token vector — we run it over a **batch of sequences**.
 
 That means our input is typically shaped $[B,S,D]$ (batch size $B$, sequence length $S$, model width $D$).
