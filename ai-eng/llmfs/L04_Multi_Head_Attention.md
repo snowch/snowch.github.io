@@ -209,17 +209,13 @@ def plot_multihead_projection_concept():
 plot_multihead_projection_concept()
 :::
 
+We draw 3 heads for readability—imagine 8 in the real model.
+
 (technical-note-input-projections)=
 ::::{important} Technical Note: What actually gets split? (The Input Projections)
 
-You might look at the diagram and wonder: *"Does Head 1 just look at the first 64 numbers of the input embedding?"*
-
-**No.** Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) mixes information from **all 512 input dimensions** into a new 512-dim vector.  
-
-**That projected vector** is then reshaped into **8 × 64**, and each head takes one slice.
-
-So each head is getting a different **learned view of the whole token**, not a fixed chunk of the original embedding. (We’ll unpack the “mix → reshape” details next.)
-
+Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes information from all 512 dimensions** into a new 512-dim vector.  
+Only **after that** do we reshape into **8 × 64** and give each head one slice.
 ::::
 
 ---
@@ -237,7 +233,7 @@ The Multi-Head Attention mechanism isn't a single black box; it is a **specific 
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
-4.  **Final Linear (Another Mix):** Apply one last learned last linear layer ($W^O$) to blend to blend the heads into a single unified vector.
+4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
 
@@ -294,8 +290,6 @@ Instead, the split happens in two stages:
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
 
 This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
-
-(If you want more background on why these projections are “full mixes” rather than slices, see the earlier Technical Note: [technical-note-input-projections](technical-note-input-projections).)
 
 Let’s visualize that “Mix → Split” distinction (shown for $W^Q$, but $W^K$ and $W^V$ work identically):
 
@@ -618,11 +612,7 @@ Instead, PyTorch uses clever **tensor reshaping** to process all heads in parall
 By swapping axes 1 and 2, we group the "Heads" dimension with the "Batch" dimension. PyTorch then processes all heads in parallel as if they were just extra items in the batch.
 
 :::{tip} Quick Recap from Part 2 (Mix → Split)
-From [Part 2](l04-part2-pipeline): the projection step **mixes**, then the reshape step **splits**.
-
-**Input (512) → $W^Q$ (Mix) → Mixed vector (512) → Reshape → 8 heads × 64 dims**
-
-Now we’ll implement the batch-friendly version using `.view()` and `.transpose()`.
+Remember from [Part 2](l04-part2-pipeline): the projection step **mixes**, then the reshape step **splits** — **Input (512) → Mix ($W^Q$/$W^K$/$W^V$) → Split (8 × 64)**.
 :::
 
 Let's visualize these tensor transformations:
@@ -1048,7 +1038,7 @@ This is a PyTorch implementation detail; the math doesn't care about memory layo
 ## Summary
 
 1.  **Multiple Heads:** We split our embedding into $h$ smaller chunks to allow the model to focus on different linguistic features simultaneously.
-2.  **Projection:** We use learned linear layers ($W_Q, W_K, W_V$) to project the input into these specialized subspaces.
+2.  **Projection:** We use learned linear layers ($W^Q, W^K, W^V, W^O$) to project the input into these specialized subspaces.
 3.  **Parallelism:** We use tensor reshaping (`view` and `transpose`) to compute attention for all heads at once, rather than looping through them.
 
 **Next Up: L05 – Layer Norm & Residuals.**
