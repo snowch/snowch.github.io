@@ -242,20 +242,16 @@ Let's visualize this flow:
 :::{mermaid}
 %%{init: {'theme': 'neutral'} }%%
 graph TD
-    subgraph Inputs
-        Q["Query (Q)"]
-        K["Key (K)"]
-        V["Value (V)"]
-    end
+    X["$$X\\ (\\text{token representations — see note below})$$"]
 
     WQ["$$W^{Q}$$"]
     WK["$$W^{K}$$"]
     WV["$$W^{V}$$"]
     WO["$$W^{O}$$"]
 
-    Q --> WQ --> LQ["1. Linear Projection (Q)"]
-    K --> WK --> LK["1. Linear Projection (K)"]
-    V --> WV --> LV["1. Linear Projection (V)"]
+    X --> WQ --> LQ["1. Linear Projection (Q)"]
+    X --> WK --> LK["1. Linear Projection (K)"]
+    X --> WV --> LV["1. Linear Projection (V)"]
 
     LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
     LK --> H1
@@ -273,9 +269,21 @@ graph TD
     H2 --> C
     H8 --> C
 
-    C --> WO --> O["4. $$\\mathrm{MultiHead}(Q,K,V)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
+    C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
     O --> Out["Multi-Head Output"]
 :::
+
+:::{note} What is $$X$$ here?
+In **self-attention**, $$Q$$, $$K$$, and $$V$$ are **not separate inputs**. They are all computed from the same input sequence:
+
+$$
+Q = XW^Q,\quad K = XW^K,\quad V = XW^V
+$$
+
+- At **layer 0**, $$X$$ is the **token embeddings + positional encoding**.
+- In **later layers**, $$X$$ is the **hidden state output** from the previous block.
+:::
+
 
 ### The subtle (but crucial) detail in Step 1
 
