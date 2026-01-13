@@ -240,6 +240,10 @@ The Multi-Head Attention mechanism isn't a single black box; it is a specific se
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
 
+:::{important}
+**Key Concept:** Remember from our [earlier Technical Note](technical-note-input-projections) that $W^Q$, $W^K$, and $W^V$ each mix information from **all 512 input dimensions** before we split into heads. The "Linear Projection" step below isn't just slicing the input—it's a learned transformation that blends all input dimensions, and then that result gets split into 8 heads × 64 dims.
+:::
+
 Let's visualize this flow:
 
 :::{mermaid}
@@ -1002,7 +1006,7 @@ class MultiHeadAttention(nn.Module):
         return self.W_o(attn_output)
 :::
 
-:::{note}
+::::{note}
 **Why `.contiguous()`? Understanding Memory Layout**
 
 When we `transpose` a tensor in PyTorch, we aren't actually moving data in memory; we are just changing the "stride" (how the computer steps through memory).
@@ -1018,16 +1022,16 @@ When we `transpose` a tensor in PyTorch, we aren't actually moving data in memor
 - This is a **copy operation**, so it has a performance cost, but it's necessary to ensure correctness.
 
 **Example:**
-```python
+:::python
 x = torch.randn(2, 3, 4)
 x_t = x.transpose(1, 2)  # Creates a view, not contiguous
 print(x_t.is_contiguous())  # False
 x_c = x_t.contiguous()      # Creates a contiguous copy
 print(x_c.is_contiguous())  # True
-```
+:::
 
 This is a PyTorch implementation detail; the math doesn't care about memory layout, but the computer does!
-:::
+::::
 
 ---
 
