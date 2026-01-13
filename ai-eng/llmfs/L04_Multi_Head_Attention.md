@@ -248,7 +248,7 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)
 Let's visualize this flow:
 
 :::{mermaid}
-%%{init: {'theme': 'neutral', 'flowchart': {'htmlLabels': false} } }%%
+%%{init: {'theme': 'neutral'} }%%
 graph TD
     subgraph Inputs
         Q["Query (Q)"]
@@ -265,15 +265,15 @@ graph TD
     K --> WK --> LK["1. Linear Projection (K)"]
     V --> WV --> LV["1. Linear Projection (V)"]
 
-    LQ --> H1["2. Head 1<br>$$\\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
+    LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
     LK --> H1
     LV --> H1
 
-    LQ --> H2["2. Head i\n$$\\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
+    LQ --> H2["2. $$Head\\ i = \\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
     LK --> H2
     LV --> H2
 
-    LQ --> H8["2. Head 8\n$$\\mathrm{Attention}(Q W_{8}^{Q},\\ K W_{8}^{K},\\ V W_{8}^{V})$$"]
+    LQ --> H8["2. $$Head\\ h = \\mathrm{Attention}(Q W_{h}^{Q},\\ K W_{h}^{K},\\ V W_{h}^{V})$$"]
     LK --> H8
     LV --> H8
 
@@ -281,7 +281,7 @@ graph TD
     H2 --> C
     H8 --> C
 
-    C --> WO --> O["4. Final Linear Transform"]
+    C --> WO --> O["4. $$\\mathrm{MultiHead}(Q,K,V)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
     O --> Out["Multi-Head Output"]
 :::
 
