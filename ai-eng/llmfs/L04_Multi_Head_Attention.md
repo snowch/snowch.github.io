@@ -273,15 +273,15 @@ graph TD
     O --> Out["Multi-Head Output"]
 :::
 
-:::{note} What is $$X$$ here?
-In **self-attention**, $$Q$$, $$K$$, and $$V$$ are **not separate inputs**. They are all computed from the same input sequence:
+:::{note} What is $X$ here?
+In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
 
 $$
 Q = XW^Q,\quad K = XW^K,\quad V = XW^V
 $$
 
-- At **layer 0**, $$X$$ is the **token embeddings + positional encoding**.
-- In **later layers**, $$X$$ is the **hidden state output** from the previous block.
+- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
+- In **later layers**, $X$ is the **hidden state output** from the previous block.
 :::
 
 
