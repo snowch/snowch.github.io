@@ -21,6 +21,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Restore MyST caches (execute + templates)
+        uses: actions/cache@v4
+        with:
+          path: |
+            _build/execute
+            _build/templates
+          key: myst-${{ runner.os }}-node20-py311-${{ hashFiles('requirements.txt', 'myst.yml', 'package-lock.json') }}
+          restore-keys: |
+            myst-${{ runner.os }}-node20-py311-
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
