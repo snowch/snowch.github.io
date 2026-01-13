@@ -718,27 +718,27 @@ plot_token_sequence_batch(D=512, S=10, B=2)
 :::
 
 :::{note} Concrete example (tokens → sequence → batch)
-Suppose we tokenize two sentences into exactly $$S=10$$ tokens each:
+Suppose we tokenize two sentences into exactly $S=10$ tokens each:
 
 - **Sequence 1:** `["The","cat","sat","on","the","mat","because","it","was","soft"]`
 - **Sequence 2:** `["A","dog","slept","by","the","fire","and","it","was","warm"]`
 
-After embedding, each token becomes a vector of length $$D=512$$.
+After embedding, each token becomes a vector of length $D=512$.
 
 So:
-- One **sequence** is $$[S,D]=[10,512]$$ (10 token-vectors stacked in order)
-- A **batch** stacks multiple sequences: $$[B,S,D]=[2,10,512]$$
+- One **sequence** is $[S,D]=[10,512]$ (10 token-vectors stacked in order)
+- A **batch** stacks multiple sequences: $[B,S,D]=[2,10,512]$
 :::
 
 Instead of looping over heads, PyTorch reshapes tensors so all heads run in parallel.
 
 We’ll use $H=8$ heads and $d_k = D/H = 64$ dims per head.
 
-1. **Project (Mix):** $$[B,S,D] \rightarrow [B,S,D]$$  
+1. **Project (Mix):** $[B,S,D] \rightarrow [B,S,D]$  
    Apply $W^Q, W^K, W^V$ to produce $Q,K,V$. Each projected feature can use **all** $D$ input dimensions.
-2. **Split:** $$[B,S,D] \rightarrow [B,S,H,d_k]$$  
+2. **Split:** $[B,S,D] \rightarrow [B,S,H,d_k]$  
    `view(B, S, H, d_k)` splits the last dimension into **heads × per-head dims**.
-3. **Reorder:** $$[B,S,H,d_k] \rightarrow [B,H,S,d_k]$$  
+3. **Reorder:** $[B,S,H,d_k] \rightarrow [B,H,S,d_k]$  
    `transpose(1, 2)` moves the heads dimension next to the batch dimension, so the tensor behaves like $B\times H$ independent attention problems.
 
 Now let’s visualize these tensor transformations:
