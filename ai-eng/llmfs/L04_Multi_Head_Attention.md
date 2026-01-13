@@ -295,6 +295,14 @@ Let’s visualize that “Mix → Split” distinction (shown for **$W^Q$**, but
 
 :::{code-cell} ipython3
 :tags: [remove-input]
+from matplotlib import pyplot as plt
+import matplotlib.patches as patches
+import matplotlib as mpl
+import numpy as np
+
+# mpl.rcParams['mathtext.fontset'] = 'stixsans'
+# mpl.rcParams['mathtext.default'] = 'regular'
+
 
 def plot_mix_then_split():
     """
@@ -388,9 +396,9 @@ def plot_mix_then_split():
     # Matrix labels
     ax.text(
         matrix_x + mw / 2, matrix_y + mh + 0.25,
-        r"$W^Q$",
+        r"$\mathbf{W^Q}$",
         ha='center', va='bottom',
-        fontsize=16, fontweight='bold',
+        fontsize=20, fontweight='bold',
         color='#3F51B5'
     )
     ax.text(
@@ -521,10 +529,12 @@ def plot_mix_then_split():
 
     # Key insight
     ax.text(
-        8.5, 0.55,
-        "Key idea: The learned weight matrix $W^Q$ mixes ALL input dims, THEN we split.\nEach head receives features computed from the entire input.\n(Same process applies to $W^K$ and $W^V$)",
+        8.5, 0.25,
+        r"""Key idea: The learned weight matrix $\mathbf{W^Q}$ mixes ALL input dims, THEN we split.
+        Each head receives features computed from the entire input.
+        (Same process applies to $\mathbf{W^K}$ and $\mathbf{W^V}$)""",
         ha='center', va='center',
-        fontsize=12, fontweight='bold'
+        fontsize=12,
     )
 
     plt.tight_layout()
