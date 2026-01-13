@@ -243,7 +243,7 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)
 Let's visualize this flow:
 
 :::{mermaid}
-%%{init: {'theme': base', 'themeVariabl es': {'background': '#ffffff', 'mainBkg' : '#ffffff', 'nodeBo rder': '#333', 'clusterBkg': '#ffffff' 'clusterBorder': '#333'}}}%%
+%%{init: {'theme': 'neutral' } }%%
 graph TD
     subgraph Inputs
         Q["Query (Q)"]
@@ -278,10 +278,6 @@ graph TD
 
     C --> WO --> O["4. Final Linear Transform"]
     O --> Out["Multi-Head Output"]
-
-    style C fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
-    style O fill:#ffecb3,stroke:#ff6f00,stroke-width:2px
-    style Out fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
 :::
 
 The split process happens in two specific steps:
