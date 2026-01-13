@@ -607,7 +607,7 @@ plt.show()
 
 ## Part 4: Implementation in PyTorch
 
-Now let's see how to implement multi-head attention efficiently in code. If you want a quick refresher on where each step fits, jump back to [Part 2](l04-part2-pipeline) (the Mermaid flowchart).
+Now let's see how to implement multi-head attention efficiently in code. If you want a quick refresher on where each step fits, jump back to [Part 2](l04-part2-pipeline).
 
 The key thing to keep in mind: the linear layers ($W^Q$, $W^K$, $W^V$) **mix across all 512 input dimensions**, and only **after that** do we reshape/split into **8 heads × 64 dims**.
 
