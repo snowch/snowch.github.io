@@ -621,7 +621,7 @@ The key thing to keep in mind: the linear layers ($W^Q$, $W^K$, $W^V$) **mix acr
 
 In practice, we don’t run attention on a single token vector — we run it over a **batch of sequences**.
 
-That means our input is typically shaped $$[B,S,D]$$ (batch size $B$, sequence length $S$, model width $D$).
+That means our input is typically shaped $[B,S,D]$ (batch size $B$, sequence length $S$, model width $D$).
 
 Before we reshape anything, here’s what “token”, “sequence”, and “batch” mean:
 
