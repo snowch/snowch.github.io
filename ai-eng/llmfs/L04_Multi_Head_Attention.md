@@ -672,12 +672,12 @@ def plot_token_sequence_batch(D=512, S=10, B=2):
     for i in range(rows):
         box(x2, y2 + i*rh, w2, rh, fc="#FFCC80", ec="#F57C00", lw=1.5, alpha=0.9)
 
-    ax.text(x2 + w2/2, y2 + h2/2, f"One sequence\n$$[S,D]=[{S},{D}]$$",
+    ax.text(x2 + w2/2, y2 + h2/2, f"One sequence\n$[S,D]=[{S},{D}]$",
             ha="center", va="center", fontsize=12, fontweight="bold", color="#4E2A00",
             bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", boxstyle="round,pad=0.2"))
     ax.text(x2 + w2/2, y2 + h2 + 0.45, "Ordered tokens (one sentence)",
             ha="center", va="bottom", fontsize=12, fontweight="bold")
-    ax.text(x2 + w2/2, y2 - 0.45, f"Sequence length $$S={S}$$ tokens",
+    ax.text(x2 + w2/2, y2 - 0.45, f"Sequence length $S={S}$ tokens",
             ha="center", va="top", fontsize=10.5, style="italic", color="#555")
 
     # Arrow
@@ -699,16 +699,16 @@ def plot_token_sequence_batch(D=512, S=10, B=2):
         for i in range(rows):
             box(x3 + off, y3 + off + i*rh, w3, rh, fc="#A5D6A7", ec="#2E7D32", lw=1.2, alpha=0.9)
 
-    ax.text(x3 + w3/2 + 0.15, y3 + h3/2 + 0.15, f"Batch (stacked sequences)\n$$[B,S,D]=[{B},{S},{D}]$$",
+    ax.text(x3 + w3/2 + 0.15, y3 + h3/2 + 0.15, f"Batch (stacked sequences)\n$[B,S,D]=[{B},{S},{D}]$",
             ha="center", va="center", fontsize=12, fontweight="bold", color="#0B3D16",
             bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", boxstyle="round,pad=0.2"))
     ax.text(x3 + w3/2, y3 + h3 + 0.45, "GPU speed: many sequences at once",
             ha="center", va="bottom", fontsize=12, fontweight="bold")
-    ax.text(x3 + w3/2, y3 - 0.45, f"Batch size $$B={B}$$ sequences",
+    ax.text(x3 + w3/2, y3 - 0.45, f"Batch size $B={B}$ sequences",
             ha="center", va="top", fontsize=10.5, style="italic", color="#555")
 
     # Bottom caption
-    ax.text(7, 0.45, r"Transformers usually operate on tensors shaped $$[B,S,D]$$.",
+    ax.text(7, 0.45, r"Transformers usually operate on tensors shaped $[B,S,D]$.",
             ha="center", va="center", fontsize=12, fontweight="bold")
 
     plt.tight_layout()
