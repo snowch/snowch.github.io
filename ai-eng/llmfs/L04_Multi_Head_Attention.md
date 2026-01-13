@@ -37,6 +37,14 @@ By the end of this post, you'll understand:
 - Why we project vectors into different **Subspaces**.
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
+Before we dive in, here’s the **minimal notation** we’ll use throughout:
+
+- **$B$** = batch size (how many sequences at once)
+- **$S$** = sequence length (tokens per sequence)
+- **$D$** = model width / embedding size ($d_{model}$)
+- **$H$** = number of heads
+- **$d_k$** = per-head width (**must satisfy** $D = H \times d_k$)
+
 :::{code-cell} ipython3
 :tags: [remove-input]
 
@@ -255,12 +263,18 @@ Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^
 Only **after that** do we reshape into **8 × 64** and give each head one slice.
 ::::
 
+The snippet below connects that note to code: it uses the **same tiny $B,S,D,H$ example** defined earlier, applies the **mixing projection** ($W^Q$), and then performs the **reshape into heads**. The printed shapes are the concrete evidence that the narrative description matches what PyTorch actually does.
+
 :::{code-cell} ipython3
 # Concrete mini-demo of "mix THEN split" using our tiny running example above
 Wq = torch.randn(D, D)  # "mix": each output dim can use all D inputs
 q = x @ Wq              # [B,S,D]
 
-qh = q.view(B, S, H, d_k)          # split last dim into heads×d_k
+# Safety check: head dims must multiply back to D
+d_k = D // H
+assert D % H == 0, "D must be divisible by H so that D = H * d_k"
+
+qh = q.view(B, S, H, d_k)             # split last dim into heads×d_k
 qh = qh.transpose(1, 2).contiguous()  # [B,H,S,d_k]
 
 print("x:", x.shape)
@@ -402,6 +416,8 @@ Instead, the split happens in two stages:
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
 
 This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
+
+> **Keep this invariant in mind:** the split step only works when $D$ is divisible by $H$ so that $D = H \times d_k$. If you change any of these values in the code, recompute `d_k = D // H` first.
 
 :::{code-cell} ipython3
 # A tiny numeric "mix" example: every output dim is a weighted sum of ALL input dims
