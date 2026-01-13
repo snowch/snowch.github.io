@@ -621,7 +621,7 @@ In practice, we don’t run attention on a single token vector — we run it ove
 
 That means our input is typically shaped $[B,S,D]$ (batch size $B$, sequence length $S$, model width $D$).
 
-Before we reshape anything, here’s what “token”, “sequence”, and “batch” mean:
+Here’s what “token”, “sequence”, and “batch” mean:
 
 :::{code-cell} ipython3
 :tags: [remove-input]
