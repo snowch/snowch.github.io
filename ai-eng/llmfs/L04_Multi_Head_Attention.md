@@ -59,6 +59,20 @@ plt.rcParams['axes.facecolor'] = 'white'
 
 ---
 
+:::{code-cell} ipython3
+# A tiny, runnable shape-tracing example we'll reuse throughout this post
+torch.manual_seed(0)
+
+B, S, D = 2, 4, 8      # Batch, sequence length, model width (small for readability)
+H = 2                  # Heads
+d_k = D // H
+
+x = torch.randn(B, S, D)
+print("x:", x.shape, "| B,S,D =", (B, S, D), "| H,d_k =", (H, d_k))
+:::
+
+---
+
 ## Part 1: The Intuition (The Committee)
 
 Think of the embedding dimension ($d_{model} = 512$) as a massive report containing everything we know about a word.
@@ -72,6 +86,29 @@ Instead, we hire a **Committee of 8 Experts**:
 * ...
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
+
+:::{code-cell} ipython3
+# Parameter-count intuition: "full 512 per head" vs "split into 8×64"
+d_model = 512
+h = 8
+d_k = d_model // h
+
+# Full dims per head would imply separate (512×512) per head for each of Q,K,V
+full_per_head = 3 * h * (d_model * d_model)
+
+# Split dims (each head projects 512 -> 64): per-head matrices 512×64 for Q,K,V
+split_per_head = 3 * h * (d_model * d_k)
+
+# In practice, most implementations use one big matrix Wq of shape (512×512),
+# which is equivalent to concatenating 8 smaller (512×64) head projections.
+single_big = 3 * (d_model * d_model)
+
+print(f"d_model={d_model}, heads={h}, d_k={d_k}")
+print(f"QKV params if each head used full 512 dims: {full_per_head:,}")
+print(f"QKV params if each head uses 64 dims:       {split_per_head:,}")
+print(f"QKV params with one big (512×512) per Q/K/V: {single_big:,}")
+print("Note: split_per_head == single_big ? ->", split_per_head == single_big)
+:::
 
 :::{note} Why Lower Dimensions? Why Not Give Each Head the Full 512 Dimensions?
 
@@ -218,6 +255,24 @@ Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^
 Only **after that** do we reshape into **8 × 64** and give each head one slice.
 ::::
 
+:::{code-cell} ipython3
+# Concrete mini-demo of "mix THEN split" using our tiny running example above
+Wq = torch.randn(D, D)  # "mix": each output dim can use all D inputs
+q = x @ Wq              # [B,S,D]
+
+qh = q.view(B, S, H, d_k)          # split last dim into heads×d_k
+qh = qh.transpose(1, 2).contiguous()  # [B,H,S,d_k]
+
+print("x:", x.shape)
+print("q = x @ Wq:", q.shape)
+print("qh after view+transpose:", qh.shape)
+
+# Show that each head slice is just a different view of the mixed q
+head0 = qh[:, 0]  # [B,S,d_k]
+head1 = qh[:, 1]  # [B,S,d_k]
+print("head0/head1:", head0.shape, head1.shape)
+:::
+
 ---
 
 (l04-part2-pipeline)=
@@ -236,6 +291,55 @@ The Multi-Head Attention mechanism isn't a single black box; it is a **specific 
 4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+
+:::{code-cell} ipython3
+# A minimal 4-step pipeline on tiny shapes (matches the bullet list above)
+import math
+
+def split_heads(t, H):
+    B, S, D = t.shape
+    d_k = D // H
+    return t.view(B, S, H, d_k).transpose(1, 2)  # [B,H,S,d_k]
+
+def merge_heads(t):
+    B, H, S, d_k = t.shape
+    return t.transpose(1, 2).contiguous().view(B, S, H * d_k)  # [B,S,D]
+
+def scaled_dot_attn(qh, kh, vh):
+    # qh,kh,vh: [B,H,S,d_k]
+    scores = qh @ kh.transpose(-2, -1) / math.sqrt(qh.shape[-1])  # [B,H,S,S]
+    attn = torch.softmax(scores, dim=-1)
+    out = attn @ vh  # [B,H,S,d_k]
+    return out, attn
+
+# Step 1: linear projections (Mix)
+Wq = torch.randn(D, D)
+Wk = torch.randn(D, D)
+Wv = torch.randn(D, D)
+Wo = torch.randn(D, D)
+
+q = x @ Wq
+k = x @ Wk
+v = x @ Wv
+
+# Step 1 continued: Split
+qh = split_heads(q, H)
+kh = split_heads(k, H)
+vh = split_heads(v, H)
+print("After split:", qh.shape, kh.shape, vh.shape)
+
+# Step 2: independent attention (in parallel)
+out_h, attn = scaled_dot_attn(qh, kh, vh)
+print("Head outputs:", out_h.shape, "attn:", attn.shape)
+
+# Step 3: concat
+concat = merge_heads(out_h)
+print("After concat:", concat.shape)
+
+# Step 4: final mix
+y = concat @ Wo
+print("Final output y:", y.shape)
+:::
 
 Let's visualize this flow:
 
@@ -298,6 +402,23 @@ Instead, the split happens in two stages:
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
 
 This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
+
+:::{code-cell} ipython3
+# A tiny numeric "mix" example: every output dim is a weighted sum of ALL input dims
+torch.manual_seed(1)
+x0 = torch.randn(D)           # one token vector [D]
+W = torch.randn(D, D)         # mix matrix [D,D]
+q0 = x0 @ W                   # [D]
+
+print("x0:", x0)
+print("q0:", q0)
+
+# Show one output coordinate explicitly as a dot product over ALL input dims
+j = 3
+manual = (x0 * W[:, j]).sum()
+print(f"q0[{j}] computed by PyTorch:", q0[j].item())
+print(f"q0[{j}] computed manually:  ", manual.item())
+:::
 
 Let’s visualize that “Mix → Split” distinction (shown for $\mathbf{W^Q}$, but $W^K$ and $W^V$ work identically):
 
@@ -753,6 +874,28 @@ We’ll use $H=8$ heads and $d_k = D/H = 64$ dims per head.
 3. **Reorder:** $[B,S,H,d_k] \rightarrow [B,H,S,d_k]$  
    `transpose(1, 2)` moves the heads dimension next to the batch dimension, so the tensor behaves like $B\times H$ independent attention problems.
 
+:::{code-cell} ipython3
+# Show the exact tensor operations in PyTorch (tiny shapes)
+B, S, D = 2, 10, 512
+H = 8
+d_k = D // H
+
+x_big = torch.randn(B, S, D)
+
+Wq = torch.randn(D, D)
+q = x_big @ Wq                      # [B,S,D]
+q_view = q.view(B, S, H, d_k)       # [B,S,H,d_k]
+q_reordered = q_view.transpose(1, 2)  # [B,H,S,d_k]
+
+print("x_big:", x_big.shape)
+print("q:", q.shape)
+print("q_view:", q_view.shape)
+print("q_reordered:", q_reordered.shape)
+
+# The per-head slice is now easy:
+print("One head slice:", q_reordered[:, 0].shape, "(= [B,S,d_k])")
+:::
+
 Now let’s visualize these tensor transformations:
 
 :::{code-cell} ipython3
@@ -1090,6 +1233,23 @@ Let's trace the exact tensor shapes through a concrete example with **batch=2, s
 The key insight: dimensions 1 and 2 get swapped twice—once to parallelize the heads, and once to merge them back together.
 
 :::{code-cell} ipython3
+# Why contiguous() matters (a runnable demo)
+x_demo = torch.randn(2, 3, 4)
+x_t = x_demo.transpose(1, 2)  # changes strides, doesn't move data
+print("x_t.is_contiguous():", x_t.is_contiguous())
+
+try:
+    _ = x_t.view(2, 12)  # may error if not contiguous
+    print("view() worked (unexpected in some layouts)")
+except RuntimeError as e:
+    print("view() failed as expected:", e)
+
+x_c = x_t.contiguous()
+print("x_c.is_contiguous():", x_c.is_contiguous())
+print("x_c.view(2, 12).shape:", x_c.view(2, 12).shape)
+:::
+
+:::{code-cell} ipython3
 import math
 import torch
 import torch.nn as nn
@@ -1142,6 +1302,79 @@ class MultiHeadAttention(nn.Module):
         
         # 4. Final Projection (The "Mix")
         return self.W_o(attn_output)
+:::
+
+:::{code-cell} ipython3
+# Sanity check: forward pass preserves shape
+torch.manual_seed(0)
+mha = MultiHeadAttention(d_model=32, num_heads=4)
+
+x_in = torch.randn(2, 5, 32)          # [B,S,D]
+y_out = mha(x_in, x_in, x_in)         # self-attention case: q=k=v=x
+
+print("x_in:", x_in.shape)
+print("y_out:", y_out.shape)
+assert y_out.shape == x_in.shape
+:::
+
+:::{code-cell} ipython3
+# Optional: a loop-based reference that matches the vectorized implementation (same weights)
+def mha_forward_loop(mha_module, x, mask=None):
+    B, S, D = x.shape
+    H = mha_module.num_heads
+    d_k = mha_module.d_k
+
+    # Same projections as the module
+    Q = mha_module.W_q(x)  # [B,S,D]
+    K = mha_module.W_k(x)
+    V = mha_module.W_v(x)
+
+    # Split into heads (without transpose yet, to make slicing intuitive)
+    Qs = Q.view(B, S, H, d_k)
+    Ks = K.view(B, S, H, d_k)
+    Vs = V.view(B, S, H, d_k)
+
+    heads = []
+    for h in range(H):
+        qh = Qs[:, :, h, :]  # [B,S,d_k]
+        kh = Ks[:, :, h, :]
+        vh = Vs[:, :, h, :]
+
+        scores = qh @ kh.transpose(-2, -1) / math.sqrt(d_k)  # [B,S,S]
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+        attn = torch.softmax(scores, dim=-1)
+        out = attn @ vh  # [B,S,d_k]
+        heads.append(out)
+
+    concat = torch.cat(heads, dim=-1)  # [B,S,D]
+    return mha_module.W_o(concat)
+
+torch.manual_seed(123)
+mha = MultiHeadAttention(d_model=32, num_heads=4)
+x_in = torch.randn(2, 6, 32)
+
+y_vec = mha(x_in, x_in, x_in)
+y_loop = mha_forward_loop(mha, x_in)
+
+print("max abs diff:", (y_vec - y_loop).abs().max().item())
+print("allclose:", torch.allclose(y_vec, y_loop, atol=1e-6))
+:::
+
+:::{code-cell} ipython3
+# Optional: causal mask example (prevents attending to future tokens)
+B, S, D = 2, 6, 32
+mha = MultiHeadAttention(d_model=D, num_heads=4)
+x_in = torch.randn(B, S, D)
+
+# causal mask: [S,S] lower triangular -> broadcastable to [B,1,S,S]
+causal = torch.tril(torch.ones(S, S)).unsqueeze(0).unsqueeze(1)
+
+y_masked = mha(x_in, x_in, x_in, mask=causal)
+y_unmasked = mha(x_in, x_in, x_in, mask=None)
+
+print("y_masked:", y_masked.shape)
+print("Difference (masked vs unmasked) mean abs:", (y_masked - y_unmasked).abs().mean().item())
 :::
 
 ::::{note}
