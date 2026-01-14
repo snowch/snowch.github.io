@@ -372,11 +372,11 @@ def visualize_qkv_tables_with_arrows():
 
     # Add step labels with background (below tables, above dimension annotation)
     step1_y = -0.7
-    ax.text((q_x + k_x + table_width)/2, step1_y, '① Compare Q["bank"] with all K rows',
+    ax.text((q_x + k_x + table_width)/2, step1_y, r'\textbf{Step 1:} Compare Q["bank"] with all K rows',
             fontsize=14, ha='center', fontweight='bold', color='darkblue',
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.7))
 
-    ax.text((k_x + v_x + table_width)/2, step1_y, '② Retrieve weighted sum of V rows',
+    ax.text((k_x + v_x + table_width)/2, step1_y, r'\textbf{Step 2:} Retrieve weighted sum of V rows',
             fontsize=14, ha='center', fontweight='bold', color='darkgreen',
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
 
@@ -400,12 +400,12 @@ plt.show()
 
 1. **Q, K, V are Tables:** Each has one row per token, with columns representing dimensions (typically 512 in real transformers, though we show just a few here for clarity).
 
-2. **Query-Key Matching (diagram Step ①):** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces **attention scores**:
+2. **Query-Key Matching (Step 1):** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces **attention scores**:
    - Q["bank"] · K["river"] = 0.50 (highest: disambiguates to geographical meaning!)
    - Q["bank"] · K["of"] = 0.30 (preposition - contextual glue)
    - Q["bank"] · K["The"] = 0.15 (less relevant determiner)
 
-3. **Retrieve Values (diagram Step ②):** These scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
+3. **Retrieve Values (Step 2):** These scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
 
 4. **Real Dimensions:** While we show 3-4 dimensions for clarity, real transformers use 512 or more dimensions, allowing for much richer semantic relationships.
 
