@@ -112,10 +112,12 @@ split_per_head = 3 * h * (d_model * d_k)
 single_big = 3 * (d_model * d_model)
 
 print(f"d_model={d_model}, heads={h}, d_k={d_k}")
-print(f"QKV params if each head used full 512 dims: {full_per_head:,}")
-print(f"QKV params if each head uses 64 dims:       {split_per_head:,}")
-print(f"QKV params with one big (512×512) per Q/K/V: {single_big:,}")
-print("Note: split_per_head == single_big ? ->", split_per_head == single_big)
+
+print("QKV params:")
+print(f"  full/head: {full_per_head:,}")
+print(f"  split/head:{split_per_head:,}")
+print(f"  single:    {single_big:,}")
+print(f"  split==single? {split_per_head == single_big}")
 :::
 
 :::{note} Why Lower Dimensions? Why Not Give Each Head the Full 512 Dimensions?
