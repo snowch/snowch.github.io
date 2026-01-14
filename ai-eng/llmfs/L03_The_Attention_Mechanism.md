@@ -182,15 +182,7 @@ Let's trace how "bank" would use attention to shift its meaning in "The **bank**
 
 Now, the vector for "bank" is no longer just the static embedding; it is "bank + a lot of 'river' + a little bit of 'the' and 'of'". The representation has shifted toward the nature/geography meaning!
 
-Let's visualize how these Q, K, V matrices work together in the attention mechanism. The visualization below shows Q, K, V as proper tables (like database tables), with each row representing a token and columns representing dimensions.
-
-**What you'll see:**
-- **Q (Queries):** Each token's "search query" asking what information it needs
-- **K (Keys):** Each token's "advertisement" of what information it contains
-- **V (Values):** The actual semantic content each token carries
-- **Attention flow:** How the Query from "bank" compares against all Keys, producing attention scores (0.50 for "river", 0.30 for "of", 0.15 for "The"), which then weight the corresponding Values
-
-This demonstrates the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**. Notice how "bank" attends most strongly to "river" (0.50), which helps disambiguate it toward the geographical meaning!
+Here's this process visualized. The diagram shows the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**. Notice how "bank" attends most strongly to "river" (0.50 weight), which disambiguates it toward the geographical meaning!
 
 ```{code-cell} ipython3
 :tags: [remove-input]
