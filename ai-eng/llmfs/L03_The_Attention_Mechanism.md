@@ -536,17 +536,6 @@ print("Notice: Q is DIFFERENT from the input embeddings!")
 print("The projection matrices mixed and transformed the original features.")
 ```
 
-```{note}
-**Why "Query, Key, Value"?**
-
-This terminology comes from databases:
-- **Query**: What you're searching for (like "SELECT WHERE...")
-- **Key**: The index you search against (like database keys)
-- **Value**: The actual data you retrieve
-
-In attention, every word simultaneously plays all three roles for different parts of the computation. The projection matrices ($W^Q$, $W^K$, $W^V$) transform the same input embedding into these three specialized views.
-```
-
 ---
 
 ## Part 3: The Key Advantage - Parallelism
@@ -1364,7 +1353,12 @@ plt.show()
 
 **What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.78, 1.37]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
 
-**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution via geometric alignment), but values determine *what* information to extract (semantic content).
+**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is fundamentally different from a traditional database lookup:
+
+- **Traditional database**: Query finds **exact key matches** → retrieves paired value (e.g., `user_id=123` → user data)
+- **Attention mechanism**: Query finds **semantically similar Keys** (via dot product) → retrieves **differently-encoded Values**
+
+This is why we need separate Q, K, V projections: K and V are different learned transformations of the same input. Keys determine *how much* to attend (semantic matching via geometric alignment), while Values determine *what information* to extract (the content to mix into the output). K["river"] might encode "geographic term, noun, concrete" (optimized for matching), while V["river"] encodes "flowing water, nature, geography" (semantic content to contribute).
 
 ---
 
