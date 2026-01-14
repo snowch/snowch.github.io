@@ -19,10 +19,11 @@ kernelspec:
 
 In [L03 - Self-Attention](L03_The_Attention_Mechanism.md), we built the "Search Engine" of the Transformer. We learned how the word "it" can look up the word "animal" to resolve ambiguity.
 
-But there is a limitation. A single self-attention layer acts like a single pair of eyes. It can focus on **one** aspect of the sentence at a time.
+But there is a limitation. A single self-attention layer acts like a single pair of eyes. It can focus on **one** aspect of the sentence at a time.  Consider the sentence:
 
-Consider the sentence:
-> **"The chicken didn't cross the road because it was too wide."**
+:::{pull-quote}
+The chicken didn't cross the road because it was too wide.
+:::
 
 To understand this fully, the model needs to do two things simultaneously:
 1.  **Syntactic Analysis:** Link "it" to the subject "road" (because roads are wide).
@@ -37,7 +38,7 @@ By the end of this post, you'll understand:
 - Why we project vectors into different **Subspaces**.
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
-```{important}
+:::{important}
 **Quick Reminder from L03:** Before we dive into multi-head attention, let's reinforce a critical concept:
 
 **Q, K, V are NOT the input embeddings!** They are learned projections:
@@ -49,7 +50,7 @@ Think of it like Instagram filters on a photo:
 - Three specialized outputs (Q, K, V) for different purposes
 
 In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. But the foundation is the same: projections, not raw inputs.
-```
+:::
 
 Before we dive in, here's the **minimal notation** we'll use throughout:
 
@@ -77,20 +78,8 @@ import numpy as np
 
 plt.rcParams['figure.facecolor'] = 'white'
 plt.rcParams['axes.facecolor'] = 'white'
-:::
 
----
-
-:::{code-cell} ipython3
-# A tiny, runnable shape-tracing example we'll reuse throughout this post
 torch.manual_seed(0)
-
-B, S, D = 2, 4, 8      # Batch, sequence length, model width (small for readability)
-H = 2                  # Heads
-d_k = D // H
-
-x = torch.randn(B, S, D)
-print("x:", x.shape, "| B,S,D =", (B, S, D), "| H,d_k =", (H, d_k))
 :::
 
 ---
