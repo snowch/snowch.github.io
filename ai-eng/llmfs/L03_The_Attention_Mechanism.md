@@ -160,21 +160,13 @@ By the end of this post, you'll understand:
 
 ---
 
-## Part 1: The Intuition (The Filing Cabinet)
+## Part 1: The Intuition
 
 **Solving the "Bank" Problem:**
 
 We've seen that static embeddings give "bank" the same vector whether it appears with "river" or "loan". How does attention fix this? It allows each word to **look at its neighbors** and adjust its meaning based on what it finds.
 
 The math of Attention can look scary, but the concept is simple. It is a **Soft Database Lookup**.
-
-Imagine every word in the sentence is a folder in a filing cabinet. To facilitate a search, every word produces three vectors:
-
-| Vector | Name | Role | Analogy |
-| :--- | :--- | :--- | :--- |
-| **Q** | **Query** | What I am looking for? | A sticky note I hold up: *"I am looking for adjectives describing me."* |
-| **K** | **Key** | What do I contain? | The label on the folder: *"I am an adjective."* |
-| **V** | **Value** | The content | The actual document inside the folder: *"Blue."* |
 
 ### How Attention Works: The Search Process
 
