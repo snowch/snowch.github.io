@@ -204,6 +204,10 @@ import matplotlib.patches as mpatches
 from matplotlib.patches import FancyArrowPatch
 import numpy as np
 
+# Enable LaTeX rendering
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+
 def visualize_qkv_tables_with_arrows():
     """
     Show Q, K, V as proper tables with grid lines and column headers
@@ -321,8 +325,7 @@ def visualize_qkv_tables_with_arrows():
     arrow_label_x = (q_x + table_width + k_x)/2
 
     ax.annotate('', xy=(k_x - 0.1, river_y), xytext=(q_x + table_width + 0.1, bank_y),
-                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8,
-                              connectionstyle="arc3,rad=.3"))
+                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8))
     ax.text(arrow_label_x, (bank_y + river_y)/2 + 0.3, '0.50',
             fontsize=12, color='red', fontweight='bold',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='red'))
@@ -331,8 +334,7 @@ def visualize_qkv_tables_with_arrows():
     of_idx = 2
     of_y = y_start + (seq_len - of_idx - 1) * row_height + row_height/2
     ax.annotate('', xy=(k_x - 0.1, of_y), xytext=(q_x + table_width + 0.1, bank_y),
-                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7,
-                              connectionstyle="arc3,rad=.1"))
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7))
     ax.text(arrow_label_x, (bank_y + of_y)/2 - 0.1, '0.30',
             fontsize=11, color='blue', fontweight='bold',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='blue'))
@@ -341,8 +343,7 @@ def visualize_qkv_tables_with_arrows():
     the_idx = 0
     the_y = y_start + (seq_len - the_idx - 1) * row_height + row_height/2
     ax.annotate('', xy=(k_x - 0.1, the_y), xytext=(q_x + table_width + 0.1, bank_y),
-                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5,
-                              connectionstyle="arc3,rad=-.3"))
+                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5))
     ax.text(arrow_label_x, (bank_y + the_y)/2 + 0.5, '0.15',
             fontsize=10, color='gray', fontweight='bold',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='gray', alpha=0.7))
@@ -380,7 +381,7 @@ def visualize_qkv_tables_with_arrows():
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
 
     # Main title
-    plt.suptitle('Attention Mechanism: Q × K^T → Softmax → Weighted Sum of V',
+    plt.suptitle(r'Attention Mechanism: $Q \times K^T \rightarrow \text{Softmax} \rightarrow \text{Weighted Sum of } V$',
                  fontsize=20, fontweight='bold', y=0.98)
 
     # Add dimension annotation
@@ -399,12 +400,12 @@ plt.show()
 
 1. **Q, K, V are Tables:** Each has one row per token, with columns representing dimensions (typically 512 in real transformers, though we show just a few here for clarity).
 
-2. **Step ①: Query-Key Matching:** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces attention scores:
+2. **Query-Key Matching (diagram Step ①):** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces **attention scores**:
    - Q["bank"] · K["river"] = 0.50 (highest: disambiguates to geographical meaning!)
    - Q["bank"] · K["of"] = 0.30 (preposition - contextual glue)
    - Q["bank"] · K["The"] = 0.15 (less relevant determiner)
 
-3. **Step ②: Retrieve Values:** After softmax, these scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
+3. **Retrieve Values (diagram Step ②):** These scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
 
 4. **Real Dimensions:** While we show 3-4 dimensions for clarity, real transformers use 512 or more dimensions, allowing for much richer semantic relationships.
 
