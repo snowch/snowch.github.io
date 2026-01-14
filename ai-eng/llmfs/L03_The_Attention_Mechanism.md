@@ -203,18 +203,33 @@ In attention, every word simultaneously plays all three roles for different part
 
 Let's see this in action with a simple code example:
 
+```{important}
+**Q, K, V are NOT the raw embeddings!**
+
+A common misconception is that Q, K, V are just the input embeddings. They're not.
+
+They are **learned projections** computed from the embeddings:
+- $Q = X \cdot W^Q$ (where $W^Q$ is a learned weight matrix)
+- $K = X \cdot W^K$ (where $W^K$ is a learned weight matrix)
+- $V = X \cdot W^V$ (where $W^V$ is a learned weight matrix)
+
+These projection matrices ($W^Q, W^K, W^V$) are learned during training. They transform the input embedding into three different "views" optimized for the attention mechanism.
+
+The example below uses a simplified version for pedagogy, but remember: in real transformers, there's always a learned projection step.
+```
+
 ```{code-cell} ipython3
-# Creating Query, Key, Value vectors for our "bank" example
+# Simplified example for intuition (showing the concept)
+# In reality, Q/K/V come from learned projections (see next example)
 import torch
 
-# Static embedding for "bank"
+# Static embeddings
 bank_embedding = torch.tensor([0.5, 0.3, 0.8, 0.2])
-
-# Context words
 river_embedding = torch.tensor([0.2, 0.9, 0.1, 0.3])
 loan_embedding = torch.tensor([0.8, 0.1, 0.4, 0.7])
 
-# Create Q, K, V (in reality, these projections are learned)
+# For this simple demo, we'll use embeddings directly as Q/K
+# (Real transformers add a projection step - shown next!)
 Q_bank = bank_embedding
 K_river = river_embedding
 K_loan = loan_embedding
@@ -227,6 +242,43 @@ print("🔍 Query 'bank' comparing against context:")
 print(f"  Similarity to 'river': {similarity_river:.3f}")
 print(f"  Similarity to 'loan':  {similarity_loan:.3f}")
 print(f"\n{'river' if similarity_river > similarity_loan else 'loan'} has higher similarity!")
+```
+
+Now let's see what **actually happens** in a real transformer - with learned projections:
+
+```{code-cell} ipython3
+# REALITY: Q, K, V come from learned projections of the embeddings
+import torch
+
+# Input: embeddings for "bank", "river", "loan"
+embeddings = torch.stack([bank_embedding, river_embedding, loan_embedding])  # [3, 4]
+print("Input embeddings [3 tokens, 4 dims]:")
+print(embeddings)
+print()
+
+# Learned projection matrices (in real models, these are trained)
+# For this demo, we'll create random matrices
+torch.manual_seed(42)
+d_model = 4  # embedding dimension
+W_Q = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+W_K = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+W_V = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+
+# Project embeddings to Q, K, V
+Q = embeddings @ W_Q  # [3, 4] @ [4, 4] = [3, 4]
+K = embeddings @ W_K  # [3, 4]
+V = embeddings @ W_V  # [3, 4]
+
+print("After learned projections:")
+print(f"  Q shape: {Q.shape}  (each embedding transformed by W_Q)")
+print(f"  K shape: {K.shape}  (each embedding transformed by W_K)")
+print(f"  V shape: {V.shape}  (each embedding transformed by W_V)")
+print()
+print("Q (queries):")
+print(Q)
+print()
+print("Notice: Q is DIFFERENT from the input embeddings!")
+print("The projection matrices mixed and transformed the original features.")
 ```
 
 ### The Key Advantage: Everything Happens at Once
