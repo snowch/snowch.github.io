@@ -368,11 +368,11 @@ def visualize_qkv_tables_with_arrows():
 
     # Add step labels with background (below tables, above dimension annotation)
     step1_y = -0.7
-    ax.text((q_x + k_x + table_width)/2, step1_y, r'\textbf{Step 1:} Compare Q["bank"] with all K rows',
+    ax.text((q_x + k_x + table_width)/2, step1_y, r'Step 1: Compare Q["bank"] with all K rows',
             fontsize=14, ha='center', fontweight='bold', color='darkblue',
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.7))
 
-    ax.text((k_x + v_x + table_width)/2, step1_y, r'\textbf{Step 2:} Retrieve weighted sum of V rows',
+    ax.text((k_x + v_x + table_width)/2, step1_y, r'Step 2: Retrieve weighted sum of V rows',
             fontsize=14, ha='center', fontweight='bold', color='darkgreen',
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
 
