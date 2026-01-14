@@ -180,6 +180,18 @@ Let's trace how "bank" would use attention to shift its meaning in "The **bank**
 3. "bank" finds the highest match with **"river"**
 4. It extracts the **Value** from "river" (its semantic meaning) and adds it to its own representation
 
+```{note}
+**An Important Subtlety:**
+
+This isn't a traditional lookup where "finding river" retrieves a fixed paired value. Instead:
+- The **Query** finds Keys that are **semantically similar** (via dot product similarity, not exact matching)
+- The **Key** and **Value** for "river" are **different learned encodings** of the same word:
+  - K["river"] might encode: "I'm a geographic term, a noun, concrete" (optimized for being *found* by relevant queries)
+  - V["river"] might encode: "flowing water, nature, banks, geography" (optimized for *contributing* semantic content)
+
+So attention uses the Query to find semantically related Keys, then retrieves the corresponding Values—which encode different aspects of meaning than the Keys do.
+```
+
 Now, the vector for "bank" is no longer just the static embedding; it is "bank + a lot of 'river' + a little bit of 'the' and 'of'". The representation has shifted toward the nature/geography meaning!
 
 Here's this process visualized. The diagram shows the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**. Notice how "bank" attends most strongly to "river" (0.50 weight), which disambiguates it toward the geographical meaning!
