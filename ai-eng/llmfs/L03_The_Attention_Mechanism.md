@@ -204,10 +204,6 @@ import matplotlib.patches as mpatches
 from matplotlib.patches import FancyArrowPatch
 import numpy as np
 
-# Enable LaTeX rendering
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-
 def visualize_qkv_tables_with_arrows():
     """
     Show Q, K, V as proper tables with grid lines and column headers
@@ -381,7 +377,7 @@ def visualize_qkv_tables_with_arrows():
             bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
 
     # Main title
-    plt.suptitle(r'Attention Mechanism: $Q \times K^T \rightarrow \text{Softmax} \rightarrow \text{Weighted Sum of } V$',
+    plt.suptitle('Attention Mechanism: Q × K^T → Softmax → Weighted Sum of V',
                  fontsize=20, fontweight='bold', y=0.98)
 
     # Add dimension annotation
