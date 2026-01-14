@@ -646,12 +646,14 @@ Total: 1 parallel step (all comparisons at once, then weighted sum)
 3. **Symmetry**: "bank" can attend to "loan" just as easily as "loan" attends to "bank"
 4. **Multiple relationships**: Each word can attend strongly to multiple other words simultaneously (through the weighted sum)
 
-**Concrete Example - Pronoun Resolution:**
+**Concrete Example – Pronoun Resolution (soft, not magic):**
 
-Consider: "The **artist** gave the **musician** a **score** because **she** loved **her** composition."
+Consider: “The **artist** gave the **musician** a **score** because **she** loved **her** composition.”
 
-- RNN: By the time we reach "she", information about "artist" and "musician" has been mixed together in the hidden state. Hard to tell who "she" refers to.
-- Attention: "she" directly queries both "artist" and "musician", finds stronger semantic match with "musician" (or "artist" depending on learned weights), resolves reference clearly.
+This sentence is genuinely **ambiguous**: humans can reasonably map “she/her” to either person depending on how they interpret “score/composition”.
+
+- **RNN:** By the time we reach “she”, the model has compressed everything so far into one hidden state, which can make it harder to keep distinct candidates (“artist” vs “musician”) separable over long distances.
+- **Attention:** “she” compares its Query against **all** Keys directly and produces a **weighting** over candidates. If the context provides a strong cue, attention can put more weight on the best-fitting antecedent; if the context is symmetric, weights may stay split and later layers may or may not sharpen the preference.
 
 **Why This Works:**
 
