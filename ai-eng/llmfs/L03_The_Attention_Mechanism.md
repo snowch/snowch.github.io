@@ -627,8 +627,8 @@ Single Step: ALL words computed simultaneously via matrix operations:
   Q("it") · K("loan")     = 0.15  → Medium attention weight
   ...
 
-Result: "it" can look DIRECTLY at "bank" (word 2) without any intermediate steps.
-No information loss. No compression. Direct access.
+Result: "it" can look DIRECTLY at "bank" (word 2) without any intermediate recurrent steps.
+No repeated hidden-state bottleneck — just one parallel compare-and-mix step per layer.
 
 Every other word does the same computation simultaneously:
   - "The" attends to all words
