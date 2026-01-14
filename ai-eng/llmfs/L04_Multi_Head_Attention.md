@@ -283,6 +283,10 @@ The snippet below connects that note to code: it uses the **same tiny $B,S,D,H$ 
 
 :::{code-cell} ipython3
 # Concrete mini-demo of "mix THEN split" using our tiny running example above
+# Reuse the same shape as the first example: B,S,D = 2,4,8, H=2
+B, S, D, H = 2, 4, 8, 2
+x = torch.randn(B, S, D)
+
 Wq = torch.randn(D, D)  # "mix": each output dim can use all D inputs
 q = x @ Wq              # [B,S,D]
 
