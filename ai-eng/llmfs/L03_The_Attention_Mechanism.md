@@ -360,6 +360,225 @@ print("Notice: Q is DIFFERENT from the input embeddings!")
 print("The projection matrices mixed and transformed the original features.")
 ```
 
+Now let's visualize how these Q, K, V matrices actually work together in the attention mechanism. The visualization below shows Q, K, V as proper tables (like database tables), with each row representing a token and columns representing dimensions.
+
+**What you'll see:**
+- **Q (Queries):** Each token's "search query" asking what information it needs
+- **K (Keys):** Each token's "advertisement" of what information it contains
+- **V (Values):** The actual semantic content each token carries
+- **Attention flow:** How the Query from "cat" compares against all Keys, producing attention scores (0.45, 0.30, 0.15), which then weight the corresponding Values
+
+This demonstrates the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyArrowPatch
+import numpy as np
+
+def visualize_qkv_tables_with_arrows():
+    """
+    Show Q, K, V as proper tables with grid lines and column headers
+    """
+    tokens = ["The", "cat", "sat", "on", "mat"]
+    seq_len = len(tokens)
+
+    fig, ax = plt.subplots(1, 1, figsize=(18, 10))
+    ax.set_xlim(0, 16)
+    ax.set_ylim(-2.5, seq_len + 3)
+    ax.axis('off')
+
+    # Positions for the three tables
+    q_x, k_x, v_x = 0.5, 5.5, 10.5
+    table_width = 3.5
+    row_height = 0.9
+
+    # Helper function to draw a table
+    def draw_table(x, y_start, title, color, num_cols=4, table_seed=0):
+        # Title
+        ax.text(x + table_width/2, y_start + seq_len + 1.8, title,
+                fontsize=18, fontweight='bold', ha='center')
+
+        # Subtitle
+        subtitles = {
+            'Q (Queries)': '"What am I looking for?"',
+            'K (Keys)': '"What do I contain?"',
+            'V (Values)': '"What info do I carry?"'
+        }
+        ax.text(x + table_width/2, y_start + seq_len + 1.3, subtitles.get(title, ''),
+                fontsize=12, ha='center', style='italic', color='gray')
+
+        # Table border
+        border = mpatches.Rectangle((x, y_start), table_width, seq_len * row_height + row_height,
+                                   linewidth=2.5,
+                                   edgecolor='black',
+                                   facecolor='none')
+        ax.add_patch(border)
+
+        # Column headers
+        header_y = y_start + seq_len * row_height
+        header_rect = mpatches.Rectangle((x, header_y), table_width, row_height,
+                                        linewidth=2,
+                                        edgecolor='black',
+                                        facecolor='lightgray',
+                                        alpha=0.7)
+        ax.add_patch(header_rect)
+
+        # Token column header
+        ax.text(x + 0.6, header_y + row_height/2, 'Token',
+               fontsize=12, fontweight='bold', ha='center', va='center')
+
+        # Dimension columns header
+        col_width = (table_width - 1.2) / num_cols
+        for i in range(num_cols):
+            col_x = x + 1.2 + i * col_width
+            ax.text(col_x + col_width/2, header_y + row_height/2,
+                   f'd{i}' if i < 3 else '...',
+                   fontsize=11, ha='center', va='center', style='italic')
+            # Vertical grid line
+            if i > 0:
+                ax.plot([col_x, col_x], [y_start, header_y + row_height],
+                       'k-', linewidth=1, alpha=0.3)
+
+        # Draw rows
+        for i, token in enumerate(tokens):
+            y = y_start + (seq_len - i - 1) * row_height
+
+            # Row background (alternating)
+            row_rect = mpatches.Rectangle((x, y), table_width, row_height,
+                                         linewidth=1,
+                                         edgecolor='black',
+                                         facecolor=color,
+                                         alpha=0.2 if i % 2 == 0 else 0.35)
+            ax.add_patch(row_rect)
+
+            # Horizontal grid line
+            ax.plot([x, x + table_width], [y, y], 'k-', linewidth=1, alpha=0.3)
+
+            # Token label (first column)
+            ax.text(x + 0.6, y + row_height/2, token,
+                   fontsize=13, fontweight='bold', ha='center', va='center')
+
+            # Vertical separator after token column
+            ax.plot([x + 1.2, x + 1.2], [y_start, header_y + row_height],
+                   'k-', linewidth=1.5, alpha=0.5)
+
+            # Dummy values in cells - different for each table
+            np.random.seed(table_seed * 100 + i)  # Different seed per table and row
+            for j in range(num_cols):
+                col_x = x + 1.2 + j * col_width
+                if j < 3:
+                    val = np.random.rand()
+                    ax.text(col_x + col_width/2, y + row_height/2,
+                           f'{val:.2f}',
+                           fontsize=10, ha='center', va='center',
+                           alpha=0.5, family='monospace')
+
+        return y_start + seq_len * row_height / 2  # Return center y position
+
+    # Draw the three tables
+    y_start = 0.5
+    q_center_y = draw_table(q_x, y_start, 'Q (Queries)', 'pink', num_cols=4, table_seed=1)
+    k_center_y = draw_table(k_x, y_start, 'K (Keys)', 'lightgreen', num_cols=4, table_seed=2)
+    v_center_y = draw_table(v_x, y_start, 'V (Values)', 'lightyellow', num_cols=4, table_seed=3)
+
+    # Example: "cat" attending to tokens
+    cat_idx = 1
+    cat_y = y_start + (seq_len - cat_idx - 1) * row_height + row_height/2
+
+    # Arrow from Q["cat"] to all K
+    # Q["cat"] → K["cat"] (self-attention - strongest)
+    arrow_label_x = (q_x + table_width + k_x)/2
+
+    ax.annotate('', xy=(k_x - 0.1, cat_y), xytext=(q_x + table_width + 0.1, cat_y),
+                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8))
+    ax.text(arrow_label_x, cat_y + 0.25, '0.45',
+            fontsize=12, color='red', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='red'))
+
+    # Q["cat"] → K["sat"] (verb relationship)
+    sat_idx = 2
+    sat_y = y_start + (seq_len - sat_idx - 1) * row_height + row_height/2
+    ax.annotate('', xy=(k_x - 0.1, sat_y), xytext=(q_x + table_width + 0.1, cat_y),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7,
+                              connectionstyle="arc3,rad=.2"))
+    ax.text(arrow_label_x, (cat_y + sat_y)/2 - 0.1, '0.30',
+            fontsize=11, color='blue', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='blue'))
+
+    # Q["cat"] → K["The"] (weaker)
+    the_idx = 0
+    the_y = y_start + (seq_len - the_idx - 1) * row_height + row_height/2
+    ax.annotate('', xy=(k_x - 0.1, the_y), xytext=(q_x + table_width + 0.1, cat_y),
+                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5,
+                              connectionstyle="arc3,rad=-.3"))
+    ax.text(arrow_label_x, (cat_y + the_y)/2 + 0.5, '0.15',
+            fontsize=10, color='gray', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='gray', alpha=0.7))
+
+    # After attention: K → V (the values that get retrieved)
+    # K["cat"] → V["cat"]
+    ax.annotate('', xy=(v_x - 0.1, cat_y), xytext=(k_x + table_width + 0.1, cat_y),
+                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8))
+
+    # K["sat"] → V["sat"]
+    ax.annotate('', xy=(v_x - 0.1, sat_y), xytext=(k_x + table_width + 0.1, sat_y),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7))
+
+    # K["The"] → V["The"]
+    ax.annotate('', xy=(v_x - 0.1, the_y), xytext=(k_x + table_width + 0.1, the_y),
+                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5))
+
+    # Final output annotation
+    output_y = cat_y
+    ax.text(v_x + table_width + 0.3, output_y, '→', fontsize=29, ha='center', va='center')
+    ax.text(v_x + table_width + 1.5, output_y,
+            'Output["cat"] =\n0.45 × V["cat"] +\n0.30 × V["sat"] +\n0.15 × V["The"] +\n0.10 × V[others]',
+            fontsize=12, ha='left', va='center',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='wheat',
+                     edgecolor='orange', linewidth=2, alpha=0.8))
+
+    # Add step labels with background (below tables, above dimension annotation)
+    step1_y = -0.7
+    ax.text((q_x + k_x + table_width)/2, step1_y, '① Compare Q["cat"] with all K rows',
+            fontsize=14, ha='center', fontweight='bold', color='darkblue',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.7))
+
+    ax.text((k_x + v_x + table_width)/2, step1_y, '② Retrieve weighted sum of V rows',
+            fontsize=14, ha='center', fontweight='bold', color='darkgreen',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
+
+    # Main title
+    plt.suptitle('Attention Mechanism: Q × K^T → Softmax → Weighted Sum of V',
+                 fontsize=20, fontweight='bold', y=0.98)
+
+    # Add dimension annotation
+    ax.text(8, -1.7, 'Each row: 512-dimensional vector',
+            fontsize=11, ha='center', style='italic', color='gray')
+
+    plt.tight_layout()
+    return fig
+
+# Create and save the visualization
+fig = visualize_qkv_tables_with_arrows()
+plt.show()
+```
+
+**Key Insights from the Visualization:**
+
+1. **Q, K, V are Tables:** Each has one row per token, with columns representing dimensions (typically 512 in real transformers, though we show just a few here for clarity).
+
+2. **Step ①: Query-Key Matching:** When "cat" (the query token) wants to understand its context, it compares its Query vector Q["cat"] against ALL Key vectors. The comparison produces attention scores:
+   - Q["cat"] · K["cat"] = 0.45 (highest: tokens often attend to themselves)
+   - Q["cat"] · K["sat"] = 0.30 (verb relationship)
+   - Q["cat"] · K["The"] = 0.15 (less relevant)
+
+3. **Step ②: Retrieve Values:** After softmax, these scores become weights that determine how much of each Value vector to retrieve. The final output for "cat" is a weighted combination: primarily V["cat"] (45%), with contributions from V["sat"] (30%) and other tokens.
+
+4. **Real Dimensions:** While we show 3-4 dimensions for clarity, real transformers use 512 or more dimensions, allowing for much richer semantic relationships.
+
 ### The Key Advantage: Everything Happens at Once
 
 Remember from [L02](L02_Embeddings_and_Positional_Encoding.md): *"The attention mechanism is **parallel**. It looks at every word in a sentence at the exact same time."*
