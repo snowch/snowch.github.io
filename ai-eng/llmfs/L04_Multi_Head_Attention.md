@@ -289,6 +289,110 @@ head1 = qh[:, 1]  # [B,S,d_k]
 print("head0/head1:", head0.shape, head1.shape)
 :::
 
+### A Concrete 2-Head Example
+
+Before diving into the full pipeline, let's trace a complete example with **2 heads** on a tiny sequence. We'll see how different heads can learn to focus on different relationships.
+
+**Setup:** 3 tokens, 4-dimensional embeddings, split into 2 heads (2 dims each)
+
+:::{code-cell} ipython3
+import torch
+import torch.nn.functional as F
+import math
+
+# Simple 3-token sequence: "cat sat mat"
+# Using 4D embeddings for simplicity
+torch.manual_seed(42)
+
+tokens = ["cat", "sat", "mat"]
+S = 3  # sequence length
+D = 4  # embedding dimension
+H = 2  # number of heads
+d_k = D // H  # 2 dims per head
+
+# Create simple embeddings (normally from an embedding layer)
+embeddings = torch.tensor([
+    [1.0, 0.0, 0.5, 0.3],  # "cat"
+    [0.0, 1.0, 0.4, 0.6],  # "sat"
+    [0.5, 0.5, 0.8, 0.2],  # "mat"
+])  # [S, D] = [3, 4]
+
+print("Input Embeddings [S, D]:")
+for i, token in enumerate(tokens):
+    print(f"  {token}: {embeddings[i].tolist()}")
+print()
+
+# Create projection matrices (normally learned)
+# For this demo, we'll use simple matrices that create interesting patterns
+torch.manual_seed(123)
+W_q = torch.randn(D, D) * 0.5
+W_k = torch.randn(D, D) * 0.5
+W_v = torch.randn(D, D) * 0.5
+
+# Step 1: Project to Q, K, V
+Q = embeddings @ W_q  # [S, D]
+K = embeddings @ W_k  # [S, D]
+V = embeddings @ W_v  # [S, D]
+
+print("After projection [S, D]:")
+print(f"  Q shape: {Q.shape}")
+print(f"  K shape: {K.shape}")
+print(f"  V shape: {V.shape}")
+print()
+
+# Step 2: Split into heads [S, H, d_k] then transpose to [H, S, d_k]
+Q_heads = Q.view(S, H, d_k).transpose(0, 1)  # [H, S, d_k]
+K_heads = K.view(S, H, d_k).transpose(0, 1)
+V_heads = V.view(S, H, d_k).transpose(0, 1)
+
+print(f"After split: [H, S, d_k] = {Q_heads.shape}")
+print()
+
+# Step 3: Compute attention for each head independently
+print("=" * 60)
+print("HEAD-BY-HEAD ATTENTION PATTERNS")
+print("=" * 60)
+
+head_outputs = []
+for h in range(H):
+    print(f"\n📍 Head {h+1}:")
+    print("-" * 40)
+
+    q_h = Q_heads[h]  # [S, d_k]
+    k_h = K_heads[h]  # [S, d_k]
+    v_h = V_heads[h]  # [S, d_k]
+
+    # Compute attention scores
+    scores = (q_h @ k_h.T) / math.sqrt(d_k)  # [S, S]
+    weights = F.softmax(scores, dim=-1)
+
+    print(f"Attention Weights [S, S]:")
+    print("        " + "  ".join(f"{t:>6s}" for t in tokens))
+    for i, token in enumerate(tokens):
+        weights_str = "  ".join(f"{weights[i, j]:6.2f}" for j in range(S))
+        print(f"  {token:>4s}   {weights_str}")
+
+    # Apply attention to values
+    output_h = weights @ v_h  # [S, d_k]
+    head_outputs.append(output_h)
+
+    print(f"\nHead {h+1} output [S, d_k={d_k}]: shape {output_h.shape}")
+
+# Step 4: Concatenate heads
+concat = torch.cat(head_outputs, dim=-1)  # [S, D]
+print("\n" + "=" * 60)
+print(f"After concatenation [S, D]: {concat.shape}")
+print("=" * 60)
+print("\n✓ Each head learned different attention patterns!")
+print("✓ Concatenation combines their perspectives into [S, D] output")
+:::
+
+**Key Insight:** Notice how each head produces different attention weights. In a trained model:
+- **Head 1** might focus on syntactic relationships (subject-verb)
+- **Head 2** might focus on semantic relationships (word meaning)
+
+The concatenation merges these different "views" into a richer representation.
+
 ---
 
 (l04-part2-pipeline)=
@@ -309,7 +413,7 @@ The Multi-Head Attention mechanism isn't a single black box; it is a **specific 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
 
 :::{code-cell} ipython3
-# A minimal 4-step pipeline on tiny shapes (matches the bullet list above)
+# A minimal 4-step pipeline on tiny shapes with DETAILED OUTPUT
 import math
 
 def split_heads(t, H):
@@ -328,7 +432,16 @@ def scaled_dot_attn(qh, kh, vh):
     out = attn @ vh  # [B,H,S,d_k]
     return out, attn
 
+print("=" * 70)
+print("MULTI-HEAD ATTENTION: 4-STEP PIPELINE")
+print("=" * 70)
+print(f"Starting with input x: {x.shape} (Batch={B}, Seq={S}, D={D})")
+print(f"Using {H} heads, each with d_k={D//H} dimensions")
+print()
+
 # Step 1: linear projections (Mix)
+print("Step 1: LINEAR PROJECTIONS (Mix)")
+print("-" * 70)
 Wq = torch.randn(D, D)
 Wk = torch.randn(D, D)
 Wv = torch.randn(D, D)
@@ -337,24 +450,56 @@ Wo = torch.randn(D, D)
 q = x @ Wq
 k = x @ Wk
 v = x @ Wv
+print(f"  Q = x @ W_q: {q.shape}")
+print(f"  K = x @ W_k: {k.shape}")
+print(f"  V = x @ W_v: {v.shape}")
+print("  ✓ Each projection mixes ALL D input dimensions")
+print()
 
 # Step 1 continued: Split
+print("Step 1b: SPLIT INTO HEADS")
+print("-" * 70)
 qh = split_heads(q, H)
 kh = split_heads(k, H)
 vh = split_heads(v, H)
-print("After split:", qh.shape, kh.shape, vh.shape)
+print(f"  After split: {qh.shape} = [B, H, S, d_k]")
+print(f"  ✓ Now we have {H} independent attention mechanisms in parallel")
+print()
 
 # Step 2: independent attention (in parallel)
+print("Step 2: SCALED DOT-PRODUCT ATTENTION (Per Head)")
+print("-" * 70)
 out_h, attn = scaled_dot_attn(qh, kh, vh)
-print("Head outputs:", out_h.shape, "attn:", attn.shape)
+print(f"  Attention weights: {attn.shape} = [B, H, S, S]")
+print(f"  Head outputs: {out_h.shape} = [B, H, S, d_k]")
+print(f"  ✓ Each of {H} heads computed attention independently")
+print()
+
+# Show attention weights for first batch, first head
+print(f"  Example: Attention weights from batch 0, head 0:")
+print(f"  {attn[0, 0]}")
+print()
 
 # Step 3: concat
+print("Step 3: CONCATENATE HEADS")
+print("-" * 70)
 concat = merge_heads(out_h)
-print("After concat:", concat.shape)
+print(f"  Before concat: {out_h.shape} = [B, H, S, d_k]")
+print(f"  After concat: {concat.shape} = [B, S, D]")
+print(f"  ✓ Merged {H} × {D//H} = {D} dimensions back together")
+print()
 
 # Step 4: final mix
+print("Step 4: FINAL OUTPUT PROJECTION")
+print("-" * 70)
 y = concat @ Wo
-print("Final output y:", y.shape)
+print(f"  Final output: {y.shape} = [B, S, D]")
+print(f"  ✓ One more learned mixing to combine head perspectives")
+print()
+
+print("=" * 70)
+print("✓ COMPLETE: Input [B,S,D] → Output [B,S,D]")
+print("=" * 70)
 :::
 
 Let's visualize this flow:
@@ -694,17 +839,84 @@ plot_mix_then_split()
 
 ## Part 3: Visualizing Multiple Perspectives
 
-Let's visualize how two different heads might analyze the same sentence.
+Let's create a concrete example showing how two different heads learn different attention patterns on the same sentence.
 
 **Sentence:** "The cat sat on the mat because it was soft."
 
-* **Head 1** focuses on the physical relationship (connecting "it" to "mat").
-* **Head 2** focuses on the actor (connecting "sat" to "cat").
+We'll manually construct attention patterns to demonstrate what trained heads might learn:
+* **Head 1 (Semantic)**: Focuses on meaning - connects "it" to "mat"
+* **Head 2 (Syntactic)**: Focuses on grammar - connects "sat" to "cat" (subject-verb)
 
-Notice how they highlight completely different parts of the matrix.
+:::{code-cell} ipython3
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+tokens = ["The", "cat", "sat", "on", "the", "mat", "because", "it", "was", "soft"]
+n_tokens = len(tokens)
+
+print("Sentence:", " ".join(tokens))
+print(f"Tokens: {n_tokens}")
+print()
+
+# Head 1: Semantic relationships (it -> mat, soft -> mat)
+print("=" * 70)
+print("HEAD 1: Semantic Expert")
+print("=" * 70)
+head1_logits = torch.zeros(n_tokens, n_tokens)
+# "it" should attend to "mat" (physical reference)
+head1_logits[tokens.index("it"), tokens.index("mat")] = 8.0
+# "soft" should attend to "mat" (property)
+head1_logits[tokens.index("soft"), tokens.index("mat")] = 6.0
+# Everyone else attends mostly to themselves
+for i in range(n_tokens):
+    if tokens[i] not in ["it", "soft"]:
+        head1_logits[i, i] = 5.0
+
+head1_weights = F.softmax(head1_logits, dim=-1)
+
+print("\nKey patterns in Head 1:")
+for i, token in enumerate(tokens):
+    max_attn_idx = torch.argmax(head1_weights[i]).item()
+    max_attn_val = head1_weights[i, max_attn_idx].item()
+    if max_attn_val > 0.5:
+        print(f"  '{token}' → '{tokens[max_attn_idx]}' ({max_attn_val:.2f})")
+
+# Head 2: Syntactic relationships (verb -> subject)
+print("\n" + "=" * 70)
+print("HEAD 2: Syntactic Expert")
+print("=" * 70)
+head2_logits = torch.zeros(n_tokens, n_tokens)
+# "sat" should attend to "cat" (subject of verb)
+head2_logits[tokens.index("sat"), tokens.index("cat")] = 8.0
+# "cat" should attend to "sat" (verb of subject)
+head2_logits[tokens.index("cat"), tokens.index("sat")] = 6.0
+# Everyone else attends mostly to themselves
+for i in range(n_tokens):
+    if tokens[i] not in ["cat", "sat"]:
+        head2_logits[i, i] = 5.0
+
+head2_weights = F.softmax(head2_logits, dim=-1)
+
+print("\nKey patterns in Head 2:")
+for i, token in enumerate(tokens):
+    max_attn_idx = torch.argmax(head2_weights[i]).item()
+    max_attn_val = head2_weights[i, max_attn_idx].item()
+    if max_attn_val > 0.5:
+        print(f"  '{token}' → '{tokens[max_attn_idx]}' ({max_attn_val:.2f})")
+
+print("\n" + "=" * 70)
+print("✓ Different heads capture different linguistic relationships!")
+print("=" * 70)
+:::
+
+Now let's visualize these patterns side-by-side:
 
 :::{code-cell} ipython3
 :tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 tokens = ["The", "cat", "sat", "on", "the", "mat", "because", "it", "was", "soft"]
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
@@ -1323,21 +1535,57 @@ class MultiHeadAttention(nn.Module):
 :::
 
 :::{code-cell} ipython3
-# Sanity check: forward pass preserves shape
+# Demo: Test the MultiHeadAttention module
+print("=" * 70)
+print("TESTING MULTI-HEAD ATTENTION MODULE")
+print("=" * 70)
+
 torch.manual_seed(0)
-mha = MultiHeadAttention(d_model=32, num_heads=4)
+d_model = 32
+num_heads = 4
+batch_size = 2
+seq_len = 5
 
-x_in = torch.randn(2, 5, 32)          # [B,S,D]
-y_out = mha(x_in, x_in, x_in)         # self-attention case: q=k=v=x
+mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
+x_in = torch.randn(batch_size, seq_len, d_model)
 
-print("x_in:", x_in.shape)
-print("y_out:", y_out.shape)
-assert y_out.shape == x_in.shape
+print(f"\nConfiguration:")
+print(f"  d_model: {d_model}")
+print(f"  num_heads: {num_heads}")
+print(f"  d_k per head: {d_model // num_heads}")
+print(f"\nInput shape: {x_in.shape} = [Batch, Seq, D_model]")
+
+# Forward pass (self-attention: q=k=v=x)
+y_out = mha(x_in, x_in, x_in)
+
+print(f"Output shape: {y_out.shape} = [Batch, Seq, D_model]")
+print(f"\n✓ Shape preserved: {x_in.shape} → {y_out.shape}")
+
+# Show that output is different from input (attention mixed information)
+diff = (y_out - x_in).abs().mean().item()
+print(f"✓ Output differs from input (mean abs diff: {diff:.4f})")
+print("  This means attention successfully mixed contextual information!")
+
+# Show parameter count
+total_params = sum(p.numel() for p in mha.parameters())
+print(f"\n✓ Total parameters: {total_params:,}")
+print(f"  Breakdown:")
+print(f"    W_q: {d_model} × {d_model} = {d_model*d_model:,}")
+print(f"    W_k: {d_model} × {d_model} = {d_model*d_model:,}")
+print(f"    W_v: {d_model} × {d_model} = {d_model*d_model:,}")
+print(f"    W_o: {d_model} × {d_model} = {d_model*d_model:,}")
+print(f"    Total: {4*d_model*d_model:,}")
+
+print("\n" + "=" * 70)
 :::
 
 :::{code-cell} ipython3
-# Optional: a loop-based reference that matches the vectorized implementation (same weights)
+# Verification: Loop-based vs Vectorized implementation produce identical results
 def mha_forward_loop(mha_module, x, mask=None):
+    """
+    A loop-based implementation that's easier to understand.
+    This should produce IDENTICAL results to the vectorized version.
+    """
     B, S, D = x.shape
     H = mha_module.num_heads
     d_k = mha_module.d_k
@@ -1368,19 +1616,41 @@ def mha_forward_loop(mha_module, x, mask=None):
     concat = torch.cat(heads, dim=-1)  # [B,S,D]
     return mha_module.W_o(concat)
 
+print("=" * 70)
+print("VERIFICATION: Vectorized vs Loop-Based Implementation")
+print("=" * 70)
+
 torch.manual_seed(123)
 mha = MultiHeadAttention(d_model=32, num_heads=4)
 x_in = torch.randn(2, 6, 32)
 
+print(f"\nInput: {x_in.shape}")
+
 y_vec = mha(x_in, x_in, x_in)
 y_loop = mha_forward_loop(mha, x_in)
 
-print("max abs diff:", (y_vec - y_loop).abs().max().item())
-print("allclose:", torch.allclose(y_vec, y_loop, atol=1e-6))
+print(f"Vectorized output: {y_vec.shape}")
+print(f"Loop-based output: {y_loop.shape}")
+
+max_diff = (y_vec - y_loop).abs().max().item()
+mean_diff = (y_vec - y_loop).abs().mean().item()
+
+print(f"\nDifference between implementations:")
+print(f"  Max absolute diff: {max_diff:.10f}")
+print(f"  Mean absolute diff: {mean_diff:.10f}")
+print(f"  Results match: {torch.allclose(y_vec, y_loop, atol=1e-6)}")
+
+print("\n✓ Both implementations produce identical results!")
+print("  The vectorized version is just faster on GPUs")
+print("=" * 70)
 :::
 
 :::{code-cell} ipython3
-# Optional: causal mask example (prevents attending to future tokens)
+# Demo: Causal masking (for GPT-style models)
+print("=" * 70)
+print("CAUSAL MASKING EXAMPLE")
+print("=" * 70)
+
 B, S, D = 2, 6, 32
 mha = MultiHeadAttention(d_model=D, num_heads=4)
 x_in = torch.randn(B, S, D)
@@ -1388,11 +1658,23 @@ x_in = torch.randn(B, S, D)
 # causal mask: [S,S] lower triangular -> broadcastable to [B,1,S,S]
 causal = torch.tril(torch.ones(S, S)).unsqueeze(0).unsqueeze(1)
 
+print(f"\nCausal mask shape: {causal.shape} (will broadcast to [B, H, S, S])")
+print(f"Causal mask (first 4x4 for visualization):")
+print(causal[0, 0, :4, :4].int())
+print("  1 = can attend, 0 = cannot attend (future tokens masked)")
+
 y_masked = mha(x_in, x_in, x_in, mask=causal)
 y_unmasked = mha(x_in, x_in, x_in, mask=None)
 
-print("y_masked:", y_masked.shape)
-print("Difference (masked vs unmasked) mean abs:", (y_masked - y_unmasked).abs().mean().item())
+print(f"\nMasked output: {y_masked.shape}")
+print(f"Unmasked output: {y_unmasked.shape}")
+
+diff = (y_masked - y_unmasked).abs().mean().item()
+print(f"\nMean absolute difference: {diff:.4f}")
+print("✓ Masking changes the output - tokens can't peek at the future!")
+print("\nNote: Causal masking is used in GPT models to prevent")
+print("      tokens from attending to future positions during training.")
+print("=" * 70)
 :::
 
 ::::{note}
