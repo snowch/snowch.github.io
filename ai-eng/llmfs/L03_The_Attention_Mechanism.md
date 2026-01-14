@@ -190,66 +190,7 @@ Let's trace how "bank" would use attention to shift its meaning in "The **bank**
 
 Now, the vector for "bank" is no longer just the static embedding; it is "bank + a lot of 'river' + a little bit of 'the' and 'of'". The representation has shifted toward the nature/geography meaning!
 
-```{note}
-**Why "Query, Key, Value"?**
-
-This terminology comes from databases:
-- **Query**: What you're searching for (like "SELECT WHERE...")
-- **Key**: The index you search against (like database keys)
-- **Value**: The actual data you retrieve
-
-In attention, every word simultaneously plays all three roles for different parts of the computation.
-```
-
-Let's see this in action with a simple code example:
-
-```{important}
-**Q, K, V are NOT the raw embeddings!**
-
-A common misconception is that Q, K, V are just the input embeddings. They're not.
-
-They are **learned projections** computed from the embeddings:
-- $Q = X \cdot W^Q$ (where $W^Q$ is a learned weight matrix)
-- $K = X \cdot W^K$ (where $W^K$ is a learned weight matrix)
-- $V = X \cdot W^V$ (where $W^V$ is a learned weight matrix)
-
-**The Analogy:** Think of your embedding as a raw photo. Q, K, V are like applying three different Instagram filters (learned during training):
-- **$W^Q$ filter:** Highlights "search-relevant" features
-- **$W^K$ filter:** Highlights "indexable" features
-- **$W^V$ filter:** Highlights "content to retrieve"
-
-These projection matrices are learned during training to optimize the attention mechanism.
-
-The example below uses a simplified version for pedagogy, but remember: in real transformers, there's always a learned projection step.
-```
-
-```{code-cell} ipython3
-# Simplified example for intuition (showing the concept)
-# In reality, Q/K/V come from learned projections (see next example)
-import torch
-
-# Static embeddings
-bank_embedding = torch.tensor([0.5, 0.3, 0.8, 0.2])
-river_embedding = torch.tensor([0.2, 0.9, 0.1, 0.3])
-loan_embedding = torch.tensor([0.8, 0.1, 0.4, 0.7])
-
-# For this simple demo, we'll use embeddings directly as Q/K
-# (Real transformers add a projection step - shown next!)
-Q_bank = bank_embedding
-K_river = river_embedding
-K_loan = loan_embedding
-
-# Compare similarities using dot product
-similarity_river = torch.dot(Q_bank, K_river)
-similarity_loan = torch.dot(Q_bank, K_loan)
-
-print("🔍 Query 'bank' comparing against context:")
-print(f"  Similarity to 'river': {similarity_river:.3f}")
-print(f"  Similarity to 'loan':  {similarity_loan:.3f}")
-print(f"\n{'river' if similarity_river > similarity_loan else 'loan'} has higher similarity!")
-```
-
-Now let's see what **actually happens** in a real transformer - with learned projections:
+Let's visualize this mechanism in action:
 
 ```{code-cell} ipython3
 :tags: [remove-input]
@@ -360,7 +301,384 @@ print("Notice: Q is DIFFERENT from the input embeddings!")
 print("The projection matrices mixed and transformed the original features.")
 ```
 
-### The Key Advantage: Everything Happens at Once
+Now let's visualize how these Q, K, V matrices actually work together in the attention mechanism. The visualization below shows Q, K, V as proper tables (like database tables), with each row representing a token and columns representing dimensions.
+
+**What you'll see:**
+- **Q (Queries):** Each token's "search query" asking what information it needs
+- **K (Keys):** Each token's "advertisement" of what information it contains
+- **V (Values):** The actual semantic content each token carries
+- **Attention flow:** How the Query from "bank" compares against all Keys, producing attention scores (0.50 for "river", 0.30 for "of", 0.15 for "The"), which then weight the corresponding Values
+
+This demonstrates the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**. Notice how "bank" attends most strongly to "river" (0.50), which helps disambiguate it toward the geographical meaning!
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyArrowPatch
+import numpy as np
+
+def visualize_qkv_tables_with_arrows():
+    """
+    Show Q, K, V as proper tables with grid lines and column headers
+    """
+    tokens = ["The", "bank", "of", "the", "river"]
+    seq_len = len(tokens)
+
+    fig, ax = plt.subplots(1, 1, figsize=(18, 10))
+    ax.set_xlim(0, 16)
+    ax.set_ylim(-2.5, seq_len + 3)
+    ax.axis('off')
+
+    # Positions for the three tables
+    q_x, k_x, v_x = 0.5, 5.5, 10.5
+    table_width = 3.5
+    row_height = 0.9
+
+    # Helper function to draw a table
+    def draw_table(x, y_start, title, color, num_cols=4, table_seed=0):
+        # Title
+        ax.text(x + table_width/2, y_start + seq_len + 1.8, title,
+                fontsize=18, fontweight='bold', ha='center')
+
+        # Subtitle
+        subtitles = {
+            'Q (Queries)': '"What am I looking for?"',
+            'K (Keys)': '"What do I contain?"',
+            'V (Values)': '"What info do I carry?"'
+        }
+        ax.text(x + table_width/2, y_start + seq_len + 1.3, subtitles.get(title, ''),
+                fontsize=12, ha='center', style='italic', color='gray')
+
+        # Table border
+        border = mpatches.Rectangle((x, y_start), table_width, seq_len * row_height + row_height,
+                                   linewidth=2.5,
+                                   edgecolor='black',
+                                   facecolor='none')
+        ax.add_patch(border)
+
+        # Column headers
+        header_y = y_start + seq_len * row_height
+        header_rect = mpatches.Rectangle((x, header_y), table_width, row_height,
+                                        linewidth=2,
+                                        edgecolor='black',
+                                        facecolor='lightgray',
+                                        alpha=0.7)
+        ax.add_patch(header_rect)
+
+        # Token column header
+        ax.text(x + 0.6, header_y + row_height/2, 'Token',
+               fontsize=12, fontweight='bold', ha='center', va='center')
+
+        # Dimension columns header
+        col_width = (table_width - 1.2) / num_cols
+        for i in range(num_cols):
+            col_x = x + 1.2 + i * col_width
+            ax.text(col_x + col_width/2, header_y + row_height/2,
+                   f'd{i}' if i < 3 else '...',
+                   fontsize=11, ha='center', va='center', style='italic')
+            # Vertical grid line
+            if i > 0:
+                ax.plot([col_x, col_x], [y_start, header_y + row_height],
+                       'k-', linewidth=1, alpha=0.3)
+
+        # Draw rows
+        for i, token in enumerate(tokens):
+            y = y_start + (seq_len - i - 1) * row_height
+
+            # Row background (alternating)
+            row_rect = mpatches.Rectangle((x, y), table_width, row_height,
+                                         linewidth=1,
+                                         edgecolor='black',
+                                         facecolor=color,
+                                         alpha=0.2 if i % 2 == 0 else 0.35)
+            ax.add_patch(row_rect)
+
+            # Horizontal grid line
+            ax.plot([x, x + table_width], [y, y], 'k-', linewidth=1, alpha=0.3)
+
+            # Token label (first column)
+            ax.text(x + 0.6, y + row_height/2, token,
+                   fontsize=13, fontweight='bold', ha='center', va='center')
+
+            # Vertical separator after token column
+            ax.plot([x + 1.2, x + 1.2], [y_start, header_y + row_height],
+                   'k-', linewidth=1.5, alpha=0.5)
+
+            # Dummy values in cells - different for each table
+            np.random.seed(table_seed * 100 + i)  # Different seed per table and row
+            for j in range(num_cols):
+                col_x = x + 1.2 + j * col_width
+                if j < 3:
+                    val = np.random.rand()
+                    ax.text(col_x + col_width/2, y + row_height/2,
+                           f'{val:.2f}',
+                           fontsize=10, ha='center', va='center',
+                           alpha=0.5, family='monospace')
+
+        return y_start + seq_len * row_height / 2  # Return center y position
+
+    # Draw the three tables
+    y_start = 0.5
+    q_center_y = draw_table(q_x, y_start, 'Q (Queries)', 'pink', num_cols=4, table_seed=1)
+    k_center_y = draw_table(k_x, y_start, 'K (Keys)', 'lightgreen', num_cols=4, table_seed=2)
+    v_center_y = draw_table(v_x, y_start, 'V (Values)', 'lightyellow', num_cols=4, table_seed=3)
+
+    # Example: "bank" attending to tokens
+    bank_idx = 1
+    bank_y = y_start + (seq_len - bank_idx - 1) * row_height + row_height/2
+
+    # Arrow from Q["bank"] to all K
+    # Q["bank"] → K["river"] (strongest - disambiguates to geography meaning)
+    river_idx = 4
+    river_y = y_start + (seq_len - river_idx - 1) * row_height + row_height/2
+    arrow_label_x = (q_x + table_width + k_x)/2
+
+    ax.annotate('', xy=(k_x - 0.1, river_y), xytext=(q_x + table_width + 0.1, bank_y),
+                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8,
+                              connectionstyle="arc3,rad=.3"))
+    ax.text(arrow_label_x, (bank_y + river_y)/2 + 0.3, '0.50',
+            fontsize=12, color='red', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='red'))
+
+    # Q["bank"] → K["of"] (preposition - moderate relevance)
+    of_idx = 2
+    of_y = y_start + (seq_len - of_idx - 1) * row_height + row_height/2
+    ax.annotate('', xy=(k_x - 0.1, of_y), xytext=(q_x + table_width + 0.1, bank_y),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7,
+                              connectionstyle="arc3,rad=.1"))
+    ax.text(arrow_label_x, (bank_y + of_y)/2 - 0.1, '0.30',
+            fontsize=11, color='blue', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='blue'))
+
+    # Q["bank"] → K["The"] (weaker - determiner)
+    the_idx = 0
+    the_y = y_start + (seq_len - the_idx - 1) * row_height + row_height/2
+    ax.annotate('', xy=(k_x - 0.1, the_y), xytext=(q_x + table_width + 0.1, bank_y),
+                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5,
+                              connectionstyle="arc3,rad=-.3"))
+    ax.text(arrow_label_x, (bank_y + the_y)/2 + 0.5, '0.15',
+            fontsize=10, color='gray', fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='gray', alpha=0.7))
+
+    # After attention: K → V (the values that get retrieved)
+    # K["river"] → V["river"]
+    ax.annotate('', xy=(v_x - 0.1, river_y), xytext=(k_x + table_width + 0.1, river_y),
+                arrowprops=dict(arrowstyle='->', lw=3, color='red', alpha=0.8))
+
+    # K["of"] → V["of"]
+    ax.annotate('', xy=(v_x - 0.1, of_y), xytext=(k_x + table_width + 0.1, of_y),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='blue', alpha=0.7))
+
+    # K["The"] → V["The"]
+    ax.annotate('', xy=(v_x - 0.1, the_y), xytext=(k_x + table_width + 0.1, the_y),
+                arrowprops=dict(arrowstyle='->', lw=1.5, color='gray', alpha=0.5))
+
+    # Final output annotation
+    output_y = bank_y
+    ax.text(v_x + table_width + 0.3, output_y, '→', fontsize=29, ha='center', va='center')
+    ax.text(v_x + table_width + 1.5, output_y,
+            'Output["bank"] =\n0.50 × V["river"] +\n0.30 × V["of"] +\n0.15 × V["The"] +\n0.05 × V[others]',
+            fontsize=12, ha='left', va='center',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='wheat',
+                     edgecolor='orange', linewidth=2, alpha=0.8))
+
+    # Add step labels with background (below tables, above dimension annotation)
+    step1_y = -0.7
+    ax.text((q_x + k_x + table_width)/2, step1_y, '① Compare Q["bank"] with all K rows',
+            fontsize=14, ha='center', fontweight='bold', color='darkblue',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='lightblue', alpha=0.7))
+
+    ax.text((k_x + v_x + table_width)/2, step1_y, '② Retrieve weighted sum of V rows',
+            fontsize=14, ha='center', fontweight='bold', color='darkgreen',
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.7))
+
+    # Main title
+    plt.suptitle('Attention Mechanism: Q × K^T → Softmax → Weighted Sum of V',
+                 fontsize=20, fontweight='bold', y=0.98)
+
+    # Add dimension annotation
+    ax.text(8, -1.7, 'Each row: 512-dimensional vector',
+            fontsize=11, ha='center', style='italic', color='gray')
+
+    plt.tight_layout()
+    return fig
+
+# Create and save the visualization
+fig = visualize_qkv_tables_with_arrows()
+plt.show()
+```
+
+**Key Insights from the Visualization:**
+
+1. **Q, K, V are Tables:** Each has one row per token, with columns representing dimensions (typically 512 in real transformers, though we show just a few here for clarity).
+
+2. **Step ①: Query-Key Matching:** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces attention scores:
+   - Q["bank"] · K["river"] = 0.50 (highest: disambiguates to geographical meaning!)
+   - Q["bank"] · K["of"] = 0.30 (preposition - contextual glue)
+   - Q["bank"] · K["The"] = 0.15 (less relevant determiner)
+
+3. **Step ②: Retrieve Values:** After softmax, these scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
+
+4. **Real Dimensions:** While we show 3-4 dimensions for clarity, real transformers use 512 or more dimensions, allowing for much richer semantic relationships.
+
+---
+
+## Part 2: Q, K, V are Learned Projections
+
+In the visualization above, we showed Q, K, V as three separate tables. But where do these tables come from? A critical point that's often misunderstood:
+
+```{important}
+**Q, K, V are NOT the raw embeddings!**
+
+A common misconception is that Q, K, V are just the input embeddings. They're not.
+
+They are **learned projections** computed from the embeddings:
+- $Q = X \cdot W^Q$ (where $W^Q$ is a learned weight matrix)
+- $K = X \cdot W^K$ (where $W^K$ is a learned weight matrix)
+- $V = X \cdot W^V$ (where $W^V$ is a learned weight matrix)
+
+**The Analogy:** Think of your embedding as a raw photo. Q, K, V are like applying three different Instagram filters (learned during training):
+- **$W^Q$ filter:** Highlights "search-relevant" features
+- **$W^K$ filter:** Highlights "indexable" features
+- **$W^V$ filter:** Highlights "content to retrieve"
+
+These projection matrices are learned during training to optimize the attention mechanism.
+```
+
+Let's visualize how these projections work:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 10)
+ax.axis('off')
+
+# Title
+ax.text(5, 9.5, 'How Q, K, V are Created from Input Embeddings',
+        ha='center', fontsize=16, fontweight='bold')
+
+# Input embedding box
+input_box = patches.Rectangle((1, 6.5), 2, 1.2,
+                               facecolor='#e3f2fd', edgecolor='#1976d2', linewidth=3)
+ax.add_patch(input_box)
+ax.text(2, 7.1, 'Input\nEmbedding X\n(512D)', ha='center', va='center',
+        fontsize=11, fontweight='bold')
+
+# Projection matrices
+matrices_y = [5.5, 3.5, 1.5]
+colors = ['#ffcdd2', '#c8e6c9', '#fff9c4']
+labels = ['W_Q', 'W_K', 'W_V']
+outputs = ['Q', 'K', 'V']
+descriptions = [
+    '"what I\'m\nsearching for"',
+    '"what I\nadvertise"',
+    '"content to\nextract"'
+]
+
+for i, (y, color, label, output, desc) in enumerate(zip(matrices_y, colors, labels, outputs, descriptions)):
+    # Arrow from input to matrix
+    ax.annotate('', xy=(4.5, y + 0.6), xytext=(3.2, 7.0),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='gray'))
+
+    # Matrix box
+    matrix_box = patches.Rectangle((4.5, y), 1.5, 1.2,
+                                   facecolor=color, edgecolor='black', linewidth=2)
+    ax.add_patch(matrix_box)
+    ax.text(5.25, y + 0.6, f'{label}\n(512×512)', ha='center', va='center',
+            fontsize=10, fontweight='bold')
+
+    # Arrow from matrix to output
+    ax.annotate('', xy=(7, y + 0.6), xytext=(6.2, y + 0.6),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='black'))
+
+    # Output box
+    output_box = patches.Rectangle((7, y), 1.5, 1.2,
+                                   facecolor=color, edgecolor='black', linewidth=3, alpha=0.7)
+    ax.add_patch(output_box)
+    ax.text(7.75, y + 0.6, f'{output}\n(512D)', ha='center', va='center',
+            fontsize=11, fontweight='bold')
+
+    # Description
+    ax.text(9, y + 0.6, desc, ha='left', va='center',
+            fontsize=9, style='italic', color='#555')
+
+# Key insight box at bottom
+insight_box = patches.FancyBboxPatch((0.5, 0.2), 9, 0.8,
+                                     boxstyle="round,pad=0.1",
+                                     facecolor='#fff3e0', edgecolor='#ff6f00', linewidth=2)
+ax.add_patch(insight_box)
+ax.text(5, 0.6, '⚠️  CRITICAL: Q, K, V are NOT the input! They are learned transformations of the input.',
+        ha='center', va='center', fontsize=11, fontweight='bold', color='#e65100')
+
+plt.tight_layout()
+plt.show()
+```
+
+Now let's see this in code:
+
+```{code-cell} ipython3
+# REALITY: Q, K, V come from learned projections of the embeddings
+import torch
+
+# Input: embeddings for "bank", "river", "loan"
+# Static embeddings (in reality, these would come from the embedding layer)
+bank_embedding = torch.tensor([0.5, 0.3, 0.8, 0.2])
+river_embedding = torch.tensor([0.2, 0.9, 0.1, 0.3])
+loan_embedding = torch.tensor([0.8, 0.1, 0.4, 0.7])
+
+embeddings = torch.stack([bank_embedding, river_embedding, loan_embedding])  # [3, 4]
+print("Input embeddings [3 tokens, 4 dims]:")
+print(embeddings)
+print()
+
+# Learned projection matrices (in real models, these are trained)
+# For this demo, we'll create random matrices
+torch.manual_seed(42)
+d_model = 4  # embedding dimension
+W_Q = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+W_K = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+W_V = torch.randn(d_model, d_model) * 0.5  # [4, 4]
+
+# Project embeddings to Q, K, V
+Q = embeddings @ W_Q  # [3, 4] @ [4, 4] = [3, 4]
+K = embeddings @ W_K  # [3, 4]
+V = embeddings @ W_V  # [3, 4]
+
+print("After learned projections:")
+print(f"  Q shape: {Q.shape}  (each embedding transformed by W_Q)")
+print(f"  K shape: {K.shape}  (each embedding transformed by W_K)")
+print(f"  V shape: {V.shape}  (each embedding transformed by W_V)")
+print()
+print("Q (queries):")
+print(Q)
+print()
+print("Notice: Q is DIFFERENT from the input embeddings!")
+print("The projection matrices mixed and transformed the original features.")
+```
+
+```{note}
+**Why "Query, Key, Value"?**
+
+This terminology comes from databases:
+- **Query**: What you're searching for (like "SELECT WHERE...")
+- **Key**: The index you search against (like database keys)
+- **Value**: The actual data you retrieve
+
+In attention, every word simultaneously plays all three roles for different parts of the computation. The projection matrices ($W^Q$, $W^K$, $W^V$) transform the same input embedding into these three specialized views.
+```
+
+---
+
+## Part 3: The Key Advantage - Parallelism
+
+### Everything Happens at Once
 
 Remember from [L02](L02_Embeddings_and_Positional_Encoding.md): *"The attention mechanism is **parallel**. It looks at every word in a sentence at the exact same time."*
 
@@ -503,9 +821,9 @@ Now let's see the math that makes this parallelism possible.
 
 ---
 
-## Part 2: The Math of Similarity
+## Part 4: The Math of Similarity
 
-In Part 1, we said that each word's **Query** compares against other words' **Keys** to find matches. But HOW do we "compare" two vectors? How do we measure if a Query is similar to a Key?
+In Part 1, we saw the intuition behind Q/K/V. In Part 2, we learned these are learned projections. In Part 3, we explored parallelism. Now let's dive into the math: How do we "compare" two vectors? How do we measure if a Query is similar to a Key?
 
 The answer: the **Dot Product**.
 
@@ -1177,7 +1495,7 @@ plt.show()
 
 ---
 
-## Part 3: Visualizing the Attention Map
+## Part 5: Visualizing the Attention Map
 
 We've explored attention through different lenses—from the "bank" disambiguation problem to pronoun resolution with the geometric view above. Now let's see the **full attention pattern** for our pronoun resolution example as a heatmap.
 
@@ -1287,9 +1605,9 @@ print(output)
 
 ---
 
-## Part 4: Implementation in PyTorch
+## Part 6: Implementation in PyTorch
 
-We've seen the intuition (Q/K/V filing cabinet), the math (dot products and scaling), and the visualization (attention heatmaps). Now let's see how remarkably simple the actual code is.
+We've seen the intuition (Q/K/V database lookup), learned projections, parallelism, the math (dot products and scaling), and visualization (attention heatmaps). Now let's see how remarkably simple the actual code is.
 
 We can implement this entire mechanism in fewer than 20 lines of code.
 
