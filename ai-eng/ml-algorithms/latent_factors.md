@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# The Hidden Power of Latent Factors
+# The Hidden Power of Latent Factors - [DRAFT]
 
 *Why reducing dimensions can make models more powerful*
 
