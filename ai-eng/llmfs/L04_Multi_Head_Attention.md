@@ -423,6 +423,12 @@ $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)
 # A minimal 4-step pipeline on tiny shapes with DETAILED OUTPUT
 import math
 
+import torch
+import torch.nn as nn
+
+B, S, D, H = 2, 4, 8, 2
+x = torch.randn(B, S, D)
+
 def split_heads(t, H):
     B, S, D = t.shape
     d_k = D // H
