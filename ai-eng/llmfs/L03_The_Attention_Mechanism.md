@@ -400,12 +400,12 @@ plt.show()
 
 1. **Q, K, V are Tables:** Each has one row per token, with columns representing dimensions (typically 512 in real transformers, though we show just a few here for clarity).
 
-2. **Step ①: Query-Key Matching:** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces attention scores:
+2. **Query-Key Matching (diagram Step ①):** When "bank" (the query token) wants to understand its context, it compares its Query vector Q["bank"] against ALL Key vectors. The comparison produces attention scores:
    - Q["bank"] · K["river"] = 0.50 (highest: disambiguates to geographical meaning!)
    - Q["bank"] · K["of"] = 0.30 (preposition - contextual glue)
    - Q["bank"] · K["The"] = 0.15 (less relevant determiner)
 
-3. **Step ②: Retrieve Values:** After softmax, these scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
+3. **Retrieve Values (diagram Step ②):** After softmax, these scores become weights that determine how much of each Value vector to retrieve. The final output for "bank" is a weighted combination: primarily V["river"] (50%), with contributions from V["of"] (30%) and other tokens. This shifts "bank" toward its geographical meaning!
 
 4. **Real Dimensions:** While we show 3-4 dimensions for clarity, real transformers use 512 or more dimensions, allowing for much richer semantic relationships.
 
