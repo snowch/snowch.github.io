@@ -1471,7 +1471,8 @@ We can implement this entire mechanism in fewer than 20 lines of code.
 
 Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
 
-```python
+
+```{code-cell} ipython3
 import torch
 import torch.nn as nn
 import math
@@ -1506,7 +1507,8 @@ class ScaledDotProductAttention(nn.Module):
 
 Now let's see how to use this class in practice. We need to create the projection layers and show the complete flow from embeddings to attention output:
 
-```python
+
+```{code-cell} ipython3
 import torch
 import torch.nn as nn
 
