@@ -201,6 +201,34 @@ This terminology comes from databases:
 In attention, every word simultaneously plays all three roles for different parts of the computation.
 ```
 
+Let's see this in action with a simple code example:
+
+```{code-cell} ipython3
+# Creating Query, Key, Value vectors for our "bank" example
+import torch
+
+# Static embedding for "bank"
+bank_embedding = torch.tensor([0.5, 0.3, 0.8, 0.2])
+
+# Context words
+river_embedding = torch.tensor([0.2, 0.9, 0.1, 0.3])
+loan_embedding = torch.tensor([0.8, 0.1, 0.4, 0.7])
+
+# Create Q, K, V (in reality, these projections are learned)
+Q_bank = bank_embedding
+K_river = river_embedding
+K_loan = loan_embedding
+
+# Compare similarities using dot product
+similarity_river = torch.dot(Q_bank, K_river)
+similarity_loan = torch.dot(Q_bank, K_loan)
+
+print("🔍 Query 'bank' comparing against context:")
+print(f"  Similarity to 'river': {similarity_river:.3f}")
+print(f"  Similarity to 'loan':  {similarity_loan:.3f}")
+print(f"\n{'river' if similarity_river > similarity_loan else 'loan'} has higher similarity!")
+```
+
 ### The Key Advantage: Everything Happens at Once
 
 Remember from [L02](L02_Embeddings_and_Positional_Encoding.md): *"The attention mechanism is **parallel**. It looks at every word in a sentence at the exact same time."*
@@ -363,6 +391,25 @@ In the plot below, we compare a **Query (Blue)** against three different **Keys*
 * **K2 (Long):** Perfectly aligned with Q, but large.
 * **K3 (Misaligned):** Pointing in a different direction.
 
+First, let's compute the scores numerically to see the problem:
+
+```{code-cell} ipython3
+# Computing dot products to measure similarity
+import torch
+
+Q = torch.tensor([3.0, 1.0])
+K1_short = torch.tensor([1.5, 0.5])
+K2_long = torch.tensor([4.5, 1.5])
+K3_misaligned = torch.tensor([1.0, 4.0])
+
+print("🎯 Dot Product Scores:")
+print(f"  K1 (short, aligned):     {torch.dot(Q, K1_short):.1f}")
+print(f"  K2 (long, aligned):      {torch.dot(Q, K2_long):.1f}")
+print(f"  K3 (misaligned):         {torch.dot(Q, K3_misaligned):.1f}")
+print(f"\n⚠️  K3 (misaligned) scores higher than K1 (aligned)!")
+print(f"     This is the magnitude problem we need to fix with scaling.")
+```
+
 ```{code-cell} ipython3
 :tags: [remove-input]
 
@@ -470,6 +517,36 @@ The scaling factor isn't arbitrary. As dimension $d_k$ increases, dot products b
 Without this scaling, models with larger dimensions (512, 1024, etc.) would produce extremely large scores, making the attention mechanism unstable. The square root relationship ensures that doubling the dimension only increases typical scores by √2 ≈ 1.4x, not 2x.
 ```
 
+Let's see scaling in action with a concrete example:
+
+```{code-cell} ipython3
+# Why scaling matters: A concrete example
+import torch
+
+Q = torch.tensor([3.0, 1.0])
+K_aligned = torch.tensor([3.0, 1.0])
+K_misaligned = torch.tensor([1.0, 4.0])
+
+score_aligned = torch.dot(Q, K_aligned)
+score_misaligned = torch.dot(Q, K_misaligned)
+
+print("Without Scaling:")
+print(f"  Aligned score:     {score_aligned:.1f}")
+print(f"  Misaligned score:  {score_misaligned:.1f}")
+print(f"  Ratio:             {score_aligned/score_misaligned:.2f}x\n")
+
+# Apply scaling
+d_k = 2
+scaled_aligned = score_aligned / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
+scaled_misaligned = score_misaligned / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
+
+print("With Scaling (÷√2 ≈ ÷1.41):")
+print(f"  Aligned score:     {scaled_aligned:.2f}")
+print(f"  Misaligned score:  {scaled_misaligned:.2f}")
+print(f"  Ratio:             {scaled_aligned/scaled_misaligned:.2f}x")
+print(f"\n✓ The ratio stays the same, but values are controlled")
+```
+
 ### The Formula
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
@@ -571,6 +648,52 @@ For this pedagogical example, we're using hand-picked 2D vectors (like Q=[3,1]) 
   * **V_animal:** `[2.0, 1.5]`
   * **V_street:** `[0.5, 0.3]`
   * **V_because:** `[-0.5, 1.2]`
+
+Let's compute all four steps in executable code:
+
+```{code-cell} ipython3
+import torch
+import torch.nn.functional as F
+
+# Inputs
+Q = torch.tensor([3.0, 1.0])
+K = {
+    'animal': torch.tensor([3.0, 1.0]),
+    'street': torch.tensor([1.0, 4.0]),
+    'because': torch.tensor([1.5, 0.5])
+}
+V = {
+    'animal': torch.tensor([2.0, 1.5]),
+    'street': torch.tensor([0.5, 0.3]),
+    'because': torch.tensor([-0.5, 1.2])
+}
+
+print("Step 1: Compute Dot Products (Raw Scores)")
+scores = {name: torch.dot(Q, k).item() for name, k in K.items()}
+for name, score in scores.items():
+    print(f"  {name:8s}: {score:.1f}")
+
+print("\nStep 2: Scale by √d_k")
+d_k = 2
+scaled = {name: score / torch.sqrt(torch.tensor(d_k)).item() for name, score in scores.items()}
+for name, score in scaled.items():
+    print(f"  {name:8s}: {score:.2f}")
+
+print("\nStep 3: Softmax (Convert to Probabilities)")
+scaled_tensor = torch.tensor(list(scaled.values()))
+weights_tensor = F.softmax(scaled_tensor, dim=0)
+
+for name, weight in zip(K.keys(), weights_tensor):
+    print(f"  {name:8s}: {weight:.2f} ({weight*100:.0f}%)")
+
+print("\nStep 4: Weighted Sum (Combine Values)")
+V_stacked = torch.stack([V[name] for name in K.keys()])
+context = torch.sum(weights_tensor.unsqueeze(1) * V_stacked, dim=0)
+print(f"  Final context vector: [{context[0]:.2f}, {context[1]:.2f}]")
+print(f"\n✓ Context is dominated by 'animal' (87% weight)")
+```
+
+Now let's walk through each step in detail:
 
 **Step 1: The Dot Product ($QK^T$)** - Computing Raw Scores
 * Score (animal): $(3 \times 3) + (1 \times 1) = 10$
@@ -994,6 +1117,41 @@ In practice, attention patterns in trained transformers are:
 - **Task-dependent**: What the model attends to depends on the training objective
 
 The pattern above shows the *ideal* behavior we'd hope to see—"it" resolving to "animal" rather than "street". Real attention maps are messier and more nuanced!
+```
+
+Before we implement the full attention class, let's see how attention works with real tensors:
+
+```{code-cell} ipython3
+# Test attention mechanism step-by-step with PyTorch
+import torch
+import torch.nn.functional as F
+
+# Create simple 3-token sequence with 4-dimensional embeddings
+Q = torch.tensor([[3.0, 1.0, 0.0, 0.0],
+                  [1.0, 4.0, 0.0, 0.0],
+                  [2.0, 2.0, 0.0, 0.0]])  # [3 tokens, 4 dims]
+K = Q.clone()  # For simplicity, keys = queries
+V = torch.tensor([[1.0, 0.0, 0.0, 0.0],
+                  [0.0, 1.0, 0.0, 0.0],
+                  [0.5, 0.5, 0.0, 0.0]])  # [3 tokens, 4 dims]
+
+d_k = Q.size(-1)
+
+# Step by step
+scores = torch.matmul(Q, K.T) / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
+print("Scaled Scores (each token attending to all tokens):")
+print(scores)
+print()
+
+weights = F.softmax(scores, dim=-1)
+print("Attention Weights (after softmax):")
+print(weights)
+print(f"Row sums (should be 1.0): {weights.sum(dim=-1)}")
+print()
+
+output = torch.matmul(weights, V)
+print("Output (context-aware representations):")
+print(output)
 ```
 
 ---
