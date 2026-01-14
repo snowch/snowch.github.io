@@ -180,6 +180,18 @@ Let's trace how "bank" would use attention to shift its meaning in "The **bank**
 3. "bank" finds the highest match with **"river"**
 4. It extracts the **Value** from "river" (its semantic meaning) and adds it to its own representation
 
+```{note}
+**An Important Subtlety:**
+
+This isn't a traditional lookup where "finding river" retrieves a fixed paired value. Instead:
+- The **Query** finds Keys that are **semantically similar** (via dot product similarity, not exact matching)
+- The **Key** and **Value** for "river" are **different learned encodings** of the same word:
+  - K["river"] might encode: "I'm a geographic term, a noun, concrete" (optimized for being *found* by relevant queries)
+  - V["river"] might encode: "flowing water, nature, banks, geography" (optimized for *contributing* semantic content)
+
+So attention uses the Query to find semantically related Keys, then retrieves the corresponding Values—which encode different aspects of meaning than the Keys do.
+```
+
 Now, the vector for "bank" is no longer just the static embedding; it is "bank + a lot of 'river' + a little bit of 'the' and 'of'". The representation has shifted toward the nature/geography meaning!
 
 Here's this process visualized. The diagram shows the complete attention computation: **Q × K^T → Softmax → Weighted Sum of V**. Notice how "bank" attends most strongly to "river" (0.50 weight), which disambiguates it toward the geographical meaning!
@@ -534,17 +546,6 @@ print(Q)
 print()
 print("Notice: Q is DIFFERENT from the input embeddings!")
 print("The projection matrices mixed and transformed the original features.")
-```
-
-```{note}
-**Why "Query, Key, Value"?**
-
-This terminology comes from databases:
-- **Query**: What you're searching for (like "SELECT WHERE...")
-- **Key**: The index you search against (like database keys)
-- **Value**: The actual data you retrieve
-
-In attention, every word simultaneously plays all three roles for different parts of the computation. The projection matrices ($W^Q$, $W^K$, $W^V$) transform the same input embedding into these three specialized views.
 ```
 
 ---
@@ -1364,7 +1365,12 @@ plt.show()
 
 **What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.78, 1.37]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
 
-**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is why we need separate Q, K, V projections—keys determine *how much* to attend (pronoun resolution via geometric alignment), but values determine *what* information to extract (semantic content).
+**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is fundamentally different from a traditional database lookup:
+
+- **Traditional database**: Query finds **exact key matches** → retrieves paired value (e.g., `user_id=123` → user data)
+- **Attention mechanism**: Query finds **semantically similar Keys** (via dot product) → retrieves **differently-encoded Values**
+
+This is why we need separate Q, K, V projections: K and V are different learned transformations of the same input. Keys determine *how much* to attend (semantic matching via geometric alignment), while Values determine *what information* to extract (the content to mix into the output). K["river"] might encode "geographic term, noun, concrete" (optimized for matching), while V["river"] encodes "flowing water, nature, geography" (semantic content to contribute).
 
 ---
 
