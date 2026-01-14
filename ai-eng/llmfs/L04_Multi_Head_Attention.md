@@ -37,7 +37,21 @@ By the end of this post, you'll understand:
 - Why we project vectors into different **Subspaces**.
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
-Before we dive in, here’s the **minimal notation** we’ll use throughout:
+```{important}
+**Quick Reminder from L03:** Before we dive into multi-head attention, let's reinforce a critical concept:
+
+**Q, K, V are NOT the input embeddings!** They are learned projections:
+$$Q = X \cdot W^Q, \quad K = X \cdot W^K, \quad V = X \cdot W^V$$
+
+Think of it like Instagram filters on a photo:
+- Same input embedding $X$ (the raw photo)
+- Three different learned filters ($W^Q, W^K, W^V$)
+- Three specialized outputs (Q, K, V) for different purposes
+
+In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. But the foundation is the same: projections, not raw inputs.
+```
+
+Before we dive in, here's the **minimal notation** we'll use throughout:
 
 - **$B$** = batch size (how many sequences at once)
 - **$S$** = sequence length (tokens per sequence)

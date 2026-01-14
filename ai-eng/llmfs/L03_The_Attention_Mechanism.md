@@ -213,7 +213,12 @@ They are **learned projections** computed from the embeddings:
 - $K = X \cdot W^K$ (where $W^K$ is a learned weight matrix)
 - $V = X \cdot W^V$ (where $W^V$ is a learned weight matrix)
 
-These projection matrices ($W^Q, W^K, W^V$) are learned during training. They transform the input embedding into three different "views" optimized for the attention mechanism.
+**The Analogy:** Think of your embedding as a raw photo. Q, K, V are like applying three different Instagram filters (learned during training):
+- **$W^Q$ filter:** Highlights "search-relevant" features
+- **$W^K$ filter:** Highlights "indexable" features
+- **$W^V$ filter:** Highlights "content to retrieve"
+
+These projection matrices are learned during training to optimize the attention mechanism.
 
 The example below uses a simplified version for pedagogy, but remember: in real transformers, there's always a learned projection step.
 ```
@@ -245,6 +250,80 @@ print(f"\n{'river' if similarity_river > similarity_loan else 'loan'} has higher
 ```
 
 Now let's see what **actually happens** in a real transformer - with learned projections:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 10)
+ax.axis('off')
+
+# Title
+ax.text(5, 9.5, 'How Q, K, V are Created from Input Embeddings',
+        ha='center', fontsize=16, fontweight='bold')
+
+# Input embedding box
+input_box = patches.Rectangle((1, 6.5), 2, 1.2,
+                               facecolor='#e3f2fd', edgecolor='#1976d2', linewidth=3)
+ax.add_patch(input_box)
+ax.text(2, 7.1, 'Input\nEmbedding X\n(512D)', ha='center', va='center',
+        fontsize=11, fontweight='bold')
+
+# Projection matrices
+matrices_y = [5.5, 3.5, 1.5]
+colors = ['#ffcdd2', '#c8e6c9', '#fff9c4']
+labels = ['W_Q', 'W_K', 'W_V']
+outputs = ['Q', 'K', 'V']
+descriptions = [
+    '"what I\'m\nsearching for"',
+    '"what I\nadvertise"',
+    '"content to\nextract"'
+]
+
+for i, (y, color, label, output, desc) in enumerate(zip(matrices_y, colors, labels, outputs, descriptions)):
+    # Arrow from input to matrix
+    ax.annotate('', xy=(4.5, y + 0.6), xytext=(3.2, 7.0),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='gray'))
+
+    # Matrix box
+    matrix_box = patches.Rectangle((4.5, y), 1.5, 1.2,
+                                   facecolor=color, edgecolor='black', linewidth=2)
+    ax.add_patch(matrix_box)
+    ax.text(5.25, y + 0.6, f'{label}\n(512×512)', ha='center', va='center',
+            fontsize=10, fontweight='bold')
+
+    # Arrow from matrix to output
+    ax.annotate('', xy=(7, y + 0.6), xytext=(6.2, y + 0.6),
+                arrowprops=dict(arrowstyle='->', lw=2.5, color='black'))
+
+    # Output box
+    output_box = patches.Rectangle((7, y), 1.5, 1.2,
+                                   facecolor=color, edgecolor='black', linewidth=3, alpha=0.7)
+    ax.add_patch(output_box)
+    ax.text(7.75, y + 0.6, f'{output}\n(512D)', ha='center', va='center',
+            fontsize=11, fontweight='bold')
+
+    # Description
+    ax.text(9, y + 0.6, desc, ha='left', va='center',
+            fontsize=9, style='italic', color='#555')
+
+# Key insight box at bottom
+insight_box = patches.FancyBboxPatch((0.5, 0.2), 9, 0.8,
+                                     boxstyle="round,pad=0.1",
+                                     facecolor='#fff3e0', edgecolor='#ff6f00', linewidth=2)
+ax.add_patch(insight_box)
+ax.text(5, 0.6, '⚠️  CRITICAL: Q, K, V are NOT the input! They are learned transformations of the input.',
+        ha='center', va='center', fontsize=11, fontweight='bold', color='#e65100')
+
+plt.tight_layout()
+plt.show()
+```
+
+Now let's see this in code:
 
 ```{code-cell} ipython3
 # REALITY: Q, K, V come from learned projections of the embeddings
@@ -1308,9 +1387,29 @@ For this single-head example, we could use d_k = d_model = 512, but using d_k = 
 
 ## Summary
 
-1. **Context Matters:** Standard embeddings are static. Attention makes them dynamic.
-2. **Q, K, V:** We project our input into "Queries" (Searches), "Keys" (Labels), and "Values" (Content).
-3. **Scaling:** We divide by $\sqrt{d_k}$ to stop the gradients from vanishing when vectors get large.
+1. **Context Matters:** Standard embeddings are static. Attention makes them dynamic by allowing words to look at each other.
+
+2. **Q, K, V are Learned Projections (NOT raw inputs!):**
+   - **Critical misconception to avoid:** Q, K, V are NOT the input embeddings
+   - They are computed via learned weight matrices: $Q = X \cdot W^Q$, $K = X \cdot W^K$, $V = X \cdot W^V$
+   - These projections transform the input into three specialized "views":
+     - **Q (Query):** What I'm searching for
+     - **K (Key):** What I advertise about myself
+     - **V (Value):** Content to extract and pass along
+   - The projection matrices ($W^Q, W^K, W^V$) are learned during training
+
+3. **The Attention Formula:**
+   $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+   - Compute similarity scores via dot product ($QK^T$)
+   - Scale by $\sqrt{d_k}$ to prevent gradient instability
+   - Softmax converts scores to probabilities (attention weights)
+   - Weighted sum of values produces context-aware representations
+
+4. **Parallelism:** Unlike RNNs, attention processes all positions simultaneously via matrix operations, enabling both speed and long-range dependencies.
+
+```{important}
+**Before Moving to L04:** Make sure you understand that Q, K, V are **computed from** the input embeddings via learned projections, not the embeddings themselves. This is the foundation for understanding how multi-head attention works!
+```
 
 **Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it" → "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
 
