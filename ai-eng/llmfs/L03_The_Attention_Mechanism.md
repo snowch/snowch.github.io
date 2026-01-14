@@ -160,7 +160,7 @@ By the end of this post, you'll understand:
 
 ---
 
-## Part 1: The Intuition (The Filing Cabinet)
+## Part 1: The Intuition
 
 **Solving the "Bank" Problem:**
 
