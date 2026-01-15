@@ -39,17 +39,12 @@ By the end of this post, you'll understand:
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
 :::{important}
-**Quick Reminder from L03:** Before we dive into multi-head attention, let's reinforce a critical concept:
+**Quick Reminder from L03:**
 
 **Q, K, V are NOT the input embeddings!** They are learned projections:
 $$Q = X \cdot W^Q, \quad K = X \cdot W^K, \quad V = X \cdot W^V$$
 
-Think of it like Instagram filters on a photo:
-- Same input embedding $X$ (the raw photo)
-- Three different learned filters ($W^Q, W^K, W^V$)
-- Three specialized outputs (Q, K, V) for different purposes
-
-In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. But the foundation is the same: projections, not raw inputs.
+In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. If you need a refresher on why we use projections instead of raw inputs, see [L03](L03_The_Attention_Mechanism.md).
 :::
 
 :::{code-cell} ipython3
@@ -100,33 +95,35 @@ Instead, we hire a **Committee of 8 Experts**:
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
 :::{code-cell} ipython3
-# Parameter-count intuition: "full 512 per head" vs "split into 8×64"
+# Parameter-count intuition: "full 512 per head" vs "reduced dims per head (8×64)"
 d_model = 512
 h = 8
-d_k = d_model // h
+d_k = d_model // h  # Each head gets 64 dimensions instead of 512
 
-# Full dims per head would imply separate (512×512) per head for each of Q,K,V
-full_per_head = 3 * h * (d_model * d_model)
+# Scenario A: Each head gets full 512-dim projections (wasteful)
+# Would need 8 separate (512×512) matrices for each of Q,K,V
+params_if_full = 3 * h * (d_model * d_model)
 
-# Split dims (each head projects 512 -> 64): per-head matrices 512×64 for Q,K,V
-split_per_head = 3 * h * (d_model * d_k)
+# Scenario B: Each head gets 64-dim projections (efficient)
+# Need 8 × (512×64) matrices for each of Q,K,V
+params_reduced = 3 * h * (d_model * d_k)
 
-# In practice, most implementations use one big matrix Wq of shape (512×512),
-# which is equivalent to concatenating 8 smaller (512×64) head projections.
-single_big = 3 * (d_model * d_model)
+# Scenario C: One big matrix (actual implementation)
+# Single (512×512) matrix for each of Q,K,V, then divide into heads
+params_actual = 3 * (d_model * d_model)
 
 print(f"d_model={d_model}, heads={h}, d_k={d_k}")
 
-print("QKV params:")
-print(f"  full/head: {full_per_head:,}")
-print(f"  split/head:{split_per_head:,}")
-print(f"  single:    {single_big:,}")
-print(f"  split==single? {split_per_head == single_big}")
+print("QKV parameters:")
+print(f"  if full dims:     {params_if_full:,}")
+print(f"  if reduced dims:  {params_reduced:,}")
+print(f"  actual (1 big W): {params_actual:,}")
+print(f"  reduced == actual? {params_reduced == params_actual}")
 :::
 
 :::{note} Why Lower Dimensions?
 
-The code above shows that splitting dimensions keeps parameters constant (786K vs 6.3M for full dimensions per head). But why do this instead of giving each head the full 512 dimensions?
+The code above shows that using reduced dimensions per head keeps parameters constant (786K vs 6.3M for full dimensions per head). But why do this instead of giving each head the full 512 dimensions?
 
 **Forced specialization.** With only 64 dimensions, each head must be selective about what it captures, encouraging distinct patterns:
 - Head 1 might focus on syntax (subject-verb agreement)
