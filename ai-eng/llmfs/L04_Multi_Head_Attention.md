@@ -273,9 +273,9 @@ Now that we understand the "why" (Specialization), let's look at the "how" (The 
 
 The Multi-Head Attention mechanism isn't a single black box; it is a **specific sequence of operations**. It allows the model to process information in parallel and then synthesize the results.
 
-### The subtle (but crucial) detail in Step 1
+### The Key Insight: Mix, Then Split
 
-The step most people misinterpret is **Step 1**.
+The operation most people misinterpret is the **split**.
 
 It's tempting to think multi-head attention "just splits the 512 dims into 8 chunks."
 That's **not** what happens.
