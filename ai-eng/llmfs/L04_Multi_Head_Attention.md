@@ -81,7 +81,7 @@ Think of the embedding dimension ($d_{model} = 512$) as a massive report contain
 - At **subsequent layers**: This is the output from the previous attention block - a contextualized representation that already incorporates information from earlier attention operations
 - The **dimension** (512) stays constant, but the **content** evolves through the layers
 
-We'll see how layers stack in L05 (Layer Norm & Residuals).
+We'll see how layers stack in [L05 (Layer Norm & Residuals)](L05_Layer_Normalization_and_Residuals.md).
 :::
 
 If we ask a single person to read that report and summarize "grammar," "tone," "tense," and "meaning" all at once, they might miss details.
@@ -264,7 +264,7 @@ We draw 3 heads for readability—imagine 8 in the real model.
 Heads don't split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes information from all 512 dimensions** into a new 512-dim vector.
 Only **after that** do we reshape into **8 × 64** and give each head one slice.
 
-We'll explore this "Mix, Then Split" process in detail in Part 2.
+We'll explore this "Mix, Then Split" process in detail in [Part 2](#l04-part2-pipeline).
 ::::
 
 ---
@@ -327,18 +327,18 @@ The **highlighted (pink) nodes** show what's NEW compared to L03's single-head a
 - **Concatenation** to merge head outputs
 - **Final output projection** $W^O$ to blend the heads
 
-The **uncolored nodes** are familiar from L03: input X and the Q/K/V projections.
+The **uncolored nodes** are familiar from [L03](L03_The_Attention_Mechanism.md): input X and the Q/K/V projections.
 :::
 
 :::{note} What is $X$ here?
 In **self-attention**, $Q$, $K$, and $V$ all come from the same input: $Q = XW^Q,\ K = XW^K,\ V = XW^V$
 
-(See Part 1 for what $X$ represents at different layers)
+(See [Part 1](#part-1-the-intuition-the-committee) for what $X$ represents at different layers)
 :::
 
 **The 4-Step Process**
 
-1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in [Part 1](#part-1-the-intuition-the-committee).
 2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
     $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
@@ -358,7 +358,7 @@ Instead, the split happens in two stages:
 1. **Mix (learned linear layer):** We first apply a learned matrix ($W^Q$, $W^K$, $W^V$). When you compute $Q = X \cdot W^Q$, each of the 512 output dimensions is a **weighted sum of ALL 512 input dimensions**. This means the network can learn to combine any input features together before splitting into heads.
 
    :::{note}
-   **These are the SAME $W^Q$, $W^K$, $W^V$ from L03!** The projection matrices work identically - they're still learned (512×512) matrices that mix input features. The only difference in L04 is what we do with the outputs: we reshape them into multiple heads instead of using them as-is.
+   **These are the SAME $W^Q$, $W^K$, $W^V$ from [L03](L03_The_Attention_Mechanism.md)!** The projection matrices work identically - they're still learned (512×512) matrices that mix input features. The only difference in L04 is what we do with the outputs: we reshape them into multiple heads instead of using them as-is.
    :::
 
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
