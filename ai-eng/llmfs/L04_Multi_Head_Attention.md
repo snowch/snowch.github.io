@@ -264,138 +264,6 @@ Heads don’t split the *raw* embedding. First, a learned projection ($W^Q$, $W^
 Only **after that** do we reshape into **8 × 64** and give each head one slice.
 ::::
 
-The snippet below connects that note to code: it uses the **same tiny $B,S,D,H$ example** defined earlier, applies the **mixing projection** ($W^Q$), and then performs the **reshape into heads**. The printed shapes are the concrete evidence that the narrative description matches what PyTorch actually does.
-
-:::{code-cell} ipython3
-# Concrete mini-demo of "mix THEN split" using our tiny running example above
-# Reuse the same shape as the first example: B,S,D = 2,4,8, H=2
-B, S, D, H = 2, 4, 8, 2
-x = torch.randn(B, S, D)
-
-Wq = torch.randn(D, D)  # "mix": each output dim can use all D inputs
-q = x @ Wq              # [B,S,D]
-
-# Safety check: head dims must multiply back to D
-d_k = D // H
-assert D % H == 0, "D must be divisible by H so that D = H * d_k"
-
-qh = q.view(B, S, H, d_k)             # split last dim into heads×d_k
-qh = qh.transpose(1, 2).contiguous()  # [B,H,S,d_k]
-
-print("x:", x.shape)
-print("q = x @ Wq:", q.shape)
-print("qh after view+transpose:", qh.shape)
-
-# Show that each head slice is just a different view of the mixed q
-head0 = qh[:, 0]  # [B,S,d_k]
-head1 = qh[:, 1]  # [B,S,d_k]
-print("head0/head1:", head0.shape, head1.shape)
-:::
-
-### A Concrete 2-Head Example
-
-Before diving into the full pipeline, let's trace a complete example with **2 heads** on a tiny sequence. We'll see how different heads can learn to focus on different relationships.
-
-**Setup:** 3 tokens, 4-dimensional embeddings, split into 2 heads (2 dims each)
-
-:::{code-cell} ipython3
-import torch
-import torch.nn.functional as F
-import math
-
-# Simple 3-token sequence: "cat sat mat"
-# Using 4D embeddings for simplicity
-torch.manual_seed(42)
-
-tokens = ["cat", "sat", "mat"]
-S = 3  # sequence length
-D = 4  # embedding dimension
-H = 2  # number of heads
-d_k = D // H  # 2 dims per head
-
-# Create simple embeddings (normally from an embedding layer)
-embeddings = torch.tensor([
-    [1.0, 0.0, 0.5, 0.3],  # "cat"
-    [0.0, 1.0, 0.4, 0.6],  # "sat"
-    [0.5, 0.5, 0.8, 0.2],  # "mat"
-])  # [S, D] = [3, 4]
-
-print("Input Embeddings [S, D]:")
-for i, token in enumerate(tokens):
-    print(f"  {token}: {embeddings[i].tolist()}")
-print()
-
-# Create projection matrices (normally learned)
-# For this demo, we'll use simple matrices that create interesting patterns
-torch.manual_seed(123)
-W_q = torch.randn(D, D) * 0.5
-W_k = torch.randn(D, D) * 0.5
-W_v = torch.randn(D, D) * 0.5
-
-# Step 1: Project to Q, K, V
-Q = embeddings @ W_q  # [S, D]
-K = embeddings @ W_k  # [S, D]
-V = embeddings @ W_v  # [S, D]
-
-print("After projection [S, D]:")
-print(f"  Q shape: {Q.shape}")
-print(f"  K shape: {K.shape}")
-print(f"  V shape: {V.shape}")
-print()
-
-# Step 2: Split into heads [S, H, d_k] then transpose to [H, S, d_k]
-Q_heads = Q.view(S, H, d_k).transpose(0, 1)  # [H, S, d_k]
-K_heads = K.view(S, H, d_k).transpose(0, 1)
-V_heads = V.view(S, H, d_k).transpose(0, 1)
-
-print(f"After split: [H, S, d_k] = {Q_heads.shape}")
-print()
-
-# Step 3: Compute attention for each head independently
-print("=" * 60)
-print("HEAD-BY-HEAD ATTENTION PATTERNS")
-print("=" * 60)
-
-head_outputs = []
-for h in range(H):
-    print(f"\n📍 Head {h+1}:")
-    print("-" * 40)
-
-    q_h = Q_heads[h]  # [S, d_k]
-    k_h = K_heads[h]  # [S, d_k]
-    v_h = V_heads[h]  # [S, d_k]
-
-    # Compute attention scores
-    scores = (q_h @ k_h.T) / math.sqrt(d_k)  # [S, S]
-    weights = F.softmax(scores, dim=-1)
-
-    print(f"Attention Weights [S, S]:")
-    print("        " + "  ".join(f"{t:>6s}" for t in tokens))
-    for i, token in enumerate(tokens):
-        weights_str = "  ".join(f"{weights[i, j]:6.2f}" for j in range(S))
-        print(f"  {token:>4s}   {weights_str}")
-
-    # Apply attention to values
-    output_h = weights @ v_h  # [S, d_k]
-    head_outputs.append(output_h)
-
-    print(f"\nHead {h+1} output [S, d_k={d_k}]: shape {output_h.shape}")
-
-# Step 4: Concatenate heads
-concat = torch.cat(head_outputs, dim=-1)  # [S, D]
-print("\n" + "=" * 60)
-print(f"After concatenation [S, D]: {concat.shape}")
-print("=" * 60)
-print("\n✓ Each head learned different attention patterns!")
-print("✓ Concatenation combines their perspectives into [S, D] output")
-:::
-
-**Key Insight:** Notice how each head produces different attention weights. In a trained model:
-- **Head 1** might focus on syntactic relationships (subject-verb)
-- **Head 2** might focus on semantic relationships (word meaning)
-
-The concatenation merges these different "views" into a richer representation.
-
 ---
 
 (l04-part2-pipeline)=
@@ -405,166 +273,12 @@ Now that we understand the "why" (Specialization), let's look at the "how" (The 
 
 The Multi-Head Attention mechanism isn't a single black box; it is a **specific sequence of operations**. It allows the model to process information in parallel and then synthesize the results.
 
-**The 4-Step Process**
-
-1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
-2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
-    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
-3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
-4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
-
-$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
-
-:::{code-cell} ipython3
-# A minimal 4-step pipeline on tiny shapes with DETAILED OUTPUT
-import math
-
-import torch
-import torch.nn as nn
-
-B, S, D, H = 2, 4, 8, 2
-x = torch.randn(B, S, D)
-
-def split_heads(t, H):
-    B, S, D = t.shape
-    d_k = D // H
-    return t.view(B, S, H, d_k).transpose(1, 2)  # [B,H,S,d_k]
-
-def merge_heads(t):
-    B, H, S, d_k = t.shape
-    return t.transpose(1, 2).contiguous().view(B, S, H * d_k)  # [B,S,D]
-
-def scaled_dot_attn(qh, kh, vh):
-    # qh,kh,vh: [B,H,S,d_k]
-    scores = qh @ kh.transpose(-2, -1) / math.sqrt(qh.shape[-1])  # [B,H,S,S]
-    attn = torch.softmax(scores, dim=-1)
-    out = attn @ vh  # [B,H,S,d_k]
-    return out, attn
-
-print("=" * 70)
-print("MULTI-HEAD ATTENTION: 4-STEP PIPELINE")
-print("=" * 70)
-print(f"Starting with input x: {x.shape} (Batch={B}, Seq={S}, D={D})")
-print(f"Using {H} heads, each with d_k={D//H} dimensions")
-print()
-
-# Step 1: linear projections (Mix)
-print("Step 1: LINEAR PROJECTIONS (Mix)")
-print("-" * 70)
-Wq = torch.randn(D, D)
-Wk = torch.randn(D, D)
-Wv = torch.randn(D, D)
-Wo = torch.randn(D, D)
-
-q = x @ Wq
-k = x @ Wk
-v = x @ Wv
-print(f"  Q = x @ W_q: {q.shape}")
-print(f"  K = x @ W_k: {k.shape}")
-print(f"  V = x @ W_v: {v.shape}")
-print("  ✓ Each projection mixes ALL D input dimensions")
-print()
-
-# Step 1 continued: Split
-print("Step 1b: SPLIT INTO HEADS")
-print("-" * 70)
-qh = split_heads(q, H)
-kh = split_heads(k, H)
-vh = split_heads(v, H)
-print(f"  After split: {qh.shape} = [B, H, S, d_k]")
-print(f"  ✓ Now we have {H} independent attention mechanisms in parallel")
-print()
-
-# Step 2: independent attention (in parallel)
-print("Step 2: SCALED DOT-PRODUCT ATTENTION (Per Head)")
-print("-" * 70)
-out_h, attn = scaled_dot_attn(qh, kh, vh)
-print(f"  Attention weights: {attn.shape} = [B, H, S, S]")
-print(f"  Head outputs: {out_h.shape} = [B, H, S, d_k]")
-print(f"  ✓ Each of {H} heads computed attention independently")
-print()
-
-# Show attention weights for first batch, first head
-print(f"  Example: Attention weights from batch 0, head 0:")
-print(f"  {attn[0, 0]}")
-print()
-
-# Step 3: concat
-print("Step 3: CONCATENATE HEADS")
-print("-" * 70)
-concat = merge_heads(out_h)
-print(f"  Before concat: {out_h.shape} = [B, H, S, d_k]")
-print(f"  After concat: {concat.shape} = [B, S, D]")
-print(f"  ✓ Merged {H} × {D//H} = {D} dimensions back together")
-print()
-
-# Step 4: final mix
-print("Step 4: FINAL OUTPUT PROJECTION")
-print("-" * 70)
-y = concat @ Wo
-print(f"  Final output: {y.shape} = [B, S, D]")
-print(f"  ✓ One more learned mixing to combine head perspectives")
-print()
-
-print("=" * 70)
-print("✓ COMPLETE: Input [B,S,D] → Output [B,S,D]")
-print("=" * 70)
-:::
-
-Let's visualize this flow:
-
-:::{mermaid}
-%%{init: {'theme': 'neutral'} }%%
-graph TD
-    X["$$X\\ (\\text{token representations — see note below})$$"]
-
-    WQ["$$W^{Q}$$"]
-    WK["$$W^{K}$$"]
-    WV["$$W^{V}$$"]
-    WO["$$W^{O}$$"]
-
-    X --> WQ --> LQ["1. Linear Projection (Q)"]
-    X --> WK --> LK["1. Linear Projection (K)"]
-    X --> WV --> LV["1. Linear Projection (V)"]
-
-    LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
-    LK --> H1
-    LV --> H1
-
-    LQ --> H2["2. $$Head\\ i = \\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
-    LK --> H2
-    LV --> H2
-
-    LQ --> H8["2. $$Head\\ h = \\mathrm{Attention}(Q W_{h}^{Q},\\ K W_{h}^{K},\\ V W_{h}^{V})$$"]
-    LK --> H8
-    LV --> H8
-
-    H1 --> C["3. Concatenate"]
-    H2 --> C
-    H8 --> C
-
-    C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
-    O --> Out["Multi-Head Output"]
-:::
-
-:::{note} What is $X$ here?
-In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
-
-$$
-Q = XW^Q,\quad K = XW^K,\quad V = XW^V
-$$
-
-- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
-- In **later layers**, $X$ is the **hidden state output** from the previous block.
-:::
-
-
 ### The subtle (but crucial) detail in Step 1
 
 The step most people misinterpret is **Step 1**.
 
-It’s tempting to think multi-head attention “just splits the 512 dims into 8 chunks.”  
-That’s **not** what happens.
+It's tempting to think multi-head attention "just splits the 512 dims into 8 chunks."
+That's **not** what happens.
 
 Instead, the split happens in two stages:
 
@@ -578,6 +292,7 @@ This is what makes head specialization possible: training can learn weights so t
 :::{code-cell} ipython3
 # A tiny numeric "mix" example: every output dim is a weighted sum of ALL input dims
 torch.manual_seed(1)
+D = 8  # embedding dimension (from earlier examples)
 x0 = torch.randn(D)           # one token vector [D]
 W = torch.randn(D, D)         # mix matrix [D,D]
 q0 = x0 @ W                   # [D]
@@ -592,7 +307,7 @@ print(f"q0[{j}] computed by PyTorch:", q0[j].item())
 print(f"q0[{j}] computed manually:  ", manual.item())
 :::
 
-Let’s visualize that “Mix → Split” distinction (shown for $\mathbf{W^Q}$, but $W^K$ and $W^V$ work identically):
+Let's visualize that "Mix → Split" distinction (shown for $\mathbf{W^Q}$, but $W^K$ and $W^V$ work identically):
 
 :::{code-cell} ipython3
 :tags: [remove-input]
@@ -842,6 +557,159 @@ def plot_mix_then_split():
     plt.show()
 
 plot_mix_then_split()
+:::
+
+**The 4-Step Process**
+
+1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
+    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
+3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
+4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
+
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+
+:::{code-cell} ipython3
+# A minimal 4-step pipeline on tiny shapes with DETAILED OUTPUT
+import math
+
+import torch
+import torch.nn as nn
+
+B, S, D, H = 2, 4, 8, 2
+x = torch.randn(B, S, D)
+
+def split_heads(t, H):
+    B, S, D = t.shape
+    d_k = D // H
+    return t.view(B, S, H, d_k).transpose(1, 2)  # [B,H,S,d_k]
+
+def merge_heads(t):
+    B, H, S, d_k = t.shape
+    return t.transpose(1, 2).contiguous().view(B, S, H * d_k)  # [B,S,D]
+
+def scaled_dot_attn(qh, kh, vh):
+    # qh,kh,vh: [B,H,S,d_k]
+    scores = qh @ kh.transpose(-2, -1) / math.sqrt(qh.shape[-1])  # [B,H,S,S]
+    attn = torch.softmax(scores, dim=-1)
+    out = attn @ vh  # [B,H,S,d_k]
+    return out, attn
+
+print("=" * 70)
+print("MULTI-HEAD ATTENTION: 4-STEP PIPELINE")
+print("=" * 70)
+print(f"Starting with input x: {x.shape} (Batch={B}, Seq={S}, D={D})")
+print(f"Using {H} heads, each with d_k={D//H} dimensions")
+print()
+
+# Step 1: linear projections (Mix)
+print("Step 1: LINEAR PROJECTIONS (Mix)")
+print("-" * 70)
+Wq = torch.randn(D, D)
+Wk = torch.randn(D, D)
+Wv = torch.randn(D, D)
+Wo = torch.randn(D, D)
+
+q = x @ Wq
+k = x @ Wk
+v = x @ Wv
+print(f"  Q = x @ W_q: {q.shape}")
+print(f"  K = x @ W_k: {k.shape}")
+print(f"  V = x @ W_v: {v.shape}")
+print("  ✓ Each projection mixes ALL D input dimensions")
+print()
+
+# Step 1 continued: Split
+print("Step 1b: SPLIT INTO HEADS")
+print("-" * 70)
+qh = split_heads(q, H)
+kh = split_heads(k, H)
+vh = split_heads(v, H)
+print(f"  After split: {qh.shape} = [B, H, S, d_k]")
+print(f"  ✓ Now we have {H} independent attention mechanisms in parallel")
+print()
+
+# Step 2: independent attention (in parallel)
+print("Step 2: SCALED DOT-PRODUCT ATTENTION (Per Head)")
+print("-" * 70)
+out_h, attn = scaled_dot_attn(qh, kh, vh)
+print(f"  Attention weights: {attn.shape} = [B, H, S, S]")
+print(f"  Head outputs: {out_h.shape} = [B, H, S, d_k]")
+print(f"  ✓ Each of {H} heads computed attention independently")
+print()
+
+# Show attention weights for first batch, first head
+print(f"  Example: Attention weights from batch 0, head 0:")
+print(f"  {attn[0, 0]}")
+print()
+
+# Step 3: concat
+print("Step 3: CONCATENATE HEADS")
+print("-" * 70)
+concat = merge_heads(out_h)
+print(f"  Before concat: {out_h.shape} = [B, H, S, d_k]")
+print(f"  After concat: {concat.shape} = [B, S, D]")
+print(f"  ✓ Merged {H} × {D//H} = {D} dimensions back together")
+print()
+
+# Step 4: final mix
+print("Step 4: FINAL OUTPUT PROJECTION")
+print("-" * 70)
+y = concat @ Wo
+print(f"  Final output: {y.shape} = [B, S, D]")
+print(f"  ✓ One more learned mixing to combine head perspectives")
+print()
+
+print("=" * 70)
+print("✓ COMPLETE: Input [B,S,D] → Output [B,S,D]")
+print("=" * 70)
+:::
+
+Let's visualize this flow:
+
+:::{mermaid}
+%%{init: {'theme': 'neutral'} }%%
+graph TD
+    X["$$X\\ (\\text{token representations — see note below})$$"]
+
+    WQ["$$W^{Q}$$"]
+    WK["$$W^{K}$$"]
+    WV["$$W^{V}$$"]
+    WO["$$W^{O}$$"]
+
+    X --> WQ --> LQ["1. Linear Projection (Q)"]
+    X --> WK --> LK["1. Linear Projection (K)"]
+    X --> WV --> LV["1. Linear Projection (V)"]
+
+    LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
+    LK --> H1
+    LV --> H1
+
+    LQ --> H2["2. $$Head\\ i = \\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
+    LK --> H2
+    LV --> H2
+
+    LQ --> H8["2. $$Head\\ h = \\mathrm{Attention}(Q W_{h}^{Q},\\ K W_{h}^{K},\\ V W_{h}^{V})$$"]
+    LK --> H8
+    LV --> H8
+
+    H1 --> C["3. Concatenate"]
+    H2 --> C
+    H8 --> C
+
+    C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
+    O --> Out["Multi-Head Output"]
+:::
+
+:::{note} What is $X$ here?
+In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
+
+$$
+Q = XW^Q,\quad K = XW^K,\quad V = XW^V
+$$
+
+- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
+- In **later layers**, $X$ is the **hidden state output** from the previous block.
 :::
 
 ---
