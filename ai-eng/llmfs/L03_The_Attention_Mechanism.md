@@ -1712,16 +1712,6 @@ print("  ↳ Final context-aware token representations")
 3. **Attention** operates on these projected vectors
 4. The attention weights show how much each token attends to every other token
 
-```{note}
-**Why is d_k smaller than d_model?**
-
-In this example, we project from 512 dimensions down to 64. This is typical for a single attention head. Note that Q, K, and V all have the same dimensionality (d_k = 64) - this is required for the matrix operations in attention to work.
-
-In L04 (Multi-Head Attention), we'll see that d_model (512) gets split across 8 heads, so each head operates in a 64-dimensional subspace (512 ÷ 8 = 64).
-
-For this single-head example, we could use d_k = d_model = 512, but using d_k = 64 shows the typical setup you'll see in real transformers.
-```
-
 ---
 
 ## Summary
