@@ -109,7 +109,8 @@ params_if_full = 3 * h * (d_model * d_model)  # 3 = Q, K, V
 params_reduced = 3 * h * (d_model * d_k)  # 3 = Q, K, V
 
 # Scenario C: One big matrix (actual implementation)
-# Single (512×512) matrix for EACH of Q, K, V (3 matrices total), then divide into heads
+# Single (512×512) matrix for EACH of Q, K, V (3 matrices total)
+# THEN reshape the 512-dim output into 8 heads × 64 dims (the "split" operation)
 params_actual = 3 * (d_model * d_model)  # 3 = Q, K, V
 
 print(f"d_model={d_model}, heads={h}, d_k={d_k}")
@@ -119,6 +120,9 @@ print(f"  if full dims:     {params_if_full:,}")
 print(f"  if reduced dims:  {params_reduced:,}")
 print(f"  actual (1 big W): {params_actual:,}")
 print(f"  reduced == actual? {params_reduced == params_actual}")
+print()
+print("Note: Scenario C has the SAME param count as single-head attention,")
+print("but the difference is in the OUTPUT: we reshape it into 8 heads × 64 dims")
 :::
 
 :::{note} Why Lower Dimensions?
