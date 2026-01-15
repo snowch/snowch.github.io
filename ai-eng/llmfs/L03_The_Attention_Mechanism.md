@@ -1648,10 +1648,17 @@ import torch
 import torch.nn as nn
 
 # Example: Process a batch of 2 sequences, each with 10 tokens
-batch_size = 2
-seq_len = 10
-d_model = 512  # Embedding dimension
-d_k = 64       # Dimensionality of Q, K, and V vectors (all must be same size)
+# These values are intentionally small for demonstration purposes
+batch_size = 2     # Small for demo (production: 8-512 depending on GPU memory)
+seq_len = 10       # Short for demo (production: 128-2048+ depending on model)
+d_model = 512      # Standard embedding dimension (used in BERT-base, GPT-2)
+d_k = 64           # Dimensionality of Q, K, and V (= d_model / num_heads in multi-head)
+
+# In production, hyperparameters are chosen based on:
+# - batch_size: GPU memory constraints (larger = faster training but needs more VRAM)
+# - seq_len: Task requirements (longer = more context but quadratic memory cost)
+# - d_model: Model capacity (512 for base models, 768-1024 for large, 2048+ for XL)
+# - d_k: Usually d_model / num_heads (e.g., 512 / 8 = 64 for 8-head attention)
 
 # Step 1: Start with embeddings (normally from an embedding layer)
 # Shape: [batch, seq, d_model]
