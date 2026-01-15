@@ -1682,23 +1682,21 @@ attention = ScaledDotProductAttention(d_k=d_k)
 output, attn_weights = attention(q, k, v)
 
 print("=" * 70)
-print("SHAPES")
+print("ATTENTION COMPUTATION")
 print("=" * 70)
+print("Formula: Attention(Q,K,V) = softmax(QK^T/√d_k) V")
+print()
 print(f"Input embeddings shape: {embeddings.shape}")  # [2, 10, 512]
 print(f"Q, K, V shapes: {q.shape}")                   # [2, 10, 64]
+print()
+print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10] = [B, S, S]
+print("  ↳ Result of: softmax(QK^T/√d_k)")
+print("  ↳ Shape: [batch, query_pos, key_pos]")
+print("  ↳ Each query attends to all keys (sums to 1.0)")
+print()
 print(f"Attention output shape: {output.shape}")       # [2, 10, 64]
-print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10]
-#                                                        # ↑ each token's attention
-#                                                        # distribution over all tokens
-
-print("\n" + "=" * 70)
-print("EXAMPLE: Attention weights for position 0 in sequence 0")
-print("=" * 70)
-print("This shows how much token 0 attends to each of the 10 tokens:")
-print(attn_weights[0, 0])  # [10] - attention distribution for first token
-print(f"\nSum of weights (should be 1.0): {attn_weights[0, 0].sum().item():.4f}")
-print("\n✓ These are probabilities - they sum to 1.0!")
-print("✓ Each value represents how much this position attends to each token")
+print("  ↳ Result of: weights @ V")
+print("  ↳ Final context-aware token representations")
 ```
 
 **Key Points:**
