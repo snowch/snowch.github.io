@@ -124,21 +124,16 @@ print(f"  single:    {single_big:,}")
 print(f"  split==single? {split_per_head == single_big}")
 :::
 
-:::{note} Why Lower Dimensions? Why Not Give Each Head the Full 512 Dimensions?
+:::{note} Why Lower Dimensions?
 
-**The Short Answer:** Computational efficiency and forced specialization.
+The code above shows that splitting dimensions keeps parameters constant (786K vs 6.3M for full dimensions per head). But why do this instead of giving each head the full 512 dimensions?
 
-If each of the 8 heads used the full $d_{model} = 512$ dimensions:
-- We'd need **8× the parameters** ($W^Q, W^K, W^V$ for each head would each be $512 \times 512$ instead of $512 \times 64$)
-- We'd need **8× the computation** (each attention operation scales with $d_k$)
-- Heads might learn **redundant patterns** rather than specializing
+**Forced specialization.** With only 64 dimensions, each head must be selective about what it captures, encouraging distinct patterns:
+- Head 1 might focus on syntax (subject-verb agreement)
+- Head 2 might focus on semantics (word meaning relationships)
+- Head 3 might focus on positional patterns (nearby vs distant dependencies)
 
-By splitting the dimensions ($d_k = d_{model}/h = 64$):
-- **Total parameters stay constant:** 8 heads × 64 dims ≈ 1 head × 512 dims
-- **Computational cost is comparable** to single-head attention
-- **The constraint forces specialization:** Each head must compress its focus into fewer dimensions, encouraging it to capture distinct linguistic patterns
-
-Think of it like hiring specialists with limited notepads. If each expert had unlimited space, they might all write the same general report. But with only 64 dimensions, each head is forced to be selective and focus on what matters most to its specialized role.
+Think of it like hiring specialists with limited notepads. If each expert had unlimited space, they might all write the same general report. But with only 64 dimensions, each head is forced to focus on what matters most to its specialized role.
 :::
 
 :::{important} The Roles Are Learned, Not Assigned
