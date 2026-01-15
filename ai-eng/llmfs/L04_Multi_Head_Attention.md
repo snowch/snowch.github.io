@@ -356,7 +356,7 @@ Instead, the split happens in two stages:
 1. **Mix (learned linear layer):** We first apply a learned matrix ($W^Q$, $W^K$, $W^V$). When you compute $Q = X \cdot W^Q$, each of the 512 output dimensions is a **weighted sum of ALL 512 input dimensions**. This means the network can learn to combine any input features together before splitting into heads.
 
    :::{note}
-   **This is the SAME W^Q from L03!** The projection matrix works identically - it's still a learned (512×512) matrix that mixes input features. The only difference in L04 is what we do with the output: we reshape it into multiple heads instead of using it as-is.
+   **These are the SAME $W^Q$, $W^K$, $W^V$ from L03!** The projection matrices work identically - they're still learned (512×512) matrices that mix input features. The only difference in L04 is what we do with the outputs: we reshape them into multiple heads instead of using them as-is.
    :::
 
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
