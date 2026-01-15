@@ -325,14 +325,9 @@ The **uncolored nodes** are familiar from L03: input X and the Q/K/V projections
 :::
 
 :::{note} What is $X$ here?
-In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
+In **self-attention**, $Q$, $K$, and $V$ all come from the same input: $Q = XW^Q,\ K = XW^K,\ V = XW^V$
 
-$$
-Q = XW^Q,\quad K = XW^K,\quad V = XW^V
-$$
-
-- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
-- In **later layers**, $X$ is the **hidden state output** from the previous block.
+(See Part 1 for what $X$ represents at different layers)
 :::
 
 **The 4-Step Process**
