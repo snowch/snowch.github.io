@@ -829,7 +829,7 @@ Now look at **K1 (Short)**. It scored **5.0**.
 
 The "Misaligned" vector beat the "Perfectly Aligned" vector simply because it was longer. If we don't fix this, our model will prioritize "loud" signals (large numbers) over "correct" signals (aligned meaning).
 
-We fix this by **Scaling**: we divide the result by the square root of the dimension ($\sqrt{d_k}$). This normalizes the scores so the model focuses on alignment, not magnitude.
+We fix this by **Scaling**: we divide the result by the square root of the dimension ($\sqrt{d_k}$), where $d_k$ is the dimensionality of the Q and K vectors. This normalizes the scores so the model focuses on alignment, not magnitude.
 
 ```{important}
 **Why $\sqrt{d_k}$ Specifically?**
@@ -876,7 +876,7 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 Let's break down the equation step-by-step:
 
 1.  **The Scores ($QK^T$):** We multiply the Query of the current word by the Keys of *all* words. (The $T$ superscript means "transpose"—we flip rows and columns of the K matrix so the dimensions align for multiplication.)
-2.  **The Scaling ($\sqrt{d_k}$):** We shrink the scores to prevent exploding values.
+2.  **The Scaling ($\sqrt{d_k}$):** We shrink the scores by dividing by $\sqrt{d_k}$ (where $d_k$ is the dimension of the Q and K vectors) to prevent exploding values.
 3.  **Softmax (The Probability):** We convert scores into probabilities that sum to 1.0.
 4.  **The Weighted Sum ($V$):** We multiply the probabilities by the **Values** to get the final context vector.
 
