@@ -349,10 +349,16 @@ That's **not** what happens.
 
 Instead, the split happens in two stages:
 
-1. **Mix (learned linear layer):** We first apply a learned matrix ($W^Q$, $W^K$, $W^V$). This operation has access to **all 512 input dimensions** at once. It can combine any input feature with any other.
+1. **Mix (learned linear layer):** We first apply a learned matrix ($W^Q$, $W^K$, $W^V$). When you compute $Q = X \cdot W^Q$, each of the 512 output dimensions is a **weighted sum of ALL 512 input dimensions**. This means the network can learn to combine any input features together before splitting into heads.
+
 2. **Split (reshape/view):** Only **after** that mix do we reshape the resulting 512-dimensional output into **8 heads × 64 dims**.
 
-This is what makes head specialization possible: training can learn weights so that the features useful for head 1 tend to land in its 64-dim slice, features useful for head 2 land in its slice, and so on.
+Why does this matter? During training, the network can learn $W^Q$ such that:
+- Output dimensions 0-63 (Head 1's slice) contain features useful for syntax
+- Output dimensions 64-127 (Head 2's slice) contain features useful for semantics
+- And so on...
+
+This is what enables head specialization—each head gets features specifically curated for its role, not just a random slice of the input.
 
 > **Keep this invariant in mind:** the split step only works when $D$ is divisible by $H$ so that $D = H \times d_k$. If you change any of these values in the code, recompute `d_k = D // H` first.
 
