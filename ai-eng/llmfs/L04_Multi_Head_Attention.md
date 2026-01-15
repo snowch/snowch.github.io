@@ -52,16 +52,8 @@ Think of it like Instagram filters on a photo:
 In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. But the foundation is the same: projections, not raw inputs.
 :::
 
-Before we dive in, here's the **minimal notation** we'll use throughout:
-
-- **$B$** = batch size (how many sequences at once)
-- **$S$** = sequence length (tokens per sequence)
-- **$D$** = model width / embedding size ($d_{model}$)
-- **$H$** = number of heads
-- **$d_k$** = per-head width (**must satisfy** $D = H \times d_k$)
-
 :::{code-cell} ipython3
-:tags: [remove-input]
+:tags: [remove-input, remove-output]
 
 import os
 import logging
