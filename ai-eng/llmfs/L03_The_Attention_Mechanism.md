@@ -1598,6 +1598,10 @@ We've seen the intuition (Q/K/V database lookup), learned projections, paralleli
 
 We can implement this entire mechanism in fewer than 20 lines of code.
 
+**The Attention Formula (reminder):**
+
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
 Note the use of `masked_fill`, which we will use in [L06 - The Causal Mask](L06_The_Causal_Mask.md) to prevent the model from "cheating" by looking at future words.
 
 
@@ -1613,21 +1617,22 @@ class ScaledDotProductAttention(nn.Module):
 
     def forward(self, q, k, v, mask=None):
         # 1. Calculate the Dot Product (Scores)
-        # q: [batch, heads, seq, d_k]
-        # k.transpose: [batch, heads, d_k, seq] -> We flip the last two dimensions
-        # scores shape: [batch, heads, seq, seq]
+        # q: [batch, seq, d_k]
+        # k: [batch, seq, d_k]
+        # v: [batch, seq, d_k]
+        # scores shape: [batch, seq, seq]
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
-        
+
         # 2. Apply Mask (Optional - vital for GPT!)
         if mask is not None:
             # We use a very large negative number so Softmax turns it to zero
             scores = scores.masked_fill(mask == 0, -1e9)
-        
+
         # 3. Softmax to get probabilities (0.0 to 1.0)
-        attn_weights = torch.softmax(scores, dim=-1)
-        
+        attn_weights = torch.softmax(scores, dim=-1)  # [batch, seq, seq]
+
         # 4. Multiply by Values to get the weighted context
-        output = torch.matmul(attn_weights, v)
+        output = torch.matmul(attn_weights, v)  # [batch, seq, d_k]
         
         return output, attn_weights
 ```
