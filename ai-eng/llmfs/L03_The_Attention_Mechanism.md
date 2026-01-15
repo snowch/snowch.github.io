@@ -1686,10 +1686,10 @@ print("SHAPES")
 print("=" * 70)
 print(f"Input embeddings shape: {embeddings.shape}")  # [2, 10, 512]
 print(f"Q, K, V shapes: {q.shape}")                   # [2, 10, 64]
+print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10] = [B, S, S]
+#                                                        # [batch, query_pos, key_pos]
+#                                                        # Each query attends to all S keys
 print(f"Attention output shape: {output.shape}")       # [2, 10, 64]
-print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10]
-#                                                        # ↑ each token's attention
-#                                                        # distribution over all tokens
 
 print("\n" + "=" * 70)
 print("EXAMPLE: Attention weights for position 0 in sequence 0")
