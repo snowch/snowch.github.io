@@ -858,7 +858,7 @@ print(f"  Misaligned score:  {score_misaligned:.1f}")
 print(f"  Ratio:             {score_aligned/score_misaligned:.2f}x\n")
 
 # Apply scaling
-d_k = 2
+d_k = 2  # Dimensionality of Q and K vectors (both are 2D in this example)
 scaled_aligned = score_aligned / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
 scaled_misaligned = score_misaligned / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
 
@@ -1442,7 +1442,7 @@ V = torch.tensor([[1.0, 0.0, 0.0, 0.0],
                   [0.0, 1.0, 0.0, 0.0],
                   [0.5, 0.5, 0.0, 0.0]])  # [3 tokens, 4 dims]
 
-d_k = Q.size(-1)
+d_k = Q.size(-1)  # Dimensionality of Q, K, and V (all are 4D here)
 
 # Step by step
 scores = torch.matmul(Q, K.T) / torch.sqrt(torch.tensor(d_k, dtype=torch.float32))
@@ -1650,7 +1650,7 @@ import torch.nn as nn
 batch_size = 2
 seq_len = 10
 d_model = 512  # Embedding dimension
-d_k = 64       # Dimension for each head (in multi-head, we'll have multiple)
+d_k = 64       # Dimensionality of Q, K, and V vectors (all must be same size)
 
 # Step 1: Start with embeddings (normally from an embedding layer)
 # Shape: [batch, seq, d_model]
@@ -1664,6 +1664,7 @@ W_v = nn.Linear(d_model, d_k, bias=False)
 
 # Step 3: Project embeddings to create Q, K, V
 # This is the X × W_Q, X × W_K, X × W_V we discussed earlier
+# All three have the same dimensionality d_k
 q = W_q(embeddings)  # [batch, seq, d_k]
 k = W_k(embeddings)  # [batch, seq, d_k]
 v = W_v(embeddings)  # [batch, seq, d_k]
@@ -1690,7 +1691,9 @@ print(f"Attention weights shape: {attn_weights.shape}") # [2, 10, 10]
 ```{note}
 **Why is d_k smaller than d_model?**
 
-In this example, we project from 512 dimensions down to 64. This is typical for a single attention head. In L04 (Multi-Head Attention), we'll see that d_model (512) gets split across 8 heads, so each head operates in a 64-dimensional subspace (512 ÷ 8 = 64).
+In this example, we project from 512 dimensions down to 64. This is typical for a single attention head. Note that Q, K, and V all have the same dimensionality (d_k = 64) - this is required for the matrix operations in attention to work.
+
+In L04 (Multi-Head Attention), we'll see that d_model (512) gets split across 8 heads, so each head operates in a 64-dimensional subspace (512 ÷ 8 = 64).
 
 For this single-head example, we could use d_k = d_model = 512, but using d_k = 64 shows the typical setup you'll see in real transformers.
 ```
