@@ -273,9 +273,66 @@ Now that we understand the "why" (Specialization), let's look at the "how" (The 
 
 The Multi-Head Attention mechanism isn't a single black box; it is a **specific sequence of operations**. It allows the model to process information in parallel and then synthesize the results.
 
+Let's start with the big picture:
+
+:::{mermaid}
+%%{init: {'theme': 'neutral'} }%%
+graph TD
+    X["$$X\\ (\\text{token representations — see note below})$$"]
+
+    WQ["$$W^{Q}$$"]
+    WK["$$W^{K}$$"]
+    WV["$$W^{V}$$"]
+    WO["$$W^{O}$$"]
+
+    X --> WQ --> LQ["1. Linear Projection (Q)"]
+    X --> WK --> LK["1. Linear Projection (K)"]
+    X --> WV --> LV["1. Linear Projection (V)"]
+
+    LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
+    LK --> H1
+    LV --> H1
+
+    LQ --> H2["2. $$Head\\ i = \\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
+    LK --> H2
+    LV --> H2
+
+    LQ --> H8["2. $$Head\\ h = \\mathrm{Attention}(Q W_{h}^{Q},\\ K W_{h}^{K},\\ V W_{h}^{V})$$"]
+    LK --> H8
+    LV --> H8
+
+    H1 --> C["3. Concatenate"]
+    H2 --> C
+    H8 --> C
+
+    C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
+    O --> Out["Multi-Head Output"]
+:::
+
+:::{note} What is $X$ here?
+In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
+
+$$
+Q = XW^Q,\quad K = XW^K,\quad V = XW^V
+$$
+
+- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
+- In **later layers**, $X$ is the **hidden state output** from the previous block.
+:::
+
+**The 4-Step Process**
+
+1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
+2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
+    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
+3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
+4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
+
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+
 ### The Key Insight: Mix, Then Split
 
-The operation most people misinterpret is the **split**.
+Now let's zoom into **Step 1**, which is the operation most people misinterpret.
 
 It's tempting to think multi-head attention "just splits the 512 dims into 8 chunks."
 That's **not** what happens.
@@ -559,15 +616,7 @@ def plot_mix_then_split():
 plot_mix_then_split()
 :::
 
-**The 4-Step Process**
-
-1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in Part 1.
-2.  **Independent Attention:** Each head runs the standard Scaled Dot-Product Attention independently.
-    $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
-3.  **Concatenation:** Stitch the head outputs back together along the feature dimension.
-4.  **Final Linear (Another Mix):** Apply one last learned linear layer ($W^O$) to blend the heads into a single unified vector.
-
-$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)W^O$$
+Now let's see the complete 4-step pipeline in action:
 
 :::{code-cell} ipython3
 # A minimal 4-step pipeline on tiny shapes with DETAILED OUTPUT
@@ -663,53 +712,6 @@ print()
 print("=" * 70)
 print("✓ COMPLETE: Input [B,S,D] → Output [B,S,D]")
 print("=" * 70)
-:::
-
-Let's visualize this flow:
-
-:::{mermaid}
-%%{init: {'theme': 'neutral'} }%%
-graph TD
-    X["$$X\\ (\\text{token representations — see note below})$$"]
-
-    WQ["$$W^{Q}$$"]
-    WK["$$W^{K}$$"]
-    WV["$$W^{V}$$"]
-    WO["$$W^{O}$$"]
-
-    X --> WQ --> LQ["1. Linear Projection (Q)"]
-    X --> WK --> LK["1. Linear Projection (K)"]
-    X --> WV --> LV["1. Linear Projection (V)"]
-
-    LQ --> H1["2. $$Head\\ 1 = \\mathrm{Attention}(Q W_{1}^{Q},\\ K W_{1}^{K},\\ V W_{1}^{V})$$"]
-    LK --> H1
-    LV --> H1
-
-    LQ --> H2["2. $$Head\\ i = \\mathrm{Attention}(Q W_{i}^{Q},\\ K W_{i}^{K},\\ V W_{i}^{V})$$"]
-    LK --> H2
-    LV --> H2
-
-    LQ --> H8["2. $$Head\\ h = \\mathrm{Attention}(Q W_{h}^{Q},\\ K W_{h}^{K},\\ V W_{h}^{V})$$"]
-    LK --> H8
-    LV --> H8
-
-    H1 --> C["3. Concatenate"]
-    H2 --> C
-    H8 --> C
-
-    C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
-    O --> Out["Multi-Head Output"]
-:::
-
-:::{note} What is $X$ here?
-In **self-attention**, $Q$, $K$, and $V$ are **not separate inputs**. They are all computed from the same input sequence:
-
-$$
-Q = XW^Q,\quad K = XW^K,\quad V = XW^V
-$$
-
-- At **layer 0**, $X$ is the **token embeddings + positional encoding**.
-- In **later layers**, $X$ is the **hidden state output** from the previous block.
 :::
 
 ---
