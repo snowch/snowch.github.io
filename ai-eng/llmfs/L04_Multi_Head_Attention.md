@@ -101,16 +101,16 @@ h = 8
 d_k = d_model // h  # Each head gets 64 dimensions instead of 512
 
 # Scenario A: Each head gets full 512-dim projections (wasteful)
-# Would need 8 separate (512×512) matrices for each of Q,K,V
-params_if_full = 3 * h * (d_model * d_model)
+# Would need 8 separate (512×512) matrices for EACH of Q, K, V (3 matrices total)
+params_if_full = 3 * h * (d_model * d_model)  # 3 = Q, K, V
 
 # Scenario B: Each head gets 64-dim projections (efficient)
-# Need 8 × (512×64) matrices for each of Q,K,V
-params_reduced = 3 * h * (d_model * d_k)
+# Need 8 × (512×64) matrices for EACH of Q, K, V (3 matrices total)
+params_reduced = 3 * h * (d_model * d_k)  # 3 = Q, K, V
 
 # Scenario C: One big matrix (actual implementation)
-# Single (512×512) matrix for each of Q,K,V, then divide into heads
-params_actual = 3 * (d_model * d_model)
+# Single (512×512) matrix for EACH of Q, K, V (3 matrices total), then divide into heads
+params_actual = 3 * (d_model * d_model)  # 3 = Q, K, V
 
 print(f"d_model={d_model}, heads={h}, d_k={d_k}")
 
