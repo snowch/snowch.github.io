@@ -39,17 +39,12 @@ By the end of this post, you'll understand:
 - How to implement the tensor reshaping magic (`view` and `transpose`) in PyTorch.
 
 :::{important}
-**Quick Reminder from L03:** Before we dive into multi-head attention, let's reinforce a critical concept:
+**Quick Reminder from L03:**
 
 **Q, K, V are NOT the input embeddings!** They are learned projections:
 $$Q = X \cdot W^Q, \quad K = X \cdot W^K, \quad V = X \cdot W^V$$
 
-Think of it like Instagram filters on a photo:
-- Same input embedding $X$ (the raw photo)
-- Three different learned filters ($W^Q, W^K, W^V$)
-- Three specialized outputs (Q, K, V) for different purposes
-
-In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. But the foundation is the same: projections, not raw inputs.
+In multi-head attention, we'll apply **multiple sets** of these projections to capture different relationships. If you need a refresher on why we use projections instead of raw inputs, see [L03](L03_The_Attention_Mechanism.md).
 :::
 
 :::{code-cell} ipython3
