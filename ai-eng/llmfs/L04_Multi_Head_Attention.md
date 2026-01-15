@@ -307,6 +307,24 @@ graph TD
 
     C --> WO --> O["4. $$\\mathrm{MultiHead}(X)=\\mathrm{Concat}(head_1,\\ldots,head_h)\\,W^{O}$$"]
     O --> Out["Multi-Head Output"]
+
+    style H1 fill:#f9f,stroke:#333,stroke-width:4px
+    style H2 fill:#f9f,stroke:#333,stroke-width:4px
+    style H8 fill:#f9f,stroke:#333,stroke-width:4px
+    style C fill:#f9f,stroke:#333,stroke-width:4px
+    style WO fill:#f9f,stroke:#333,stroke-width:4px
+    style O fill:#f9f,stroke:#333,stroke-width:4px
+:::
+
+:::{note}
+**What's New in Multi-Head Attention?**
+
+The **highlighted (pink) nodes** show what's NEW compared to L03's single-head attention:
+- **Multiple parallel heads** (Head 1, ..., Head h) instead of just one
+- **Concatenation** to merge head outputs
+- **Final output projection** $W^O$ to blend the heads
+
+The **uncolored nodes** are familiar from L03: input X and the Q/K/V projections.
 :::
 
 :::{note} What is $X$ here?
