@@ -976,7 +976,7 @@ for name, score in scores.items():
     print(f"  {name:8s}: {score:.1f}")
 
 print("\nStep 2: Scale by √d_k")
-d_k = 2
+d_k = 2  # Dimensionality of Q and K (both are 2D in this example)
 scaled = {name: score / torch.sqrt(torch.tensor(d_k)).item() for name, score in scores.items()}
 for name, score in scaled.items():
     print(f"  {name:8s}: {score:.2f}")
@@ -1613,7 +1613,7 @@ import math
 class ScaledDotProductAttention(nn.Module):
     def __init__(self, d_k):
         super().__init__()
-        self.d_k = d_k
+        self.d_k = d_k  # Dimensionality of Q, K, and V vectors
 
     def forward(self, q, k, v, mask=None):
         # 1. Calculate the Dot Product (Scores)
@@ -1621,6 +1621,7 @@ class ScaledDotProductAttention(nn.Module):
         # k: [batch, seq, d_k]
         # v: [batch, seq, d_k]
         # scores shape: [batch, seq, seq]
+        # Scale by sqrt(d_k) where d_k is the dimensionality of Q, K, and V
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
 
         # 2. Apply Mask (Optional - vital for GPT!)
