@@ -1463,9 +1463,138 @@ print(output)
 
 ---
 
-## Part 6: Implementation in PyTorch
+## Part 6: Batching for GPU Efficiency
 
-We've seen the intuition (Q/K/V database lookup), learned projections, parallelism, the math (dot products and scaling), and visualization (attention heatmaps). Now let's see how remarkably simple the actual code is.
+So far, we've worked with single sequences shaped `[S, D]` - one sentence at a time. In practice, we process multiple sequences simultaneously in a **batch**.
+
+### Why Batch?
+
+GPUs are designed for parallel computation. Processing 32 sequences takes roughly the same time as processing 1 sequence! This is why deep learning libraries operate on batches: `[B, S, D]` where:
+- **B** = Batch size (e.g., 32 sequences)
+- **S** = Sequence length (e.g., 10 tokens)
+- **D** = Embedding dimension (e.g., 512)
+
+Here's what "token", "sequence", and "batch" mean:
+
+```{code-cell} ipython3
+:tags: [remove-input]
+import matplotlib.pyplot as plt
+from matplotlib import patches
+
+def plot_token_sequence_batch(D=512, S=10, B=2):
+    fig, ax = plt.subplots(figsize=(14, 5.2))
+    ax.set_xlim(0, 14)
+    ax.set_ylim(0, 6.2)
+    ax.axis("off")
+
+    def box(x, y, w, h, fc, ec="black", lw=2, alpha=1.0):
+        r = patches.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec, linewidth=lw, alpha=alpha)
+        ax.add_patch(r)
+        return r
+
+    # --- Title + parameter legend ---
+    ax.text(7, 6.0, "Tokens → Sequence → Batch (what shapes mean)",
+            ha="center", va="center", fontsize=15, fontweight="bold")
+
+    ax.text(13.6, 6.0, f"B={B}   S={S}   D={D}",
+            ha="right", va="center", fontsize=12, fontweight="bold",
+            bbox=dict(facecolor="white", edgecolor="#999", boxstyle="round,pad=0.35", linewidth=1.5))
+
+    # ---- 1) Single token vector ----
+    x1, y1 = 0.8, 2.35
+    w1, h1 = 2.2, 1.6
+    box(x1, y1, w1, h1, fc="#90CAF9", ec="#1976D2", lw=3)
+    ax.text(x1 + w1/2, y1 + h1/2, f"One token\n$[D]=[{D}]$",
+            ha="center", va="center", fontsize=12, fontweight="bold", color="#0D47A1")
+    ax.text(x1 + w1/2, y1 + h1 + 0.45, "Token embedding vector",
+            ha="center", va="bottom", fontsize=12, fontweight="bold")
+
+    # Arrow
+    ax.annotate("", xy=(4.2, 3.15), xytext=(3.2, 3.15),
+                arrowprops=dict(arrowstyle="->", lw=3))
+
+    # ---- 2) One sequence (S tokens) ----
+    x2, y2 = 4.4, 1.35
+    w2, h2 = 2.6, 3.4
+    box(x2, y2, w2, h2, fc="none", ec="#F57C00", lw=3)
+
+    rows = min(S, 6)
+    rh = h2 / rows
+    for i in range(rows):
+        box(x2, y2 + i*rh, w2, rh, fc="#FFCC80", ec="#F57C00", lw=1.5, alpha=0.9)
+
+    ax.text(x2 + w2/2, y2 + h2/2, f"One sequence\n$[S,D]=[{S},{D}]$",
+            ha="center", va="center", fontsize=12, fontweight="bold", color="#4E2A00",
+            bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", boxstyle="round,pad=0.2"))
+    ax.text(x2 + w2/2, y2 + h2 + 0.45, "Ordered tokens (one sentence)",
+            ha="center", va="bottom", fontsize=12, fontweight="bold")
+    ax.text(x2 + w2/2, y2 - 0.45, f"Sequence length $S={S}$ tokens",
+            ha="center", va="top", fontsize=10.5, style="italic", color="#555")
+
+    # Arrow
+    ax.annotate("", xy=(8.4, 3.15), xytext=(7.4, 3.15),
+                arrowprops=dict(arrowstyle="->", lw=3))
+
+    # ---- 3) Batch of sequences (B sequences) ----
+    x3, y3 = 8.6, 1.35
+    w3, h3 = 2.6, 3.4
+
+    show = min(B, 2)
+    offsets = [0.0, 0.35]
+    for j in range(show):
+        off = offsets[j]
+        box(x3 + off, y3 + off, w3, h3, fc="none", ec="#2E7D32", lw=3)
+        rows = min(S, 6)
+        rh = h3 / rows
+        for i in range(rows):
+            box(x3 + off, y3 + off + i*rh, w3, rh, fc="#A5D6A7", ec="#2E7D32", lw=1.2, alpha=0.9)
+
+    ax.text(x3 + w3/2 + 0.15, y3 + h3/2 + 0.15, f"Batch (stacked sequences)\n$[B,S,D]=[{B},{S},{D}]$",
+            ha="center", va="center", fontsize=12, fontweight="bold", color="#0B3D16",
+            bbox=dict(facecolor="white", alpha=0.7, edgecolor="none", boxstyle="round,pad=0.2"))
+    ax.text(x3 + w3/2, y3 + h3 + 0.45, "GPU speed: many sequences at once",
+            ha="center", va="bottom", fontsize=12, fontweight="bold")
+    ax.text(x3 + w3/2, y3 - 0.45, f"Batch size $B={B}$ sequences",
+            ha="center", va="top", fontsize=10.5, style="italic", color="#555")
+
+    # Bottom caption
+    ax.text(7, 0.45, r"Transformers usually operate on tensors shaped $[B,S,D]$.",
+            ha="center", va="center", fontsize=12, fontweight="bold")
+
+    plt.tight_layout()
+    plt.show()
+
+plot_token_sequence_batch(D=512, S=10, B=2)
+```
+
+:::{note} Concrete example (tokens → sequence → batch)
+Suppose we tokenize two sentences into exactly $S=10$ tokens each:
+
+- **Sequence 1:** `["The","cat","sat","on","the","mat","because","it","was","soft"]`
+- **Sequence 2:** `["A","dog","slept","by","the","fire","and","it","was","warm"]`
+
+After embedding, each token becomes a vector of length $D=512$.
+
+So:
+- One **sequence** is $[S,D]=[10,512]$ (10 token-vectors stacked in order)
+- A **batch** stacks multiple sequences: $[B,S,D]=[2,10,512]$
+
+We keep the $S$ dimension because attention operates **token-by-token** - each token needs to attend to all other token positions individually.
+:::
+
+:::{tip}
+**Why do we batch?** GPU parallelism! A modern GPU can process 32 sequences almost as fast as 1 sequence. Batching is the secret to efficient training.
+
+**Important:** All sequences in a batch must have the same length $S$. Shorter sentences are padded to match the longest sentence in the batch.
+:::
+
+Now let's see how batching works in our PyTorch implementation...
+
+---
+
+## Part 7: Implementation in PyTorch
+
+We've seen the intuition (Q/K/V database lookup), learned projections, parallelism, the math (dot products and scaling), visualization (attention heatmaps), and batching. Now let's see how remarkably simple the actual code is.
 
 We can implement this entire mechanism in fewer than 20 lines of code.
 
