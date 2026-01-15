@@ -80,6 +80,15 @@ torch.manual_seed(0)
 
 Think of the embedding dimension ($d_{model} = 512$) as a massive report containing everything we know about a word.
 
+:::{note}
+**What is this "report"?**
+- At **layer 0** (first attention layer): This is the input embedding from the embedding layer + positional encoding
+- At **subsequent layers**: This is the output from the previous attention block - a contextualized representation that already incorporates information from earlier attention operations
+- The **dimension** (512) stays constant, but the **content** evolves through the layers
+
+We'll see how layers stack in L05 (Layer Norm & Residuals).
+:::
+
 If we ask a single person to read that report and summarize "grammar," "tone," "tense," and "meaning" all at once, they might miss details.
 
 Instead, we hire a **Committee of 8 Experts**:
