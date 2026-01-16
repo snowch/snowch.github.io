@@ -334,12 +334,6 @@ The **highlighted (pink) nodes** show what's NEW compared to L03's single-head a
 The **uncolored nodes** are familiar from [L03](L03_The_Attention_Mechanism.md): input X and the Q/K/V projections.
 :::
 
-:::{note} What is $X$ here?
-In **self-attention**, $Q$, $K$, and $V$ all come from the same input: $Q = XW^Q,\ K = XW^K,\ V = XW^V$
-
-(See [Part 1](#part-1-the-intuition-the-committee) for what $X$ represents at different layers)
-:::
-
 ### The 4-Step Process
 
 1.  **Linear Projections (Mix, then Split):** We don't just use the raw input. We multiply the input $Q, K, V$ by specific weight matrices ($W^Q_i, W^K_i, W^V_i$) for each head. This creates the specialized "subspaces" we saw in [Part 1](#part-1-the-intuition-the-committee).
