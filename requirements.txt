@@ -11,3 +11,4 @@ wavedrom
 graphviz
 PyYAML
 torch
+torchvision
