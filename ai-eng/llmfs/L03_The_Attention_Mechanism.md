@@ -1062,300 +1062,11 @@ Remember we divided by √d_k in Step 2? Here's why that's critical for softmax.
 By scaling first, we keep logits in a reasonable range (our 7.09, 4.96, 3.54), allowing softmax to produce a balanced distribution (87%, 10%, 3%). This prevents "saturation"—where gradients become tiny during training—and allows the model to flexibly attend to multiple positions when needed.
 ```
 
-### Geometric View: The Four Steps of Attention
-
-In the worked example above, we calculated that Q=[3, 1] attending to K_animal=[3, 1], K_street=[1, 4], and K_because=[1.5, 0.5] yields attention weights of 87%, 10%, and 3%. Let's visualize this step-by-step using those exact vectors to see how "it" computes its final context vector.
-
-We'll break attention into its four steps:
-1. **Similarity**: Compute dot products Q·K (scores)
-2. **Scaling**: Divide by √d_k
-3. **Softmax**: Convert to probabilities (weights)
-4. **Weighted Sum**: Combine values using those weights
-
-#### Step 1: Similarity in Q-K Space (Computing Scores)
-
-```{code-cell} ipython3
-:tags: [remove-input]
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
-
-def arrow(ax, start, end, color=None, lw=3, alpha=1.0, ls='-', z=3, ms=18):
-    ax.add_patch(FancyArrowPatch(
-        start, end,
-        arrowstyle='-|>',
-        mutation_scale=ms,
-        linewidth=lw,
-        linestyle=ls,
-        color=color,
-        alpha=alpha,
-        zorder=z
-    ))
-
-def box(ax, x, y, text, fs=11, ha="left", va="top"):
-    ax.text(
-        x, y, text, fontsize=fs, ha=ha, va=va,
-        transform=ax.transAxes,
-        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
-    )
-
-# Toy example aligned to your walkthrough
-Q = np.array([3.0, 1.0])
-K = {
-    "animal":  np.array([3.0, 1.0]),
-    "street":  np.array([1.0, 4.0]),
-    "because": np.array([1.5, 0.5]),
-}
-names = list(K.keys())
-scores = np.array([Q @ K[n] for n in names])
-
-# Use matplotlib default color cycle (no hard-coded palette)
-cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
-cQ = cycle[3 % len(cycle)]
-
-fig, ax = plt.subplots(figsize=(7.5, 9))
-
-# Offset Q slightly so it doesn't perfectly overlap K_animal
-q_hat = Q / np.linalg.norm(Q)
-perp = np.array([-q_hat[1], q_hat[0]])
-eps = 0.15
-q_start = eps * perp
-q_end = q_start + Q
-arrow(ax, (q_start[0], q_start[1]), (q_end[0], q_end[1]),
-      color=cQ, lw=4, ls="--", z=5, ms=20)
-
-# Keys with SAME thickness, but circle size proportional to score
-smax = scores.max()
-for i, n in enumerate(names):
-    k = K[n]
-    # Arrow points to the center of the circle at k[0], k[1]
-    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=3.5, z=4, ms=18)
-    # Circle size proportional to score, doubled
-    circle_size = 2 * (50 + 350 * (scores[i] / smax))
-    ax.scatter([k[0]], [k[1]], s=circle_size, color=colors[n], alpha=0.6, zorder=6, edgecolors='white', linewidths=1.5)
-
-# Color-coded legend with colored markers
-from matplotlib.lines import Line2D
-legend_elements = []
-
-# Add Q line with note about offset
-legend_elements.append(Line2D([0], [0], color=cQ, linestyle='--', lw=3,
-                              label=f"Q('it') = {Q.tolist()} (offset for display)"))
-
-# Add colored entries for each key
-for i, n in enumerate(names):
-    label_text = f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}"
-    legend_elements.append(Line2D([0], [0], marker='o', color='w',
-                                  markerfacecolor=colors[n], markersize=10,
-                                  label=label_text))
-
-ax.legend(handles=legend_elements, loc='upper left', fontsize=10,
-          framealpha=0.95, edgecolor='0.65')
-
-# Add note about circle sizes
-ax.text(0.03, 0.02, "Circle size = dot-product score",
-        fontsize=10, ha='left', va='bottom', transform=ax.transAxes,
-        style='italic', alpha=0.7)
-
-ax.axhline(0, color="k", alpha=0.18)
-ax.axvline(0, color="k", alpha=0.18)
-ax.grid(True, alpha=0.25)
-ax.set_aspect("equal")
-ax.set_xlabel("dim 1", fontsize=12)
-ax.set_ylabel("dim 2", fontsize=12)
-ax.set_xlim(-0.5, 4.8)
-ax.set_ylim(-0.5, 5.4)
-
-plt.tight_layout()
-plt.show()
-```
-
-**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). **Circle size** reflects the raw dot product scores—before any normalization.
-
-#### Steps 2-3: Scaling and Softmax (Scores → Weights)
-
-```{code-cell} ipython3
-:tags: [remove-input]
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-def softmax(x):
-    x = x - np.max(x)
-    ex = np.exp(x)
-    return ex / ex.sum()
-
-def box(ax, x, y, text, fs=11, ha="left", va="top"):
-    ax.text(
-        x, y, text, fontsize=fs, ha=ha, va=va,
-        transform=ax.transAxes,
-        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
-    )
-
-Q = np.array([3.0, 1.0])
-K = {
-    "animal":  np.array([3.0, 1.0]),
-    "street":  np.array([1.0, 4.0]),
-    "because": np.array([1.5, 0.5]),
-}
-names = list(K.keys())
-
-d_k = Q.size
-scores = np.array([Q @ K[n] for n in names])
-logits = scores / np.sqrt(d_k)
-w = softmax(logits)
-
-cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
-
-fig, ax = plt.subplots(figsize=(8.5, 4.8))
-
-y = np.arange(len(names))
-bars = ax.barh(y, w, height=0.55)
-for i, b in enumerate(bars):
-    b.set_color(colors[names[i]])
-    b.set_alpha(0.85)
-
-ax.set_yticks(y, labels=names, fontsize=12)
-ax.invert_yaxis()
-ax.set_xlim(0, 1.3)
-ax.set_xlabel("attention weight", fontsize=12)
-ax.grid(True, axis="x", alpha=0.25)
-
-for i, n in enumerate(names):
-    ax.text(w[i] + 0.02, i, f"{w[i]*100:.0f}%  (logit={logits[i]:.2f})",
-            va="center", fontsize=12)
-
-box(ax, 0.3, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
-    fs=11, va="bottom")
-
-plt.tight_layout()
-plt.show()
-```
-
-**What this shows:** We divide each score by √d_k=√2≈1.41 to get "logits", then apply softmax to convert them into probabilities that sum to 1.0. The result: "animal" gets **87%** of the attention (from score=10), "street" gets **10%** (from score=7), and "because" gets **3%** (from score=5). These are the **attention weights**.
-
-#### Step 4: Copy from Values (Weighted Sum in V-Space)
-
-```{code-cell} ipython3
-:tags: [remove-input]
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-def softmax(x):
-    x = x - np.max(x)
-    ex = np.exp(x)
-    return ex / ex.sum()
-
-def box(ax, x, y, text, fs=11, ha="left", va="top"):
-    ax.text(
-        x, y, text, fontsize=fs, ha=ha, va=va,
-        transform=ax.transAxes,
-        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
-    )
-
-Q = np.array([3.0, 1.0])
-K = {
-    "animal":  np.array([3.0, 1.0]),
-    "street":  np.array([1.0, 4.0]),
-    "because": np.array([1.5, 0.5]),
-}
-V = {
-    "animal":  np.array([2.0, 1.5]),
-    "street":  np.array([0.5, 0.3]),
-    "because": np.array([-0.5, 1.2]),
-}
-names = list(K.keys())
-
-d_k = Q.size
-scores = np.array([Q @ K[n] for n in names])
-logits = scores / np.sqrt(d_k)
-w = softmax(logits)
-context = sum(w[i] * V[names[i]] for i in range(len(names)))
-
-cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
-cCTX = cycle[4 % len(cycle)]
-
-fig, ax = plt.subplots(figsize=(7.5, 6.8))
-
-# Plot value points
-for i, n in enumerate(names):
-    v = V[n]
-    ax.scatter([v[0]], [v[1]], s=160, color=colors[n], alpha=0.95, zorder=4)
-    ax.text(v[0] + 0.10, v[1] - 0.17, f"V_{n}", fontsize=12)
-
-# Context point
-ax.scatter([context[0]], [context[1]], s=260, color=cCTX, marker="*", zorder=6, alpha=0.95)
-ax.text(context[0] + 0.10, context[1] - 0.27, "context", fontsize=12)
-
-# Pull lines from context to values (thickness ~ weight)
-for i, n in enumerate(names):
-    v = V[n]
-    lw = 1.5 + 7.0 * (w[i] / w.max())
-    ax.plot([context[0], v[0]], [context[1], v[1]],
-            linewidth=lw, alpha=0.22, color=colors[n], zorder=2)
-
-# Draw the header box for the contribution summary
-box(ax, 0.03, 0.95, "Values live in a different space than Keys", fs=11)
-
-# Calculate starting Y position for the colored text lines
-current_y = 0.86 # Adjusted to start below the header box
-
-# Add color-coded contribution lines
-for i, n in enumerate(names):
-    text_line = f"{n:7s}: w={w[i]:.2f}  w·V≈[{(w[i]*V[n])[0]:.2f}, {(w[i]*V[n])[1]:.2f}]"
-    ax.text(
-        0.03, current_y, text_line, fontsize=11, ha="left", va="top",
-        transform=ax.transAxes, color=colors[n]
-    )
-    current_y -= 0.04 # Move down for the next line
-
-# Add some spacing before the context line
-current_y -= 0.02
-
-# Add context line with its specific color
-ax.text(
-    0.03, current_y,
-    f"context≈[{context[0]:.2f}, {context[1]:.2f}]",
-    fontsize=11, ha="left", va="top",
-    transform=ax.transAxes, color=cCTX
-)
-
-ax.axhline(0, color="k", alpha=0.18)
-ax.axvline(0, color="k", alpha=0.18)
-ax.grid(True, alpha=0.25)
-ax.set_aspect("equal")
-ax.set_xlabel("dim 1", fontsize=12)
-ax.set_ylabel("dim 2", fontsize=12)
-
-pts = [context] + [V[n] for n in names]
-xs = [p[0] for p in pts]
-ys = [p[1] for p in pts]
-ax.set_xlim(min(xs)-1.1, max(xs)+1.1)
-ax.set_ylim(min(ys)-1.1, max(ys)+1.1)
-
-plt.tight_layout()
-plt.show()
-```
-
-**What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.78, 1.37]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
-
-**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is fundamentally different from a traditional database lookup:
-
-- **Traditional database**: Query finds **exact key matches** → retrieves paired value (e.g., `user_id=123` → user data)
-- **Attention mechanism**: Query finds **semantically similar Keys** (via dot product) → retrieves **differently-encoded Values**
-
-This is why we need separate Q, K, V projections: K and V are different learned transformations of the same input. Keys determine *how much* to attend (semantic matching via geometric alignment), while Values determine *what information* to extract (the content to mix into the output). K["river"] might encode "geographic term, noun, concrete" (optimized for matching), while V["river"] encodes "flowing water, nature, geography" (semantic content to contribute).
-
 ---
 
 ## Part 5: Visualizing the Attention Map
 
-We've explored attention through different lenses—from the "bank" disambiguation problem to pronoun resolution with the geometric view above. Now let's see the **full attention pattern** for our pronoun resolution example as a heatmap.
+We've explored attention through different lenses—from the "bank" disambiguation problem to the worked example with pronoun resolution above. Now let's see the **full attention pattern** for our pronoun resolution example as a heatmap.
 
 In trained models, attention patterns emerge that capture semantic relationships. The heatmap below shows a **simplified example** to illustrate what we might expect: brighter colors represent higher attention weights (post-softmax probabilities).
 
@@ -1741,5 +1452,298 @@ print("  ↳ Final context-aware token representations")
 ```
 
 **Next Up: L04 – Multi-Head Attention.** One attention head is good, but it can only focus on one relationship at a time (e.g., "it" → "animal"). What if we also need to know that "animal" is the *subject* of the sentence? We need more heads!
+
+---
+
+## Appendix A: Geometric View of Attention
+
+*This appendix provides a visual, step-by-step exploration of the attention mechanism using the same example from [Part 4](#part-4-the-math-of-similarity). If you prefer mathematical explanations, you can skip this section—it's an alternative perspective on concepts already covered.*
+
+In the worked example in [Part 4](#part-4-the-math-of-similarity), we calculated that Q=[3, 1] attending to K_animal=[3, 1], K_street=[1, 4], and K_because=[1.5, 0.5] yields attention weights of 87%, 10%, and 3%. Let's visualize this step-by-step using those exact vectors to see how "it" computes its final context vector.
+
+We'll break attention into its four steps:
+1. **Similarity**: Compute dot products Q·K (scores)
+2. **Scaling**: Divide by √d_k
+3. **Softmax**: Convert to probabilities (weights)
+4. **Weighted Sum**: Combine values using those weights
+
+### Step 1: Similarity in Q-K Space (Computing Scores)
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
+
+def arrow(ax, start, end, color=None, lw=3, alpha=1.0, ls='-', z=3, ms=18):
+    ax.add_patch(FancyArrowPatch(
+        start, end,
+        arrowstyle='-|>',
+        mutation_scale=ms,
+        linewidth=lw,
+        linestyle=ls,
+        color=color,
+        alpha=alpha,
+        zorder=z
+    ))
+
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
+
+# Toy example aligned to your walkthrough
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+names = list(K.keys())
+scores = np.array([Q @ K[n] for n in names])
+
+# Use matplotlib default color cycle (no hard-coded palette)
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
+cQ = cycle[3 % len(cycle)]
+
+fig, ax = plt.subplots(figsize=(7.5, 9))
+
+# Offset Q slightly so it doesn't perfectly overlap K_animal
+q_hat = Q / np.linalg.norm(Q)
+perp = np.array([-q_hat[1], q_hat[0]])
+eps = 0.15
+q_start = eps * perp
+q_end = q_start + Q
+arrow(ax, (q_start[0], q_start[1]), (q_end[0], q_end[1]),
+      color=cQ, lw=4, ls="--", z=5, ms=20)
+
+# Keys with SAME thickness, but circle size proportional to score
+smax = scores.max()
+for i, n in enumerate(names):
+    k = K[n]
+    # Arrow points to the center of the circle at k[0], k[1]
+    arrow(ax, (0, 0), (k[0], k[1]), color=colors[n], lw=3.5, z=4, ms=18)
+    # Circle size proportional to score, doubled
+    circle_size = 2 * (50 + 350 * (scores[i] / smax))
+    ax.scatter([k[0]], [k[1]], s=circle_size, color=colors[n], alpha=0.6, zorder=6, edgecolors='white', linewidths=1.5)
+
+# Color-coded legend with colored markers
+from matplotlib.lines import Line2D
+legend_elements = []
+
+# Add Q line with note about offset
+legend_elements.append(Line2D([0], [0], color=cQ, linestyle='--', lw=3,
+                              label=f"Q('it') = {Q.tolist()} (offset for display)"))
+
+# Add colored entries for each key
+for i, n in enumerate(names):
+    label_text = f"{n:7s}: K={K[n].tolist()}  score={scores[i]:.0f}"
+    legend_elements.append(Line2D([0], [0], marker='o', color='w',
+                                  markerfacecolor=colors[n], markersize=10,
+                                  label=label_text))
+
+ax.legend(handles=legend_elements, loc='upper left', fontsize=10,
+          framealpha=0.95, edgecolor='0.65')
+
+# Add note about circle sizes
+ax.text(0.03, 0.02, "Circle size = dot-product score",
+        fontsize=10, ha='left', va='bottom', transform=ax.transAxes,
+        style='italic', alpha=0.7)
+
+ax.axhline(0, color="k", alpha=0.18)
+ax.axvline(0, color="k", alpha=0.18)
+ax.grid(True, alpha=0.25)
+ax.set_aspect("equal")
+ax.set_xlabel("dim 1", fontsize=12)
+ax.set_ylabel("dim 2", fontsize=12)
+ax.set_xlim(-0.5, 4.8)
+ax.set_ylim(-0.5, 5.4)
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows:** The query "it" Q=[3, 1] (blue dashed arrow) compares against each key using the dot product. Notice that K_animal=[3, 1] **perfectly aligns** with Q (score=10), while K_street=[1, 4] points in a different direction (score=7). **Circle size** reflects the raw dot product scores—before any normalization.
+
+### Steps 2-3: Scaling and Softmax (Scores → Weights)
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def softmax(x):
+    x = x - np.max(x)
+    ex = np.exp(x)
+    return ex / ex.sum()
+
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
+
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+names = list(K.keys())
+
+d_k = Q.size
+scores = np.array([Q @ K[n] for n in names])
+logits = scores / np.sqrt(d_k)
+w = softmax(logits)
+
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
+
+fig, ax = plt.subplots(figsize=(8.5, 4.8))
+
+y = np.arange(len(names))
+bars = ax.barh(y, w, height=0.55)
+for i, b in enumerate(bars):
+    b.set_color(colors[names[i]])
+    b.set_alpha(0.85)
+
+ax.set_yticks(y, labels=names, fontsize=12)
+ax.invert_yaxis()
+ax.set_xlim(0, 1.3)
+ax.set_xlabel("attention weight", fontsize=12)
+ax.grid(True, axis="x", alpha=0.25)
+
+for i, n in enumerate(names):
+    ax.text(w[i] + 0.02, i, f"{w[i]*100:.0f}%  (logit={logits[i]:.2f})",
+            va="center", fontsize=12)
+
+box(ax, 0.3, 0.08, "logit = score / √dₖ   (here dₖ=2, √2≈1.41)\nweights = softmax(logits)",
+    fs=11, va="bottom")
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows:** We divide each score by √d_k=√2≈1.41 to get "logits", then apply softmax to convert them into probabilities that sum to 1.0. The result: "animal" gets **87%** of the attention (from score=10), "street" gets **10%** (from score=7), and "because" gets **3%** (from score=5). These are the **attention weights**.
+
+### Step 4: Copy from Values (Weighted Sum in V-Space)
+
+```{code-cell} ipython3
+:tags: [remove-input]
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def softmax(x):
+    x = x - np.max(x)
+    ex = np.exp(x)
+    return ex / ex.sum()
+
+def box(ax, x, y, text, fs=11, ha="left", va="top"):
+    ax.text(
+        x, y, text, fontsize=fs, ha=ha, va=va,
+        transform=ax.transAxes,
+        bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="0.65", alpha=0.96)
+    )
+
+Q = np.array([3.0, 1.0])
+K = {
+    "animal":  np.array([3.0, 1.0]),
+    "street":  np.array([1.0, 4.0]),
+    "because": np.array([1.5, 0.5]),
+}
+V = {
+    "animal":  np.array([2.0, 1.5]),
+    "street":  np.array([0.5, 0.3]),
+    "because": np.array([-0.5, 1.2]),
+}
+names = list(K.keys())
+
+d_k = Q.size
+scores = np.array([Q @ K[n] for n in names])
+logits = scores / np.sqrt(d_k)
+w = softmax(logits)
+context = sum(w[i] * V[names[i]] for i in range(len(names)))
+
+cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+colors = {n: cycle[i % len(cycle)] for i, n in enumerate(names)}
+cCTX = cycle[4 % len(cycle)]
+
+fig, ax = plt.subplots(figsize=(7.5, 6.8))
+
+# Plot value points
+for i, n in enumerate(names):
+    v = V[n]
+    ax.scatter([v[0]], [v[1]], s=160, color=colors[n], alpha=0.95, zorder=4)
+    ax.text(v[0] + 0.10, v[1] - 0.17, f"V_{n}", fontsize=12)
+
+# Context point
+ax.scatter([context[0]], [context[1]], s=260, color=cCTX, marker="*", zorder=6, alpha=0.95)
+ax.text(context[0] + 0.10, context[1] - 0.27, "context", fontsize=12)
+
+# Pull lines from context to values (thickness ~ weight)
+for i, n in enumerate(names):
+    v = V[n]
+    lw = 1.5 + 7.0 * (w[i] / w.max())
+    ax.plot([context[0], v[0]], [context[1], v[1]],
+            linewidth=lw, alpha=0.22, color=colors[n], zorder=2)
+
+# Draw the header box for the contribution summary
+box(ax, 0.03, 0.95, "Values live in a different space than Keys", fs=11)
+
+# Calculate starting Y position for the colored text lines
+current_y = 0.86 # Adjusted to start below the header box
+
+# Add color-coded contribution lines
+for i, n in enumerate(names):
+    text_line = f"{n:7s}: w={w[i]:.2f}  w·V≈[{(w[i]*V[n])[0]:.2f}, {(w[i]*V[n])[1]:.2f}]"
+    ax.text(
+        0.03, current_y, text_line, fontsize=11, ha="left", va="top",
+        transform=ax.transAxes, color=colors[n]
+    )
+    current_y -= 0.04 # Move down for the next line
+
+# Add some spacing before the context line
+current_y -= 0.02
+
+# Add context line with its specific color
+ax.text(
+    0.03, current_y,
+    f"context≈[{context[0]:.2f}, {context[1]:.2f}]",
+    fontsize=11, ha="left", va="top",
+    transform=ax.transAxes, color=cCTX
+)
+
+ax.axhline(0, color="k", alpha=0.18)
+ax.axvline(0, color="k", alpha=0.18)
+ax.grid(True, alpha=0.25)
+ax.set_aspect("equal")
+ax.set_xlabel("dim 1", fontsize=12)
+ax.set_ylabel("dim 2", fontsize=12)
+
+pts = [context] + [V[n] for n in names]
+xs = [p[0] for p in pts]
+ys = [p[1] for p in pts]
+ax.set_xlim(min(xs)-1.1, max(xs)+1.1)
+ax.set_ylim(min(ys)-1.1, max(ys)+1.1)
+
+plt.tight_layout()
+plt.show()
+```
+
+**What this shows:** Values live in a **different space** than keys. Using the attention weights from Step 3, we compute a weighted average: context = 0.87×V_animal + 0.10×V_street + 0.03×V_because ≈ [1.78, 1.37]. The thick line to V_animal shows it dominates the contribution. This final context vector becomes the new representation for "it"—enriched with semantic content from "animal".
+
+**Key Insight:** Attention is a **weighted average in value space**, where the weights come from measuring similarity in query-key space. This is fundamentally different from a traditional database lookup:
+
+- **Traditional database**: Query finds **exact key matches** → retrieves paired value (e.g., `user_id=123` → user data)
+- **Attention mechanism**: Query finds **semantically similar Keys** (via dot product) → retrieves **differently-encoded Values**
+
+This is why we need separate Q, K, V projections: K and V are different learned transformations of the same input. Keys determine *how much* to attend (semantic matching via geometric alignment), while Values determine *what information* to extract (the content to mix into the output). K["river"] might encode "geographic term, noun, concrete" (optimized for matching), while V["river"] encodes "flowing water, nature, geography" (semantic content to contribute).
 
 ---
