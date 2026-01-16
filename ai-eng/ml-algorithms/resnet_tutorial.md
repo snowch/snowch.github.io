@@ -45,6 +45,17 @@ The approach{cite}`huang2020tabtransformer`:
 
 This tutorial will build your understanding of ResNet from first principles, then show how to adapt it for tabular embeddings.
 
+### Prerequisites
+
+This tutorial assumes familiarity with basic neural network concepts (layers, backpropagation, gradient descent). If you're new to neural networks, we recommend starting with our **[Neural Networks From Scratch](/ai-eng/nnfs/index.md)** series, which builds these concepts from first principles:
+
+- **[NN01: Edge Detection](/ai-eng/nnfs/nn_edge_detector_blog.md)** - Understanding neurons as pattern matchers
+- **[NN02: Training from Scratch](/ai-eng/nnfs/nn_tutorial_blog.md)** - Backpropagation and gradient descent
+- **[NN03: General Networks](/ai-eng/nnfs/nn_flexible_network_blog.md)** - Building flexible architectures
+- **[NN04: PyTorch Basics](/ai-eng/nnfs/nn_pytorch_basics.md)** - Transitioning to PyTorch (used in this tutorial)
+
+You should also have basic Python and PyTorch knowledge, though all code is explained thoroughly.
+
 ### Paper References
 
 - **Original ResNet**: He, K., Zhang, X., Ren, S., & Sun, J. (2016). "Deep Residual Learning for Image Recognition." *CVPR 2016*.
