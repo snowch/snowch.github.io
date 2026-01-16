@@ -261,7 +261,7 @@ We draw 3 heads for readability—imagine 8 in the real model.
 (technical-note-input-projections)=
 ::::{important} Technical Note: What actually gets split? (The Input Projections)
 
-Heads don't split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes information from all 512 dimensions** into a new 512-dim vector.
+Heads don't split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes the 512 input dimensions** - each of the 512 output dimensions is a weighted combination of ALL 512 input dimensions.
 Only **after that** do we reshape into **8 × 64** and give each head one slice.
 
 We'll explore this "Mix, Then Split" process in detail in [Part 2](#l04-part2-pipeline).
