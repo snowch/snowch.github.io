@@ -692,7 +692,7 @@ def scaled_dot_attn(qh, kh, vh):
 print("=" * 70)
 print("MULTI-HEAD ATTENTION: 4-STEP PIPELINE")
 print("=" * 70)
-print(f"→ Starting with input"}
+print(f"→ Starting with input")
 print(f"  x: {x.shape} (Batch={B}, Seq={S}, D={D})")
 print()
 print(f"Using {H} heads, each with d_k={D//H} dimensions")
