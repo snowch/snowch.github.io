@@ -94,6 +94,126 @@ Instead, we hire a **Committee of 8 Experts**:
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
 
+Let's visualize this head specialization. In the plot below:
+* **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding ($d=512$).
+* **The Projection:** We project this into 8 **equal-sized** subspaces ($d_k = 64$).
+* **The Result:** Each head gets a vector that is 1/8th the size of the original, containing only the specific info it needs.
+
+:::{code-cell} ipython3
+:tags: [remove-input]
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
+
+def plot_multihead_projection_concept():
+    fig, ax = plt.subplots(figsize=(14, 8)) # Increased size slightly
+    ax.set_xlim(0, 14)
+    ax.set_ylim(0, 9)
+    ax.axis('off')
+
+    # --- Configuration ---
+    input_x = 1
+    output_x = 10
+
+    # Coordinates for the "Heads" (Outputs)
+    # We show them essentially "stacking up" to equal the total concept,
+    # but separated to show independence.
+    y_positions = [7, 4.5, 2]
+    colors = ['#FF9999', '#99FF99', '#9999FF']
+    labels = ["Head 1\nGrammar", "Head 2\nTense", "Head 3\nMeaning"]
+
+    # FONT SIZES
+    font_title = 20
+    font_label = 16
+    font_math = 14
+    font_annot = 14
+
+    # --- 1. Draw Input Vector (The "General Report") ---
+    height = 6
+    width = 1.5
+    base_y = 1.5
+
+    # Container
+    input_rect = patches.Rectangle((input_x, base_y), width, height, linewidth=3, edgecolor='black', facecolor='none', zorder=5)
+    ax.add_patch(input_rect)
+
+    # "Mixed Info" bands
+    num_segments = 20
+    seg_height = height / num_segments
+    np.random.seed(42)
+    segment_colors = plt.get_cmap('tab20').colors
+    for i in range(num_segments):
+        color = segment_colors[i % len(segment_colors)]
+        rect = patches.Rectangle((input_x, base_y + i*seg_height), width, seg_height, facecolor=color, alpha=0.7, edgecolor='none')
+        ax.add_patch(rect)
+
+    # Label Input
+    ax.text(input_x + width/2, base_y - 0.6, "Input Embedding\n($d_{model}=512$)", ha='center', va='top', fontweight='bold', fontsize=font_label)
+
+    # --- 2. Draw The Projections (Arrows & Matrices) ---
+
+    proj_start_x = input_x + width + 0.2
+    proj_end_x = output_x - 0.2
+
+    for i, (y_c, color, label) in enumerate(zip(y_positions, colors, labels)):
+        # A. Arrow from Input Center to Head Center
+        arrow = patches.FancyArrowPatch(
+            (proj_start_x, base_y + height/2), (proj_end_x, y_c),
+            arrowstyle='-|>,head_width=0.6,head_length=1.0',
+            connectionstyle=f"arc3,rad={(i-1)*-0.15}",
+            color=color, lw=4, zorder=2, alpha=0.8
+        )
+        ax.add_patch(arrow)
+
+        # B. Matrix Box (The "Lens")
+        mid_x = (proj_start_x + proj_end_x) / 2
+        mid_y = (base_y + height/2 + y_c) / 2 + (i-1)*0.5 # Slight offset for visual separation
+
+        # Matrix Label
+        ax.text(mid_x, mid_y + 0.6, f"$W_{i}$", ha='center', va='center', color=color, fontweight='bold', fontsize=font_label, zorder=6)
+
+        # C. Output Subspace Blocks
+        # Make them look identical in size
+        out_h = 1.8
+        out_w = 1.5
+        out_rect = patches.Rectangle((output_x, y_c - out_h/2), out_w, out_h, facecolor=color, edgecolor='black', lw=2, alpha=0.9)
+        ax.add_patch(out_rect)
+
+        # Label each head
+        ax.text(output_x + out_w + 0.3, y_c, label, ha='left', va='center', fontsize=font_label, color='black')
+        # Math label showing the split
+        ax.text(output_x + out_w + 0.3, y_c - 0.6, "($d_k=64$)", ha='left', va='center', fontsize=font_math, color='#555')
+
+    # --- 3. Final Annotations describing the Split ---
+
+    # Title
+    ax.text(7, 8.5, "Multi-Head Projection: Dividing the Work", ha='center', va='center', fontsize=font_title, fontweight='bold')
+
+    # Explanation of the split
+    ax.text(7, 0.5, "Total Dimensions (512) $\\div$ Heads (8) = 64 dims per Head",
+            ha='center', va='center', fontsize=font_label, fontweight='bold',
+            bbox=dict(facecolor='#f0f0f0', edgecolor='gray', boxstyle='round,pad=0.5'))
+
+    plt.tight_layout()
+    plt.show()
+
+plot_multihead_projection_concept()
+:::
+
+We draw 3 heads for readability—imagine 8 in the real model.
+
+(technical-note-input-projections)=
+::::{important} Technical Note: What actually gets split? (The Input Projections)
+
+Heads don't split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes the 512 input dimensions** - each of the 512 output dimensions is a weighted combination of ALL 512 input dimensions.
+Only **after that** do we reshape into **8 × 64** and give each head one slice.
+
+We'll explore this "Mix, Then Split" process in detail in [Part 2](#l04-part2-pipeline).
+::::
+
+Now let's look at the parameter implications of this design:
+
 :::{code-cell} ipython3
 # Parameter-count intuition: "full 512 per head" vs "reduced dims per head (8×64)"
 d_model = 512
@@ -148,124 +268,6 @@ When we say "Head 1 (The Linguist)" we're using a metaphor for intuition. In rea
 
 You can't tell the model "Head 1, you focus on grammar!" - it discovers its own patterns that minimize loss. Different training runs or datasets might result in different specializations.
 :::
-
-Let's visualize this "filtering" process. In the plot below:
-* **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding ($d=512$).
-* **The Split (Equal Parts):** We project this into 8 **equal-sized** subspaces ($d_k = 64$).
-* **The Result:** Each head gets a vector that is 1/8th the size of the original, containing only the specific info it needs.
-
-:::{code-cell} ipython3
-:tags: [remove-input]
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import numpy as np
-
-def plot_multihead_projection_concept():
-    fig, ax = plt.subplots(figsize=(14, 8)) # Increased size slightly
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 9)
-    ax.axis('off')
-
-    # --- Configuration ---
-    input_x = 1
-    output_x = 10
-    
-    # Coordinates for the "Heads" (Outputs)
-    # We show them essentially "stacking up" to equal the total concept, 
-    # but separated to show independence.
-    y_positions = [7, 4.5, 2] 
-    colors = ['#FF9999', '#99FF99', '#9999FF'] 
-    labels = ["Head 1\nGrammar", "Head 2\nTense", "Head 3\nMeaning"]
-
-    # FONT SIZES
-    font_title = 20
-    font_label = 16
-    font_math = 14
-    font_annot = 14
-
-    # --- 1. Draw Input Vector (The "General Report") ---
-    height = 6
-    width = 1.5
-    base_y = 1.5
-    
-    # Container
-    input_rect = patches.Rectangle((input_x, base_y), width, height, linewidth=3, edgecolor='black', facecolor='none', zorder=5)
-    ax.add_patch(input_rect)
-    
-    # "Mixed Info" bands
-    num_segments = 20
-    seg_height = height / num_segments
-    np.random.seed(42) 
-    segment_colors = plt.get_cmap('tab20').colors
-    for i in range(num_segments):
-        color = segment_colors[i % len(segment_colors)]
-        rect = patches.Rectangle((input_x, base_y + i*seg_height), width, seg_height, facecolor=color, alpha=0.7, edgecolor='none')
-        ax.add_patch(rect)
-
-    # Label Input
-    ax.text(input_x + width/2, base_y - 0.6, "Input Embedding\n($d_{model}=512$)", ha='center', va='top', fontweight='bold', fontsize=font_label)
-
-    # --- 2. Draw The Projections (Arrows & Matrices) ---
-    
-    proj_start_x = input_x + width + 0.2
-    proj_end_x = output_x - 0.2
-    
-    for i, (y_c, color, label) in enumerate(zip(y_positions, colors, labels)):
-        # A. Arrow from Input Center to Head Center
-        arrow = patches.FancyArrowPatch(
-            (proj_start_x, base_y + height/2), (proj_end_x, y_c),
-            arrowstyle='-|>,head_width=0.6,head_length=1.0',
-            connectionstyle=f"arc3,rad={(i-1)*-0.15}", 
-            color=color, lw=4, zorder=2, alpha=0.8
-        )
-        ax.add_patch(arrow)
-        
-        # B. Matrix Box (The "Lens")
-        mid_x = (proj_start_x + proj_end_x) / 2
-        mid_y = (base_y + height/2 + y_c) / 2 + (i-1)*0.5 # Slight offset for visual separation
-        
-        # Matrix Label
-        ax.text(mid_x, mid_y + 0.6, f"$W_{i}$", ha='center', va='center', color=color, fontweight='bold', fontsize=font_label, zorder=6)
-
-        # C. Output Subspace Blocks
-        # Make them look identical in size
-        out_h = 1.8
-        out_w = 1.5
-        out_rect = patches.Rectangle((output_x, y_c - out_h/2), out_w, out_h, facecolor=color, edgecolor='black', lw=2, alpha=0.9)
-        ax.add_patch(out_rect)
-        
-        # Label each head
-        ax.text(output_x + out_w + 0.3, y_c, label, ha='left', va='center', fontsize=font_label, color='black')
-        # Math label showing the split
-        ax.text(output_x + out_w + 0.3, y_c - 0.6, "($d_k=64$)", ha='left', va='center', fontsize=font_math, color='#555')
-
-    # --- 3. Final Annotations describing the Split ---
-    
-    # Title
-    ax.text(7, 8.5, "Multi-Head Projection: Dividing the Work", ha='center', va='center', fontsize=font_title, fontweight='bold')
-    
-    # Explanation of the split
-    ax.text(7, 0.5, "Total Dimensions (512) $\\div$ Heads (8) = 64 dims per Head", 
-            ha='center', va='center', fontsize=font_label, fontweight='bold', 
-            bbox=dict(facecolor='#f0f0f0', edgecolor='gray', boxstyle='round,pad=0.5'))
-
-    plt.tight_layout()
-    plt.show()
-
-plot_multihead_projection_concept()
-:::
-
-We draw 3 heads for readability—imagine 8 in the real model.
-
-(technical-note-input-projections)=
-::::{important} Technical Note: What actually gets split? (The Input Projections)
-
-Heads don't split the *raw* embedding. First, a learned projection ($W^Q$, $W^K$, $W^V$) **mixes the 512 input dimensions** - each of the 512 output dimensions is a weighted combination of ALL 512 input dimensions.
-Only **after that** do we reshape into **8 × 64** and give each head one slice.
-
-We'll explore this "Mix, Then Split" process in detail in [Part 2](#l04-part2-pipeline).
-::::
 
 ---
 
