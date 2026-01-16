@@ -19,7 +19,7 @@ This tutorial explores **Residual Networks (ResNet)**, a breakthrough architectu
 
 ### Motivation: Tabular Data and Anomaly Detection
 
-Recent research has shown that while Transformers (TabTransformer, FT-Transformer) achieve state-of-the-art results on tabular data, **ResNet-like architectures provide a simpler, more efficient baseline** that often performs comparably well{cite}`gorishniy2021revisiting`. For applications like:
+Recent research has shown that while Transformers (TabTransformer, FT-Transformer) achieve state-of-the-art results on tabular data, **ResNet-like architectures provide a simpler, more efficient baseline** that often performs comparably well {cite}`gorishniy2021revisiting`. For applications like:
 
 - **Anomaly detection in observability data** (logs, network traffic, system metrics)
 - **Self-supervised learning on unlabelled data**
@@ -40,7 +40,7 @@ Consider a security/observability scenario where you have:
 - **Multi-record anomalies**: Patterns that span sequences of events
 - **No ground truth**: Need self-supervised learning
 
-The approach{cite}`huang2020tabtransformer`:
+The approach {cite}`huang2020tabtransformer`:
 1. **Pre-train** a ResNet to create embeddings from individual records
 2. **Extract** fixed-dimensional vectors that capture "normal" system behavior
 3. **Detect anomalies** as records/sequences that deviate from learned patterns
@@ -1164,7 +1164,7 @@ print(f"Interpretation: {normality_score.item():.3f} probability of being normal
 
 ### When to Use ResNet vs. Transformers
 
-Based on the research{cite}`gorishniy2021revisiting`:
+Based on the research {cite}`gorishniy2021revisiting`:
 
 **Use ResNet when:**
 - ✅ You have many features (100-300+) and attention complexity is prohibitive
