@@ -73,6 +73,8 @@ torch.manual_seed(0)
 
 ## Part 1: The Intuition (The Committee)
 
+### The Committee Metaphor
+
 Think of the embedding dimension ($d_{model} = 512$) as a massive report containing everything we know about a word.
 
 :::{note}
@@ -93,6 +95,8 @@ Instead, we hire a **Committee of 8 Experts**:
 * ...
 
 In the Transformer, we don't just copy the input 8 times. We **project** the input into 8 different lower-dimensional spaces. This allows each head to specialize.
+
+### Visualizing Multi-Head Projection
 
 Let's visualize this head specialization. In the plot below:
 * **The Input (Mixed Info):** The large multi-colored bar represents the full word embedding ($d=512$).
@@ -212,7 +216,9 @@ Only **after that** do we reshape into **8 × 64** and give each head one slice.
 We'll explore this "Mix, Then Split" process in detail in [Part 2](#l04-part2-pipeline).
 ::::
 
-Now let's look at the parameter implications of this design:
+### Parameter Implications: Why Reduced Dimensions?
+
+Let's look at the parameter implications of using reduced dimensions (64) per head instead of full dimensions (512):
 
 :::{code-cell} ipython3
 # Parameter-count intuition: "full 512 per head" vs "reduced dims per head (8×64)"
@@ -245,8 +251,6 @@ print("Note: Scenario C has the SAME param count as single-head attention,")
 print("but the difference is in the OUTPUT: we reshape it into 8 heads × 64 dims")
 :::
 
-:::{note} Why Lower Dimensions?
-
 The code above shows that using reduced dimensions per head keeps parameters constant (786K vs 6.3M for full dimensions per head). But why do this instead of giving each head the full 512 dimensions?
 
 **Forced specialization.** With only 64 dimensions, each head must be selective about what it captures, encouraging distinct patterns:
@@ -255,9 +259,8 @@ The code above shows that using reduced dimensions per head keeps parameters con
 - Head 3 might focus on positional patterns (nearby vs distant dependencies)
 
 Think of it like hiring specialists with limited notepads. If each expert had unlimited space, they might all write the same general report. But with only 64 dimensions, each head is forced to focus on what matters most to its specialized role.
-:::
 
-:::{important} The Roles Are Learned, Not Assigned
+### How Heads Learn Their Roles
 
 When we say "Head 1 (The Linguist)" we're using a metaphor for intuition. In reality:
 
@@ -267,7 +270,6 @@ When we say "Head 1 (The Linguist)" we're using a metaphor for intuition. In rea
 - **Descriptive, not prescriptive** - Labels like "Linguist" are what researchers assign *after* analyzing what a trained model learned
 
 You can't tell the model "Head 1, you focus on grammar!" - it discovers its own patterns that minimize loss. Different training runs or datasets might result in different specializations.
-:::
 
 ---
 
