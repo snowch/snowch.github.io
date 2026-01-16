@@ -398,10 +398,15 @@ print(f"\n--- Verifying q0[{output_idx}] uses ALL input dimensions ---")
 print(f"q0[{output_idx}] = {q0[output_idx].item():.4f}")
 print()
 
+# Show the column of W that produces this output dimension
+print(f"W[:, {output_idx}] (weights for output dimension {output_idx}):")
+print(W[:, output_idx])
+print()
+
 # Manual computation: q0[j] = dot product of x0 with column j of W
 manual = (x0 * W[:, output_idx]).sum()  # x0[0]*W[0,3] + x0[1]*W[1,3] + ... + x0[7]*W[7,3]
-print(f"Manual: sum of (x0[i] * W[i,{output_idx}]) for ALL i from 0 to {D-1}")
-print(f"      = {manual.item():.4f}")
+print(f"Manual calculation: sum of (x0[i] * W[i,{output_idx}]) for ALL i from 0 to {D-1}")
+print(f"                  = {manual.item():.4f}")
 print()
 print(f"✓ Matches! This proves q0[{output_idx}] is a weighted combination of")
 print(f"  ALL {D} input dimensions, not just one chunk.")
