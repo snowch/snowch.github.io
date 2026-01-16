@@ -563,6 +563,8 @@ print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 ### Training Example on CIFAR-10
 
 ```{code-cell}
+:tags: [skip-execution]
+
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
