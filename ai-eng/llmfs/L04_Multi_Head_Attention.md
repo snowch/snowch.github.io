@@ -389,6 +389,8 @@ print("DEMONSTRATING THE MIX OPERATION")
 print("=" * 60)
 print(f"\nInput vector x0 (shape {x0.shape}):")
 print(x0)
+print(f"\nMix matrix W (shape {W.shape}):")
+print(W)
 print(f"\nOutput vector q0 = x0 @ W (shape {q0.shape}):")
 print(q0)
 
