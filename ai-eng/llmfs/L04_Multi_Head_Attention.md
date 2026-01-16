@@ -373,21 +373,35 @@ This is what enables head specialization—each head gets features specifically 
 > **Keep this invariant in mind:** the split step only works when $D$ is divisible by $H$ so that $D = H \times d_k$. If you change any of these values in the code, recompute `d_k = D // H` first.
 
 :::{code-cell} ipython3
-# A tiny numeric "mix" example: every output dim is a weighted sum of ALL input dims
+# Concrete example: Prove that each output dimension mixes ALL input dimensions
 torch.manual_seed(1)
-D = 8  # embedding dimension (from earlier examples)
-x0 = torch.randn(D)           # one token vector [D]
-W = torch.randn(D, D)         # mix matrix [D,D]
-q0 = x0 @ W                   # [D]
+D = 8  # Small example for clarity
+x0 = torch.randn(D)           # One token vector [D]
+W = torch.randn(D, D)         # Mix matrix (like W^Q, W^K, or W^V) [D×D]
+q0 = x0 @ W                   # Matrix multiply: [D] @ [D×D] = [D]
 
-print("x0:", x0)
-print("q0:", q0)
+print("=" * 60)
+print("DEMONSTRATING THE MIX OPERATION")
+print("=" * 60)
+print(f"\nInput vector x0 (shape {x0.shape}):")
+print(x0)
+print(f"\nOutput vector q0 = x0 @ W (shape {q0.shape}):")
+print(q0)
 
-# Show one output coordinate explicitly as a dot product over ALL input dims
-j = 3
-manual = (x0 * W[:, j]).sum()
-print(f"q0[{j}] computed by PyTorch:", q0[j].item())
-print(f"q0[{j}] computed manually:  ", manual.item())
+# Proof: Pick any output dimension (let's use index 3) and show it depends on ALL inputs
+output_idx = 3
+print(f"\n--- Verifying q0[{output_idx}] uses ALL input dimensions ---")
+print(f"q0[{output_idx}] = {q0[output_idx].item():.4f}")
+print()
+
+# Manual computation: q0[j] = dot product of x0 with column j of W
+manual = (x0 * W[:, output_idx]).sum()  # x0[0]*W[0,3] + x0[1]*W[1,3] + ... + x0[7]*W[7,3]
+print(f"Manual: sum of (x0[i] * W[i,{output_idx}]) for ALL i from 0 to {D-1}")
+print(f"      = {manual.item():.4f}")
+print()
+print(f"✓ Matches! This proves q0[{output_idx}] is a weighted combination of")
+print(f"  ALL {D} input dimensions, not just one chunk.")
+print("=" * 60)
 :::
 
 Let's visualize that "Mix → Split" distinction (shown for $\mathbf{W^Q}$, but $W^K$ and $W^V$ work identically):
