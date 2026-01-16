@@ -7,6 +7,8 @@ kernelspec:
   display_name: Python 3
   language: python
   name: python3
+bibliography:
+  - references.bib
 ---
 
 # ResNet: Residual Networks for Deep Learning [DRAFT]
@@ -153,103 +155,50 @@ Where:
 
 The **skip connection** (also called **shortcut connection**) adds the input directly to the output.
 
-```{code-cell}
-:tags: [remove-input]
+::::{grid} 1 1 2 2
+:gutter: 3
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+:::{grid-item-card} Plain Network Block
+```{mermaid}
+graph TB
+    X1[x<br/>Input] --> L1[Conv/Linear<br/>Layer 1]
+    L1 --> L2[Conv/Linear<br/>Layer 2]
+    L2 --> H1[H&#40;x&#41;<br/>Output]
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+    Note1["Learns H(x) directly"]
 
-# Plain Block
-ax1.set_xlim(0, 10)
-ax1.set_ylim(0, 10)
-ax1.axis('off')
-ax1.set_title('Plain Network Block', fontsize=14, fontweight='bold', pad=20)
-
-# Input
-ax1.add_patch(FancyBboxPatch((1, 0.5), 2, 1, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='lightblue', linewidth=2))
-ax1.text(2, 1, 'x', ha='center', va='center', fontsize=14, fontweight='bold')
-
-# Layer 1
-ax1.add_patch(FancyBboxPatch((1, 3), 2, 1.2, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='coral', linewidth=2))
-ax1.text(2, 3.6, 'Conv/Linear', ha='center', va='center', fontsize=11)
-
-# Layer 2
-ax1.add_patch(FancyBboxPatch((1, 5.5), 2, 1.2, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='coral', linewidth=2))
-ax1.text(2, 6.1, 'Conv/Linear', ha='center', va='center', fontsize=11)
-
-# Output
-ax1.add_patch(FancyBboxPatch((1, 8), 2, 1, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='lightgreen', linewidth=2))
-ax1.text(2, 8.5, 'H(x)', ha='center', va='center', fontsize=14, fontweight='bold')
-
-# Arrows
-ax1.arrow(2, 1.5, 0, 1.3, head_width=0.3, head_length=0.2, fc='black', ec='black', linewidth=2)
-ax1.arrow(2, 4.2, 0, 1.1, head_width=0.3, head_length=0.2, fc='black', ec='black', linewidth=2)
-ax1.arrow(2, 6.7, 0, 1.1, head_width=0.3, head_length=0.2, fc='black', ec='black', linewidth=2)
-
-ax1.text(5, 4.5, 'Learns H(x) directly', ha='left', va='center', fontsize=12,
-         style='italic', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-# Residual Block
-ax2.set_xlim(0, 10)
-ax2.set_ylim(0, 10)
-ax2.axis('off')
-ax2.set_title('Residual Block', fontsize=14, fontweight='bold', pad=20)
-
-# Input
-ax2.add_patch(FancyBboxPatch((1, 0.5), 2, 1, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='lightblue', linewidth=2))
-ax2.text(2, 1, 'x', ha='center', va='center', fontsize=14, fontweight='bold')
-
-# Layer 1
-ax2.add_patch(FancyBboxPatch((1, 3), 2, 1.2, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='coral', linewidth=2))
-ax2.text(2, 3.6, 'Conv/Linear', ha='center', va='center', fontsize=11)
-
-# Layer 2
-ax2.add_patch(FancyBboxPatch((1, 5.5), 2, 1.2, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='coral', linewidth=2))
-ax2.text(2, 6.1, 'Conv/Linear', ha='center', va='center', fontsize=11)
-
-# Addition node
-ax2.add_patch(plt.Circle((2, 7.5), 0.4, edgecolor='black', facecolor='yellow', linewidth=2))
-ax2.text(2, 7.5, '+', ha='center', va='center', fontsize=18, fontweight='bold')
-
-# Output
-ax2.add_patch(FancyBboxPatch((1, 8.5), 2, 1, boxstyle="round,pad=0.1",
-                              edgecolor='black', facecolor='lightgreen', linewidth=2))
-ax2.text(2, 9, 'H(x)', ha='center', va='center', fontsize=14, fontweight='bold')
-
-# Main path arrows
-ax2.arrow(2, 1.5, 0, 1.3, head_width=0.3, head_length=0.2, fc='black', ec='black', linewidth=2)
-ax2.arrow(2, 4.2, 0, 1.1, head_width=0.3, head_length=0.2, fc='black', ec='black', linewidth=2)
-ax2.arrow(2, 6.7, 0, 0.6, head_width=0.3, head_length=0.15, fc='black', ec='black', linewidth=2)
-ax2.arrow(2, 7.9, 0, 0.45, head_width=0.3, head_length=0.15, fc='black', ec='black', linewidth=2)
-
-# Skip connection (curved)
-skip = mpatches.FancyArrowPatch((2.5, 1), (2.5, 7.1),
-                                connectionstyle="arc3,rad=1.5",
-                                arrowstyle='->', mutation_scale=25,
-                                linewidth=3, color='blue')
-ax2.add_patch(skip)
-ax2.text(5.5, 4, 'Skip Connection', ha='left', va='center', fontsize=11,
-         color='blue', fontweight='bold')
-
-# Labels
-ax2.text(0.5, 4.5, 'F(x)', ha='center', va='center', fontsize=13,
-         style='italic', bbox=dict(boxstyle='round', facecolor='lightyellow'))
-ax2.text(5.5, 7.5, 'H(x) = F(x) + x', ha='left', va='center', fontsize=12,
-         style='italic', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-plt.tight_layout()
-plt.show()
+    style X1 fill:#ADD8E6
+    style L1 fill:#F08080
+    style L2 fill:#F08080
+    style H1 fill:#90EE90
+    style Note1 fill:#F5DEB3,stroke:none
 ```
+:::
+
+:::{grid-item-card} Residual Block
+```{mermaid}
+graph TB
+    X2[x<br/>Input] --> L3[Conv/Linear<br/>Layer 1]
+    L3 --> L4[Conv/Linear<br/>Layer 2]
+    L4 --> Add((+))
+    X2 -.Skip Connection.-> Add
+    Add --> H2[H&#40;x&#41;<br/>Output]
+
+    Note2["H(x) = F(x) + x"]
+    Note3["F(x) = learned residual"]
+
+    style X2 fill:#ADD8E6
+    style L3 fill:#F08080
+    style L4 fill:#F08080
+    style Add fill:#FFFF00
+    style H2 fill:#90EE90
+    style Note2 fill:#F5DEB3,stroke:none
+    style Note3 fill:#FFFACD,stroke:none
+    linkStyle 2 stroke:#0000FF,stroke-width:3px
+```
+:::
+
+::::
 
 ### Why This Works: Intuition
 
@@ -361,61 +310,31 @@ Standard architectures (for ImageNet):
 - **ResNet-18/34**: Use basic blocks (2 conv layers per block)
 - **ResNet-50/101/152**: Use bottleneck blocks (3 conv layers with 1×1, 3×3, 1×1 pattern)
 
-```{code-cell}
-:tags: [remove-input]
+#### ResNet-18 Architecture
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+```{mermaid}
+graph TB
+    Input["Input Image<br/>224×224×3"] --> Conv1["Conv1 (7×7, 64)<br/>112×112×64"]
+    Conv1 --> MaxPool["MaxPool<br/>56×56×64"]
+    MaxPool --> Stage1["Stage 1<br/>2× BasicBlock<br/>56×56×64"]
+    Stage1 --> Stage2["Stage 2<br/>2× BasicBlock<br/>28×28×128"]
+    Stage2 --> Stage3["Stage 3<br/>2× BasicBlock<br/>14×14×256"]
+    Stage3 --> Stage4["Stage 4<br/>2× BasicBlock<br/>7×7×512"]
+    Stage4 --> AvgPool["AvgPool<br/>1×1×512"]
+    AvgPool --> FC["FC (1000 classes)<br/>1000"]
 
-fig, ax = plt.subplots(figsize=(12, 8))
-ax.set_xlim(0, 10)
-ax.set_ylim(0, 12)
-ax.axis('off')
-ax.set_title('ResNet-18 Architecture', fontsize=16, fontweight='bold', pad=20)
+    Note1["Total: 18 layers<br/>(conv + FC)"]
 
-# Layer definitions
-layers = [
-    ("Input Image", 0.5, 'lightblue', '224×224×3'),
-    ("Conv1 (7×7, 64)", 1.5, 'lightcoral', '112×112×64'),
-    ("MaxPool", 2.3, 'lightyellow', '56×56×64'),
-    ("Stage 1\n2× BasicBlock", 3.5, 'lightgreen', '56×56×64'),
-    ("Stage 2\n2× BasicBlock", 5, 'lightgreen', '28×28×128'),
-    ("Stage 3\n2× BasicBlock", 6.5, 'lightgreen', '14×14×256'),
-    ("Stage 4\n2× BasicBlock", 8, 'lightgreen', '7×7×512'),
-    ("AvgPool", 9.3, 'lightyellow', '1×1×512'),
-    ("FC (1000 classes)", 10.5, 'lightcoral', '1000'),
-]
-
-y_pos = 11
-for i, (name, offset, color, shape) in enumerate(layers):
-    y = y_pos - offset
-
-    # Draw box
-    ax.add_patch(mpatches.FancyBboxPatch((1, y-0.35), 4, 0.7,
-                                          boxstyle="round,pad=0.05",
-                                          edgecolor='black', facecolor=color,
-                                          linewidth=2))
-
-    # Add text
-    ax.text(3, y, name, ha='center', va='center', fontsize=11, fontweight='bold')
-    ax.text(7, y, shape, ha='center', va='center', fontsize=10,
-            family='monospace', style='italic')
-
-    # Draw arrow (except for last layer)
-    if i < len(layers) - 1:
-        next_y = y_pos - layers[i+1][1]
-        ax.arrow(3, y - 0.4, 0, (next_y - y) + 0.7,
-                head_width=0.3, head_length=0.1, fc='black', ec='black', linewidth=1.5)
-
-# Add annotations
-ax.text(8.5, 7, 'Total: 18 layers\n(conv + FC)', ha='left', va='center',
-        fontsize=11, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7))
-
-ax.text(0.2, 6, 'Residual\nBlocks', ha='left', va='center', fontsize=10,
-        color='darkgreen', fontweight='bold', rotation=90)
-
-plt.tight_layout()
-plt.show()
+    style Input fill:#ADD8E6
+    style Conv1 fill:#F08080
+    style MaxPool fill:#FFFFE0
+    style Stage1 fill:#90EE90
+    style Stage2 fill:#90EE90
+    style Stage3 fill:#90EE90
+    style Stage4 fill:#90EE90
+    style AvgPool fill:#FFFFE0
+    style FC fill:#F08080
+    style Note1 fill:#F5DEB3,stroke:none
 ```
 
 ### Bottleneck Block (ResNet-50+)
@@ -671,79 +590,39 @@ For tabular data, we need to modify:
 
 ### Architecture for Tabular Data
 
-```{code-cell}
-:tags: [remove-input]
+#### Tabular ResNet Architecture for OCSF Data
 
-import matplotlib.pyplot as plt
+```{mermaid}
+graph TB
+    Input["Input Features<br/>300+ fields"] --> Embed["Categorical Embeddings +<br/>Numerical Features<br/>d_model dim"]
+    Embed --> Proj["Linear Projection<br/>d_model"]
+    Proj --> RB1["Residual Block 1<br/>(Linear → BN → ReLU → Linear → BN)<br/>d_model"]
+    RB1 --> RB2["Residual Block 2<br/>d_model"]
+    RB2 --> RB3["Residual Block 3<br/>d_model"]
+    RB3 --> Dots["⋮"]
+    Dots --> RBN["Residual Block N<br/>d_model"]
+    RBN --> LN["Layer Norm<br/>d_model"]
+    LN --> EmbedOut["Embedding Vector<br/>d_model"]
+    EmbedOut --> Class["(Optional) Classification Head<br/>num_classes"]
 
-fig, ax = plt.subplots(figsize=(12, 10))
-ax.set_xlim(0, 10)
-ax.set_ylim(0, 14)
-ax.axis('off')
-ax.set_title('Tabular ResNet Architecture for OCSF Data', fontsize=16, fontweight='bold', pad=20)
+    RB1 -.Skip Connection.-> RB2
+    RB2 -.Skip Connection.-> RB3
 
-# Components
-components = [
-    ("Input Features", 0.5, 'lightblue', '300+ fields'),
-    ("Categorical Embeddings\n+ Numerical Features", 1.8, 'lightyellow', 'd_model dim'),
-    ("Linear Projection", 3, 'lightcoral', 'd_model'),
-    ("Residual Block 1\n(Linear → BN → ReLU → Linear → BN)", 4.5, 'lightgreen', 'd_model'),
-    ("Residual Block 2", 6, 'lightgreen', 'd_model'),
-    ("Residual Block 3", 7.5, 'lightgreen', 'd_model'),
-    ("...", 8.5, 'white', '...'),
-    ("Residual Block N", 9.5, 'lightgreen', 'd_model'),
-    ("Layer Norm", 11, 'lightyellow', 'd_model'),
-    ("Embedding Vector", 12.3, 'gold', 'd_model'),
-    ("(Optional) Classification Head", 13.3, 'lightcoral', 'num_classes'),
-]
+    Extract["Extract here for<br/>anomaly detection"]
 
-y_base = 13.5
-for i, (name, offset, color, dim) in enumerate(components):
-    y = y_base - offset
-
-    if name == "...":
-        ax.text(3, y, '...', ha='center', va='center', fontsize=20, fontweight='bold')
-        ax.arrow(3, y + 0.3, 0, -0.5, head_width=0.3, head_length=0.1,
-                fc='black', ec='black', linewidth=1.5)
-        continue
-
-    # Draw box
-    ax.add_patch(mpatches.FancyBboxPatch((0.8, y-0.35), 4.4, 0.7,
-                                          boxstyle="round,pad=0.05",
-                                          edgecolor='black', facecolor=color,
-                                          linewidth=2))
-
-    # Labels
-    ax.text(3, y, name, ha='center', va='center', fontsize=10, fontweight='bold')
-    ax.text(7.5, y, dim, ha='center', va='center', fontsize=9,
-            family='monospace', style='italic')
-
-    # Arrows
-    if i < len(components) - 1 and components[i+1][0] != "...":
-        next_y = y_base - components[i+1][1]
-        if abs(next_y - y) > 0.1:
-            ax.arrow(3, y - 0.4, 0, (next_y - y) + 0.75,
-                    head_width=0.3, head_length=0.1, fc='black', ec='black', linewidth=1.5)
-
-# Annotations
-ax.add_patch(mpatches.FancyBboxPatch((6, 9.5), 3.5, 0.6,
-                                      boxstyle="round,pad=0.1",
-                                      edgecolor='darkgreen', facecolor='lightgreen',
-                                      linewidth=2, linestyle='--'))
-ax.text(7.75, 9.8, 'Extract here for\nanomalies', ha='center', va='center',
-        fontsize=9, fontweight='bold', color='darkgreen')
-
-# Skip connection illustration
-skip_y_start = y_base - 4.5
-skip_y_end = y_base - 6
-ax.annotate('', xy=(6.2, skip_y_end), xytext=(6.2, skip_y_start),
-            arrowprops=dict(arrowstyle='->', lw=2, color='blue',
-                          connectionstyle="arc3,rad=.5"))
-ax.text(7.5, (skip_y_start + skip_y_end)/2, 'Skip\nConnection',
-        ha='left', va='center', fontsize=9, color='blue', fontweight='bold')
-
-plt.tight_layout()
-plt.show()
+    style Input fill:#ADD8E6
+    style Embed fill:#FFFFE0
+    style Proj fill:#F08080
+    style RB1 fill:#90EE90
+    style RB2 fill:#90EE90
+    style RB3 fill:#90EE90
+    style RBN fill:#90EE90
+    style LN fill:#FFFFE0
+    style EmbedOut fill:#FFD700
+    style Class fill:#F08080
+    style Dots fill:none,stroke:none
+    style Extract fill:#90EE90,stroke:#006400,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 9,10 stroke:#0000FF,stroke-width:2px
 ```
 
 ### Tabular Residual Block
@@ -999,22 +878,122 @@ def masked_feature_prediction_loss(model, numerical, categorical):
 
 Learn embeddings where similar records cluster together:
 
-```python
-def contrastive_loss(embeddings, temperature=0.07):
+```{code-cell}
+import torch
+import torch.nn.functional as F
+
+class TabularAugmentation:
+    """
+    Data augmentation for tabular data used in contrastive learning.
+    """
+    def __init__(self, noise_level=0.1, dropout_prob=0.2):
+        self.noise_level = noise_level
+        self.dropout_prob = dropout_prob
+
+    def augment_numerical(self, numerical_features):
+        """Add Gaussian noise to numerical features."""
+        noise = torch.randn_like(numerical_features) * self.noise_level
+        return numerical_features + noise
+
+    def augment_categorical(self, categorical_features, cardinalities):
+        """Randomly replace some categorical features with random values."""
+        augmented = categorical_features.clone()
+        mask = torch.rand_like(categorical_features.float()) < self.dropout_prob
+
+        for i, cardinality in enumerate(cardinalities):
+            # Replace masked values with random categories
+            random_cats = torch.randint(0, cardinality,
+                                       (categorical_features.size(0),),
+                                       device=categorical_features.device)
+            augmented[:, i] = torch.where(mask[:, i], random_cats,
+                                         categorical_features[:, i])
+
+        return augmented
+
+def contrastive_loss(model, numerical, categorical, cardinalities,
+                    temperature=0.07, augmenter=None):
     """
     SimCLR-style contrastive loss for tabular data.
-    Augmentations: add noise, drop features, etc.
+
+    Args:
+        model: TabularResNet model
+        numerical: (batch_size, num_numerical) numerical features
+        categorical: (batch_size, num_categorical) categorical features
+        cardinalities: List of cardinalities for categorical features
+        temperature: Temperature parameter for softmax
+        augmenter: TabularAugmentation instance
+
+    Returns:
+        Contrastive loss value
     """
-    # Normalize embeddings
+    if augmenter is None:
+        augmenter = TabularAugmentation()
+
+    batch_size = numerical.size(0)
+
+    # Create two augmented views of each sample
+    # View 1: First augmentation
+    num_aug1 = augmenter.augment_numerical(numerical)
+    cat_aug1 = augmenter.augment_categorical(categorical, cardinalities)
+    embeddings1 = model(num_aug1, cat_aug1, return_embedding=True)
+
+    # View 2: Second augmentation (independent)
+    num_aug2 = augmenter.augment_numerical(numerical)
+    cat_aug2 = augmenter.augment_categorical(categorical, cardinalities)
+    embeddings2 = model(num_aug2, cat_aug2, return_embedding=True)
+
+    # Concatenate both views: [emb1_batch, emb2_batch]
+    embeddings = torch.cat([embeddings1, embeddings2], dim=0)
+
+    # Normalize embeddings (important for cosine similarity)
     embeddings = F.normalize(embeddings, dim=1)
 
-    # Compute similarity matrix
-    similarity = torch.matmul(embeddings, embeddings.T) / temperature
+    # Compute similarity matrix: (2*batch_size, 2*batch_size)
+    similarity_matrix = torch.matmul(embeddings, embeddings.T) / temperature
 
-    # Create positive pairs (augmented versions of same record)
-    # ... (implementation details omitted for brevity)
+    # Create labels: positive pairs are (i, i+batch_size) and (i+batch_size, i)
+    # For sample i: positive is at index i+batch_size
+    labels = torch.cat([
+        torch.arange(batch_size, 2 * batch_size),  # For first half
+        torch.arange(0, batch_size)                 # For second half
+    ], dim=0).to(numerical.device)
+
+    # Mask to remove self-similarity (diagonal)
+    mask = torch.eye(2 * batch_size, dtype=torch.bool, device=numerical.device)
+    similarity_matrix = similarity_matrix.masked_fill(mask, float('-inf'))
+
+    # Compute cross-entropy loss
+    # Each row: softmax over all other samples, target is the positive pair
+    loss = F.cross_entropy(similarity_matrix, labels)
 
     return loss
+
+# Example usage
+num_numerical = 50
+categorical_cardinalities = [100, 50, 200, 1000]
+
+model = TabularResNet(
+    num_numerical_features=num_numerical,
+    categorical_cardinalities=categorical_cardinalities,
+    d_model=256,
+    num_blocks=6,
+    num_classes=None  # Embedding mode
+)
+
+# Create dummy batch
+batch_size = 32
+numerical_data = torch.randn(batch_size, num_numerical)
+categorical_data = torch.randint(0, 50, (batch_size, len(categorical_cardinalities)))
+
+# Compute contrastive loss
+augmenter = TabularAugmentation(noise_level=0.1, dropout_prob=0.2)
+loss = contrastive_loss(model, numerical_data, categorical_data,
+                       categorical_cardinalities, augmenter=augmenter)
+
+print(f"\nContrastive Learning Example:")
+print(f"Batch size: {batch_size}")
+print(f"Contrastive loss: {loss.item():.4f}")
+print(f"Interpretation: Lower loss = more similar embeddings for augmented pairs")
 ```
 
 ### Anomaly Detection After Training
@@ -1259,5 +1238,3 @@ For your use case, consider:
 :filter: docname in docnames
 :style: unsrt
 ```
-
-(Note: For proper citation rendering, you would add a `references.bib` file with the BibTeX entries for the papers mentioned.)
