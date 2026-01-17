@@ -13,18 +13,7 @@ bibliography:
 
 # Part 6: Production Deployment
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 5: Anomaly Detection Methods](part5-anomaly-detection) | **Part 6 of 7** | [Next: Part 7 - Production Monitoring →](part7-production-monitoring)
-
 Deploy your anomaly detection system to production with REST APIs, model serving, and integration with observability platforms.
-:::
-::::
 
 ## Deployment Architecture
 
