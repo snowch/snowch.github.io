@@ -15,7 +15,7 @@ bibliography:
 
 A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
-**What you'll learn**: How to transform security logs and system metrics into mathematical representations (embeddings) that help automatically identify unusual behavior in your infrastructure.
+**What you'll learn**: How to build, train, and deploy a **custom embedding model** (TabularResNet) specifically designed for OCSF observability data. This model transforms security logs and system metrics into vector representations. Anomaly detection happens entirely through vector database similarity search—no separate detection model needed. The system processes streaming OCSF events in near real-time to automatically identify unusual behavior.
 
 ---
 
@@ -23,10 +23,11 @@ A comprehensive 7-part tutorial series on building production-ready anomaly dete
 
 This tutorial series takes you from ResNet fundamentals to deploying and monitoring a complete anomaly detection system in production. You'll learn how to:
 
-- Build embeddings from high-dimensional tabular data
-- Train models using self-supervised learning
-- Detect anomalies using a vector database as the central retrieval layer
-- Deploy to production with proper monitoring for near real-time detection
+- Build and train a custom TabularResNet embedding model using self-supervised learning on unlabeled OCSF logs
+- Deploy the custom embedding model as a FastAPI service for near real-time inference
+- Store embeddings in a vector database for fast k-NN similarity search
+- Detect anomalies purely through vector DB operations (k-NN distance scoring—no classical DL detection model)
+- Monitor embedding quality and trigger automated retraining of the embedding model when drift is detected
 
 **Target Audience**: ML engineers, security engineers, and data scientists working with observability data
 
@@ -157,21 +158,34 @@ All code examples are executable and production-ready.
 
 By the end of this series, you'll have:
 
-1. **TabularResNet Model**: Trained on OCSF observability data using self-supervised learning
-2. **Vector Database**: Stores embeddings and supports similarity search at scale
-3. **Anomaly Detector**: Vector-db-driven scoring (k-NN distance, density, thresholds)
-4. **Production API**: FastAPI service with health checks and metrics
-5. **Monitoring Dashboard**: Track drift, alert quality, and performance
-6. **Retraining Pipeline**: Automated triggers based on performance degradation
+1. **Custom TabularResNet Embedding Model**: Trained from scratch on your OCSF data using self-supervised learning
+2. **Embedding Service**: FastAPI API that deploys the custom model to generate embeddings from streaming OCSF events
+3. **Vector Database**: Stores embeddings and performs k-NN similarity search at scale
+4. **Vector-Based Anomaly Detection**: Detection through pure vector DB operations (k-NN distance, density)—no classical DL detection model
+5. **Monitoring & Alerting**: Track embedding drift, detection quality, and system health
+6. **Automated Retraining**: Triggers retraining of the custom embedding model based on drift and performance degradation
 
 ### System Architecture
 
-This diagram shows the complete end-to-end system you'll build. Data flows from left to right through several stages: raw observability data is transformed into embeddings, stored in a vector database for fast similarity search, and then analyzed for anomalies. The monitoring components (shown in red/purple) watch for system degradation and trigger automatic retraining when needed.
+This diagram shows the complete end-to-end system you'll build. OCSF events stream in near real-time through the following pipeline:
+
+1. **Preprocessing**: Extract and normalize features from each OCSF event
+2. **Embedding generation**: TabularResNet (deployed embedding model) generates a vector for each event
+3. **Vector DB storage**: Embeddings are indexed for fast k-NN similarity search
+4. **Anomaly detection**: Compute anomaly scores using vector DB distance calculations (k-NN, density)—no separate detection model
+5. **Alerting**: Trigger alerts for high-scoring anomalies
+
+The monitoring components (shown in red/purple) continuously track embedding drift and system health, triggering automatic retraining of the embedding model when needed.
+
+**Key architectural point**:
+- **What we deploy**: A custom TabularResNet embedding model trained on your OCSF data
+- **What we DON'T deploy**: A classical DL model for anomaly detection (no separate classifier, predictor, or scoring model)
+- **How detection works**: Pure vector database operations (k-NN distance calculations, density estimation)
 
 **Diagram legend**:
-- **Solid arrows** (→): Main data flow path
-- **Dotted arrows** (⇢): Monitoring and feedback loops
-- **Colors**: Blue=Data input, Green=ML model, Yellow=Vector storage, Orange=Detection, Red/Purple=Monitoring
+- **Solid arrows** (→): Near real-time data flow for each OCSF event
+- **Dotted arrows** (⇢): Monitoring and feedback loops (periodic checks)
+- **Colors**: Blue=Data input, Green=Embedding model, Yellow=Vector storage, Orange=Vector-based detection, Red/Purple=Monitoring
 
 ```{mermaid}
 graph TB

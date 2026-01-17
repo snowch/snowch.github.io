@@ -13,9 +13,9 @@ bibliography:
 
 # Part 6: Production Deployment [DRAFT]
 
-Deploy your anomaly detection system to production with REST APIs, model serving, and integration with observability platforms.
+Deploy your anomaly detection system to production with REST APIs for embedding model serving and integration with observability platforms.
 
-**What you'll learn**: How to package your trained model as a production service that processes OCSF events in near real-time, with proper model versioning, health checks, and monitoring.
+**What you'll learn**: How to package your trained custom embedding model (TabularResNet) as a production service that processes OCSF events in near real-time, with proper embedding model versioning, health checks, and monitoring. The embedding service generates vectors that the vector DB uses for anomaly detection.
 
 ## Key Technologies
 
@@ -31,19 +31,18 @@ We'll use industry-standard tools for production ML deployment:
 
 ### System Components
 
-The diagram below shows the complete production architecture. OCSF events flow from Kafka through preprocessing, embedding generation, vector DB lookup, and anomaly scoring. The model registry enables A/B testing and rollbacks.
+The diagram below shows the complete production architecture. OCSF events flow from Kafka through preprocessing, embedding generation (via custom TabularResNet model), vector DB lookup, and anomaly scoring (pure vector operations). The model registry enables versioning and rollbacks of the embedding model only.
 
 ```{mermaid}
 graph TB
     OCSF[OCSF Data Stream<br/>Kafka] --> Preprocessor[Preprocessor Service<br/>Feature Engineering]
     Preprocessor --> Embedding[Embedding Service<br/>TabularResNet]
     Embedding --> VectorDB[Vector DB<br/>Index + Similarity Search]
-    VectorDB --> Detector[Anomaly Detector<br/>k-NN/Distance/Thresholds]
+    VectorDB --> Detector[Anomaly Scoring<br/>k-NN Distance/Density]
     Detector --> AlertManager[Alert Manager]
     AlertManager --> Observability[Observability Platform<br/>Prometheus/Grafana]
 
-    ModelRegistry[Model Registry<br/>MLflow/Neptune] -.Model Versioning.-> Embedding
-    ModelRegistry -.Model Versioning.-> Detector
+    ModelRegistry[Model Registry<br/>MLflow/Neptune] -.Embedding Model Versioning.-> Embedding
 
     style OCSF fill:#ADD8E6
     style Preprocessor fill:#FFFFE0

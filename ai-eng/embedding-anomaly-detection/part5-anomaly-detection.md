@@ -616,7 +616,7 @@ In this part, you learned:
 - **Ensemble methods** combining multiple detectors often perform best
 - **Tune thresholds** based on your precision/recall requirements
 
-**Next**: In [Part 6](part6-production-deployment), we'll deploy this system to production with REST APIs, model serving, and integration with observability platforms.
+**Next**: In [Part 6](part6-production-deployment), we'll deploy this system to production with REST APIs for embedding model serving and integration with observability platforms.
 
 ---
 
