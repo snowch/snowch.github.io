@@ -15,7 +15,7 @@ bibliography:
 
 A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
-**What you'll learn**: How to transform security logs and system metrics into mathematical representations (embeddings) that help automatically identify unusual behavior in your infrastructure.
+**What you'll learn**: How to train and deploy a deep learning model (TabularResNet) that transforms security logs and system metrics into embeddings for near real-time anomaly detection. The deployed model serves predictions on streaming OCSF events, enabling automatic identification of unusual behavior in your infrastructure.
 
 ---
 
@@ -23,10 +23,12 @@ A comprehensive 7-part tutorial series on building production-ready anomaly dete
 
 This tutorial series takes you from ResNet fundamentals to deploying and monitoring a complete anomaly detection system in production. You'll learn how to:
 
-- Build embeddings from high-dimensional tabular data
-- Train models using self-supervised learning
-- Detect anomalies using a vector database as the central retrieval layer
-- Deploy to production with proper monitoring for near real-time detection
+- Train a TabularResNet model to generate embeddings from high-dimensional OCSF data
+- Use self-supervised learning on unlabeled observability logs
+- Deploy the model as a FastAPI service for near real-time inference on streaming events
+- Store embeddings in a vector database for fast similarity search
+- Detect anomalies using k-NN distance and density-based scoring
+- Monitor model performance and trigger automated retraining
 
 **Target Audience**: ML engineers, security engineers, and data scientists working with observability data
 
@@ -157,21 +159,29 @@ All code examples are executable and production-ready.
 
 By the end of this series, you'll have:
 
-1. **TabularResNet Model**: Trained on OCSF observability data using self-supervised learning
-2. **Vector Database**: Stores embeddings and supports similarity search at scale
-3. **Anomaly Detector**: Vector-db-driven scoring (k-NN distance, density, thresholds)
-4. **Production API**: FastAPI service with health checks and metrics
-5. **Monitoring Dashboard**: Track drift, alert quality, and performance
-6. **Retraining Pipeline**: Automated triggers based on performance degradation
+1. **Trained TabularResNet Model**: Self-supervised learning on unlabeled OCSF data to generate embeddings
+2. **Model Serving API**: FastAPI service that deploys the model to process streaming OCSF events in near real-time
+3. **Vector Database**: Stores embeddings and supports fast k-NN similarity search at scale
+4. **Anomaly Detection Pipeline**: Real-time scoring using distance-based and density-based methods
+5. **Monitoring & Alerting**: Track embedding drift, alert quality, and model performance
+6. **Automated Retraining**: Triggers based on performance degradation and drift detection
 
 ### System Architecture
 
-This diagram shows the complete end-to-end system you'll build. Data flows from left to right through several stages: raw observability data is transformed into embeddings, stored in a vector database for fast similarity search, and then analyzed for anomalies. The monitoring components (shown in red/purple) watch for system degradation and trigger automatic retraining when needed.
+This diagram shows the complete end-to-end system you'll build. OCSF events stream in near real-time through the following pipeline:
+
+1. **Preprocessing**: Extract and normalize features from each OCSF event
+2. **Model serving**: TabularResNet (deployed ML model) generates an embedding vector for each event
+3. **Vector DB storage**: Embeddings are indexed for fast similarity search
+4. **Anomaly detection**: Query k-nearest neighbors and compute anomaly scores in real-time
+5. **Alerting**: Trigger alerts for high-scoring anomalies
+
+The monitoring components (shown in red/purple) continuously track system health and trigger automatic retraining when drift is detected.
 
 **Diagram legend**:
-- **Solid arrows** (→): Main data flow path
-- **Dotted arrows** (⇢): Monitoring and feedback loops
-- **Colors**: Blue=Data input, Green=ML model, Yellow=Vector storage, Orange=Detection, Red/Purple=Monitoring
+- **Solid arrows** (→): Near real-time data flow for each OCSF event
+- **Dotted arrows** (⇢): Monitoring and feedback loops (periodic checks)
+- **Colors**: Blue=Data input, Green=ML model serving, Yellow=Vector storage, Orange=Detection, Red/Purple=Monitoring
 
 ```{mermaid}
 graph TB
