@@ -136,9 +136,7 @@ project:
               title: "Alternating Least Squares (ALS) for Movie Recommendations"
             - file: ai-eng/ml-algorithms/softmax_from_scores.md
               title: "Softmax: From Scores to Probabilities"
-            - file: ai-eng/ml-algorithms/resnet_tutorial.md
-              title: "ResNet: Residual Networks for Deep Learning [DRAFT]"
-
+      
     - file: embeddings.md
       title: Embeddings at Scale Book
     - file: probability/probability.md
