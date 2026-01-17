@@ -49,14 +49,20 @@ This tutorial will build your understanding of ResNet from first principles, the
 
 ### Prerequisites
 
-This tutorial assumes familiarity with basic neural network concepts (layers, backpropagation, gradient descent). If you're new to neural networks, we recommend starting with our **[Neural Networks From Scratch](/ai-eng/nnfs/index.md)** series, which builds these concepts from first principles:
+**Required Background:**
+- Basic neural network concepts (layers, backpropagation, gradient descent)
+- Basic Python and PyTorch syntax
+
+**Recommended (but not required):**
+- Convolutional Neural Networks (CNNs) — Parts 1-3 use image examples with CNNs, but we include a [brief CNN primer](#brief-cnn-primer) before the code
+- If you're primarily interested in **tabular data**, you can skim the image-based sections and focus on [Part 4](#part-4-adapting-resnet-for-tabular-data)
+
+**New to neural networks?** Start with our **[Neural Networks From Scratch](/ai-eng/nnfs/index.md)** series:
 
 - **[NN01: Edge Detection](/ai-eng/nnfs/nn_edge_detector_blog.md)** - Understanding neurons as pattern matchers
 - **[NN02: Training from Scratch](/ai-eng/nnfs/nn_tutorial_blog.md)** - Backpropagation and gradient descent
 - **[NN03: General Networks](/ai-eng/nnfs/nn_flexible_network_blog.md)** - Building flexible architectures
 - **[NN04: PyTorch Basics](/ai-eng/nnfs/nn_pytorch_basics.md)** - Transitioning to PyTorch (used in this tutorial)
-
-You should also have basic Python and PyTorch knowledge, though all code is explained thoroughly.
 
 ### Paper References
 
@@ -142,7 +148,13 @@ This is exactly what ResNet provides.
 
 ### The Residual Block
 
-Instead of learning a direct mapping $H(\mathbf{x})$, ResNet learns the **residual** (the difference):
+**The Key Idea:**
+
+In a traditional neural network, layers learn to transform input $\mathbf{x}$ into output $H(\mathbf{x})$ **directly**:
+- Input $\mathbf{x}$ → [layers] → Output $H(\mathbf{x})$
+- The layers must learn the complete transformation from scratch
+
+ResNet changes this by learning the **residual** (the *difference* between output and input):
 
 $$
 H(\mathbf{x}) = F(\mathbf{x}) + \mathbf{x}
@@ -150,10 +162,14 @@ $$
 
 Where:
 - $\mathbf{x}$: Input to the block
-- $F(\mathbf{x})$: Learned transformation (typically 2-3 conv/linear layers)
-- $H(\mathbf{x})$: Output (input + learned residual)
+- $F(\mathbf{x})$: **Residual** — the learned difference/change to apply (typically 2-3 conv/linear layers)
+- $H(\mathbf{x})$: Output = Input + Residual change
+- $+\mathbf{x}$: The **skip connection** (also called **shortcut connection**) — adds input directly to output
 
-The **skip connection** (also called **shortcut connection**) adds the input directly to the output.
+**Why this helps:**
+- Instead of learning the full transformation $H(\mathbf{x})$ from scratch, layers only learn **what to change** ($F(\mathbf{x})$)
+- If no change is needed, layers can learn $F(\mathbf{x}) = 0$ (much easier than learning identity)
+- The input $\mathbf{x}$ always flows through unchanged via the skip connection
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -232,6 +248,36 @@ $$
 $$
 
 **Key insight**: The gradient always has an identity component ($I$) that propagates unchanged. Even if $\frac{\partial F(\mathbf{x})}{\partial \mathbf{x}}$ vanishes, gradients still flow through the $+I$ term.
+
+### Brief CNN Primer
+
+Before implementing the residual block, let's briefly explain **Convolutional Neural Networks (CNNs)** used in the image-based examples. If you're only interested in tabular data, you can skim this section and jump to [Part 4: Adapting ResNet for Tabular Data](#part-4-adapting-resnet-for-tabular-data).
+
+**What are Convolutions?**
+
+A **convolution layer** (`nn.Conv2d`) slides a small filter (kernel) across an image to detect patterns like edges, textures, or shapes:
+
+- **Input**: Image with shape `(batch, channels, height, width)` — e.g., `(1, 3, 32, 32)` for RGB image
+- **Kernel size**: Size of the sliding window — e.g., `3×3` means look at 3×3 pixel patches
+- **Stride**: How many pixels to move the window — `stride=1` moves 1 pixel at a time, `stride=2` skips every other pixel (downsampling)
+- **Padding**: Add zeros around the border — `padding=1` maintains spatial dimensions
+- **Channels**: Like "feature maps" — input has 3 channels (R, G, B), output might have 64 channels (64 learned patterns)
+
+**Example:**
+```python
+conv = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1)
+# Takes 3-channel RGB image → outputs 64 feature maps
+# With padding=1, spatial dimensions stay the same (32×32 → 32×32)
+```
+
+**Key differences from fully connected layers:**
+- **Fully connected (Linear)**: Every input connects to every output — used for tabular data
+- **Convolution (Conv2d)**: Local connectivity with sliding window — used for images to detect spatial patterns
+
+**Why this matters for ResNet:**
+- **Parts 1-3** use Conv2d for image examples (easier to visualize residual connections)
+- **Part 4** adapts to Linear layers for tabular data (your main use case!)
+- The **residual connection concept** (F(x) + x) works identically for both
 
 ### Code: Basic Residual Block
 
