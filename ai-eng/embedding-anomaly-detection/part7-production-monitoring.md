@@ -15,6 +15,24 @@ bibliography:
 
 Monitor your production anomaly detection system for drift, performance degradation, and operational health.
 
+**What you'll learn**: How to detect when your model needs retraining, set up automated alerts for system degradation, and maintain high detection quality over time as your OCSF data evolves.
+
+## Key Monitoring Concepts
+
+Understanding these terms is essential for production ML operations:
+
+- **Data drift**: When the distribution of input features changes over time (e.g., new user behaviors, network patterns). Detected by comparing current vs baseline statistics.
+
+- **Concept drift**: When the relationship between features and outcomes changes (e.g., what was "normal" before is now anomalous). Harder to detect without labels.
+
+- **Model staleness**: When the model hasn't learned recent patterns and becomes outdated. Solved by periodic retraining.
+
+- **Kolmogorov-Smirnov (KS) test**: Statistical test comparing two distributions. Low p-values (< 0.05) indicate significant differences.
+
+- **Wasserstein distance**: Measures the "cost" to transform one distribution into another. Intuitive metric for drift magnitude.
+
+- **Embedding drift**: When embedding distributions shift, indicating the model's internal representations have changed due to input changes.
+
 ## Monitoring Overview
 
 Production ML systems degrade over time due to:
