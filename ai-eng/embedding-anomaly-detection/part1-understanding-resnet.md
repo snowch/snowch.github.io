@@ -13,18 +13,7 @@ bibliography:
 
 # Part 1: Understanding ResNet Architecture
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-**Part 1 of 7** | [Next: Part 2 - Adapting ResNet for Tabular Data →](part2-tabular-resnet)
-
 This tutorial series builds a production-ready anomaly detection system using ResNet embeddings for observability data.
-:::
-::::
 
 ## Introduction: Why ResNet for Anomaly Detection?
 
