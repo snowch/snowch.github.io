@@ -22,7 +22,7 @@ Once you have high-quality embeddings, you can detect anomalies using a **vector
 1. **Vector DB retrieval**: k-NN similarity search for every event
 2. **Density-based**: Local Outlier Factor (LOF) on neighbor sets
 3. **Tree-based**: Isolation Forest (optional baseline)
-4. **Distance-based**: k-NN distance, Mahalanobis distance
+4. **Distance-based**: k-NN distance (cosine, Euclidean, negative inner product)
 5. **Clustering-based**: Distance from cluster centroids
 6. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
 
@@ -278,65 +278,15 @@ print(f"  F1-Score:  {f1_knn:.3f}")
 
 ---
 
-## 4. Mahalanobis Distance
+## 4. Supported Similarity Metrics
 
-Accounts for correlations in the data.
+For vector DB–driven retrieval, stick to metrics supported by VAST Vector DB:
 
-```{code-cell}
-from scipy.spatial.distance import mahalanobis
-from scipy.stats import chi2
+- **Cosine similarity**
+- **Euclidean distance (L2)**
+- **Negative inner product**
 
-def detect_anomalies_mahalanobis(embeddings, threshold_pvalue=0.01):
-    """
-    Detect anomalies using Mahalanobis distance.
-
-    Args:
-        embeddings: Embedding vectors
-        threshold_pvalue: P-value threshold for chi-squared test
-
-    Returns:
-        predictions, scores
-    """
-    # Compute mean and covariance
-    mean = np.mean(embeddings, axis=0)
-    cov = np.cov(embeddings.T)
-
-    # Add small regularization to avoid singular matrix
-    cov_reg = cov + np.eye(cov.shape[0]) * 1e-6
-
-    try:
-        cov_inv = np.linalg.inv(cov_reg)
-    except np.linalg.LinAlgError:
-        print("Warning: Singular covariance matrix, using pseudo-inverse")
-        cov_inv = np.linalg.pinv(cov_reg)
-
-    # Compute Mahalanobis distance for each point
-    mahal_distances = np.array([
-        mahalanobis(x, mean, cov_inv) for x in embeddings
-    ])
-
-    # Chi-squared threshold
-    df = embeddings.shape[1]  # Degrees of freedom = embedding dimension
-    threshold = chi2.ppf(1 - threshold_pvalue, df)
-
-    # Anomalies: Mahalanobis distance exceeds threshold
-    predictions = (mahal_distances > np.sqrt(threshold)).astype(int)
-
-    return predictions, mahal_distances
-
-# Detect anomalies
-predicted_labels_mahal, scores_mahal = detect_anomalies_mahalanobis(all_embeddings, threshold_pvalue=0.01)
-
-# Evaluate
-precision_mahal = precision_score(true_labels, predicted_labels_mahal)
-recall_mahal = recall_score(true_labels, predicted_labels_mahal)
-f1_mahal = f1_score(true_labels, predicted_labels_mahal)
-
-print(f"Mahalanobis Distance Results:")
-print(f"  Precision: {precision_mahal:.3f}")
-print(f"  Recall:    {recall_mahal:.3f}")
-print(f"  F1-Score:  {f1_mahal:.3f}")
-```
+Use one of these metrics consistently across indexing, retrieval, and scoring to keep anomaly thresholds stable.
 
 ---
 
@@ -490,15 +440,6 @@ def compare_anomaly_methods(embeddings, true_labels):
         'Precision': precision_score(true_labels, pred_knn),
         'Recall': recall_score(true_labels, pred_knn),
         'F1-Score': f1_score(true_labels, pred_knn)
-    })
-
-    # Mahalanobis
-    pred_mahal, _ = detect_anomalies_mahalanobis(embeddings)
-    results.append({
-        'Method': 'Mahalanobis Distance',
-        'Precision': precision_score(true_labels, pred_mahal),
-        'Recall': recall_score(true_labels, pred_mahal),
-        'F1-Score': f1_score(true_labels, pred_mahal)
     })
 
     # Clustering

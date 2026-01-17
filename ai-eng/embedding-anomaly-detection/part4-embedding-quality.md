@@ -56,7 +56,7 @@ def visualize_embeddings_tsne(embeddings, labels=None, title="Embedding Space (t
         matplotlib figure
     """
     # Run t-SNE
-    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, n_iter=1000)
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42, max_iter=1000)
     embeddings_2d = tsne.fit_transform(embeddings)
 
     # Plot
