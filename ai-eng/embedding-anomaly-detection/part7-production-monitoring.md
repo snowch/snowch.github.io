@@ -13,18 +13,7 @@ bibliography:
 
 # Part 7: Production Monitoring
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 6: Production Deployment](part6-production-deployment) | **Part 7 of 7** | [Back to Series Index](index)
-
 Monitor your production anomaly detection system for drift, performance degradation, and operational health.
-:::
-::::
 
 ## Monitoring Overview
 
