@@ -15,7 +15,7 @@ bibliography:
 
 Monitor your production anomaly detection system for drift, performance degradation, and operational health.
 
-**What you'll learn**: How to detect when your model needs retraining, set up automated alerts for system degradation, and maintain high detection quality over time as your OCSF data evolves.
+**What you'll learn**: How to detect when your custom embedding model needs retraining, set up automated alerts for embedding drift and system degradation, and maintain high detection quality over time as your OCSF data evolves.
 
 ## Key Monitoring Concepts
 
@@ -25,13 +25,13 @@ Understanding these terms is essential for production ML operations:
 
 - **Concept drift**: When the relationship between features and outcomes changes (e.g., what was "normal" before is now anomalous). Harder to detect without labels.
 
-- **Model staleness**: When the model hasn't learned recent patterns and becomes outdated. Solved by periodic retraining.
+- **Embedding model staleness**: When the embedding model (TabularResNet) hasn't learned recent patterns and becomes outdated. Solved by retraining the embedding model.
 
 - **Kolmogorov-Smirnov (KS) test**: Statistical test comparing two distributions. Low p-values (< 0.05) indicate significant differences.
 
 - **Wasserstein distance**: Measures the "cost" to transform one distribution into another. Intuitive metric for drift magnitude.
 
-- **Embedding drift**: When embedding distributions shift, indicating the model's internal representations have changed due to input changes.
+- **Embedding drift**: When embedding distributions shift, indicating the embedding model's internal representations have changed due to input changes. Requires retraining the embedding model.
 
 ## Monitoring Overview
 
@@ -39,7 +39,7 @@ Production ML systems degrade over time due to:
 
 1. **Data drift**: Input distribution changes
 2. **Concept drift**: Relationship between features and anomalies changes
-3. **Model staleness**: Model doesn't learn new patterns
+3. **Embedding model staleness**: Embedding model doesn't learn new patterns
 4. **System issues**: Latency, errors, resource exhaustion
 
 This part teaches you how to detect and respond to these issues.
