@@ -15,7 +15,7 @@ bibliography:
 
 Deploy your anomaly detection system to production with REST APIs for embedding model serving and integration with observability platforms.
 
-**What you'll learn**: How to package your trained custom embedding model (TabularResNet) as a production service that processes OCSF events in near real-time, with proper embedding model versioning, health checks, and monitoring. The embedding service generates vectors that the vector DB uses for anomaly detection.
+**What you'll learn**: How to package your trained custom embedding model (TabularResNet) as a production service that processes OCSF events in near real-time. For each incoming event, the service: (1) generates an embedding using TabularResNet, (2) queries the vector DB for k-nearest neighbors via similarity search, and (3) computes an anomaly score from the neighbor distances. This entire pipeline runs in milliseconds per event.
 
 ## Key Technologies
 
@@ -31,7 +31,15 @@ We'll use industry-standard tools for production ML deployment:
 
 ### System Components
 
-The diagram below shows the complete production architecture. OCSF events flow from Kafka through preprocessing, embedding generation (via custom TabularResNet model), vector DB lookup, and anomaly scoring (pure vector operations). The model registry enables versioning and rollbacks of the embedding model only.
+The diagram below shows the complete production architecture. For each OCSF event:
+1. **Kafka** streams the event to the preprocessor
+2. **Preprocessor** extracts and encodes features
+3. **Embedding Service** generates a 64-dim vector using TabularResNet
+4. **Vector DB** performs k-NN similarity search against historical embeddings
+5. **Anomaly Scoring** computes distance-based anomaly score (pure vector operations)
+6. **Alert Manager** triggers alerts for high-scoring anomalies
+
+The model registry enables versioning and rollbacks of the embedding model only (no classical detection model).
 
 ```{mermaid}
 graph TB
@@ -57,6 +65,18 @@ graph TB
 ---
 
 ## 1. Model Serving with FastAPI
+
+### Near Real-Time Inference Pipeline
+
+The FastAPI service implements the following pipeline for each incoming OCSF event:
+
+1. **Preprocess**: Extract and encode features (categorical → embeddings, numerical → normalized)
+2. **Generate Embedding**: Pass features through TabularResNet → 64-dimensional vector
+3. **Similarity Search**: Query vector DB for k=20 nearest neighbor embeddings from historical baseline
+4. **Anomaly Scoring**: Compute average distance to neighbors → higher distance = more anomalous
+5. **Return Result**: Binary prediction (anomaly/normal) + confidence score
+
+**Latency target**: <50ms per event (p99)
 
 ### Basic REST API
 
@@ -121,21 +141,24 @@ async def predict_anomaly(record: OCSFRecord):
         Anomaly prediction with score
     """
     try:
-        # 1. Preprocess
+        # 1. Preprocess: Extract and encode features
         numerical, categorical = preprocess_record(record, SCALER, ENCODERS)
 
-        # 2. Generate embedding
+        # 2. Generate embedding: TabularResNet forward pass → 64-dim vector
         with torch.no_grad():
             embedding = MODEL(numerical, categorical, return_embedding=True)
             embedding_np = embedding.numpy()
 
-        # 3. Retrieve neighbors from vector DB and score
+        # 3. Similarity search: Query vector DB for k=20 nearest neighbors
         neighbors = VECTOR_DB.search(embedding_np, top_k=20)
+
+        # 4. Anomaly scoring: Average distance to neighbors
         distances = [d for _, d in neighbors]
         score = float(np.mean(distances))
         threshold = float(np.percentile(distances, 95))
         prediction = score > threshold
 
+        # 5. Return result
         is_anomaly = bool(prediction)
         confidence = abs(score)  # Higher = more confident
 
