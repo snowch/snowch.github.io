@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 5: Anomaly Detection Methods
+# Part 5: Anomaly Detection Methods [DRAFT]
 
 Apply various anomaly detection algorithms to your validated embeddings for OCSF observability data.
 

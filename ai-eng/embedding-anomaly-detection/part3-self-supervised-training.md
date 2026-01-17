@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 3: Self-Supervised Training
+# Part 3: Self-Supervised Training [DRAFT]
 
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
 

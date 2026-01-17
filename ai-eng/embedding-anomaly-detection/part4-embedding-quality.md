@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 4: Evaluating Embedding Quality
+# Part 4: Evaluating Embedding Quality [DRAFT]
 
 Learn how to evaluate and validate the quality of learned embeddings before deploying to production.
 

@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 6: Production Deployment
+# Part 6: Production Deployment [DRAFT]
 
 Deploy your anomaly detection system to production with REST APIs, model serving, and integration with observability platforms.
 
