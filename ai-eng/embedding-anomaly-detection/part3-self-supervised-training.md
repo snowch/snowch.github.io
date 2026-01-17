@@ -13,18 +13,7 @@ bibliography:
 
 # Part 3: Self-Supervised Training
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 2: Adapting ResNet for Tabular Data](part2-tabular-resnet) | **Part 3 of 7** | [Next: Part 4 - Evaluating Embedding Quality →](part4-embedding-quality)
-
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
-:::
-::::
 
 ## The Training Strategy
 
