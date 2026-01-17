@@ -295,38 +295,71 @@ class BasicResidualBlock(nn.Module):
     """
     Basic ResNet block for computer vision.
     Two 3x3 convolutions with a skip connection.
+
+    Architecture: x -> [conv3x3 -> BN -> ReLU -> conv3x3 -> BN] -> + x -> ReLU -> out
+                      \____________________ F(x) ____________________/
     """
     def __init__(self, in_channels, out_channels, stride=1):
+        """
+        Args:
+            in_channels: Number of input channels
+            out_channels: Number of output channels
+            stride: Stride for first conv (1 for same size, 2 for downsampling)
+        """
         super().__init__()
 
-        # Main path: two conv layers
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3,
-                               stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(out_channels)
+        # Main path: two conv layers (the F(x) part)
+        # First conv: may downsample if stride=2
+        self.conv1 = nn.Conv2d(
+            in_channels, out_channels,
+            kernel_size=3, stride=stride, padding=1,
+            bias=False  # No bias because we use BatchNorm
+        )
+        self.bn1 = nn.BatchNorm2d(out_channels)  # Normalize after conv1
 
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,
-                               stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(out_channels)
+        # Second conv: always stride=1 (no downsampling)
+        self.conv2 = nn.Conv2d(
+            out_channels, out_channels,
+            kernel_size=3, stride=1, padding=1,
+            bias=False  # No bias because we use BatchNorm
+        )
+        self.bn2 = nn.BatchNorm2d(out_channels)  # Normalize after conv2
 
-        # Skip connection (identity or projection)
-        self.skip = nn.Sequential()
+        # Skip connection (the identity shortcut)
+        self.skip = nn.Sequential()  # Default: identity (do nothing)
+
+        # If dimensions change, we need a projection shortcut
         if stride != 1 or in_channels != out_channels:
-            # Need to match dimensions
+            # Use 1x1 conv to match dimensions (spatial and channel)
             self.skip = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1,
-                         stride=stride, bias=False),
+                nn.Conv2d(in_channels, out_channels,
+                         kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels)
             )
 
     def forward(self, x):
-        # Main path: F(x)
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
+        """
+        Forward pass: H(x) = F(x) + x
+
+        Args:
+            x: Input tensor of shape (batch, in_channels, height, width)
+        Returns:
+            Output tensor of shape (batch, out_channels, height/stride, width/stride)
+        """
+        # Main path: F(x) = conv2(ReLU(BN(conv1(x))))
+        out = self.conv1(x)           # First convolution
+        out = self.bn1(out)            # Batch normalization
+        out = F.relu(out)              # Activation
+
+        out = self.conv2(out)          # Second convolution
+        out = self.bn2(out)            # Batch normalization
+        # Note: No ReLU here! We apply it after adding the skip connection
 
         # Add skip connection: F(x) + x
+        # This is the KEY innovation - gradients can flow through both paths
         out += self.skip(x)
 
-        # Final activation
+        # Final activation (after the addition)
         out = F.relu(out)
 
         return out
@@ -341,9 +374,21 @@ print(f"Residual block works! ✓")
 ```
 
 **Key Design Choices**:
-1. **Batch Normalization**: Normalizes activations, helps with training stability
-2. **ReLU after addition**: Maintains non-linearity while preserving gradient flow
-3. **Projection shortcuts**: When dimensions change (stride or channels), use 1×1 conv to match sizes
+
+1. **Batch Normalization (BatchNorm)**: Normalizes activations to have mean=0 and std=1 for each mini-batch
+   - Stabilizes training by reducing internal covariate shift
+   - Allows higher learning rates (faster convergence)
+   - Acts as a regularizer (reduces need for dropout in image models)
+   - Note: We use `bias=False` in conv layers because BatchNorm has its own learnable bias term
+
+2. **ReLU after addition**: Apply activation *after* adding the skip connection
+   - Maintains non-linearity while preserving gradient flow through the skip path
+   - The skip connection passes gradients unchanged (no activation to saturate)
+
+3. **Projection shortcuts**: When dimensions change (stride>1 or different channel counts)
+   - Use 1×1 conv to match spatial resolution and channel dimensions
+   - Ensures we can add `F(x) + x` when shapes differ
+   - Also uses BatchNorm for consistency
 
 ---
 
@@ -420,63 +465,123 @@ plt.show()
 
 ### Bottleneck Block (ResNet-50+)
 
-For deeper networks, use **bottleneck blocks** to reduce computational cost:
+#### When to Use Bottleneck Blocks
+
+- **ResNet-18/34**: Use **basic blocks** (2 conv layers) — shallower networks don't need the optimization
+- **ResNet-50/101/152**: Use **bottleneck blocks** (3 conv layers) — deeper networks benefit from parameter reduction
+
+#### Why Bottleneck Blocks?
+
+As networks get deeper (50+ layers), the number of parameters explodes. Bottleneck blocks solve this by using a **reduce-compute-expand** pattern:
 
 $$
-\text{1×1 conv (reduce)} \rightarrow \text{3×3 conv} \rightarrow \text{1×1 conv (expand)}
+\text{1×1 conv (reduce)} \rightarrow \text{3×3 conv (compute)} \rightarrow \text{1×1 conv (expand)}
 $$
 
-Example: $256 \rightarrow 64 \rightarrow 64 \rightarrow 256$ channels
+**The Strategy:**
+1. **Reduce** dimensions with 1×1 conv (cheap: $256 \rightarrow 64$ channels)
+2. **Compute** spatial features with 3×3 conv (expensive operation, but on fewer channels)
+3. **Expand** back to original size with 1×1 conv (cheap: $64 \rightarrow 256$ channels)
 
-This reduces the number of parameters from $256 \times 3 \times 3 \times 256 = 589{,}824$ to:
-- $256 \times 1 \times 1 \times 64 = 16{,}384$
-- $64 \times 3 \times 3 \times 64 = 36{,}864$
-- $64 \times 1 \times 1 \times 256 = 16{,}384$
-- **Total**: $69{,}632$ (12% of original)
+**The name "bottleneck"** comes from the narrow middle section that reduces computational cost while preserving representational power.
+
+#### Parameter Savings Example
+
+Compare two ways to process 256-channel features:
+
+**Basic Block** (two 3×3 convs):
+- $256 \times 3 \times 3 \times 256 = 589{,}824$ parameters
+
+**Bottleneck Block** (1×1, 3×3, 1×1):
+- $256 \times 1 \times 1 \times 64 = 16{,}384$ (reduce)
+- $64 \times 3 \times 3 \times 64 = 36{,}864$ (compute)
+- $64 \times 1 \times 1 \times 256 = 16{,}384$ (expand)
+- **Total**: $69{,}632$ (**12% of original!**)
+
+This 88% parameter reduction enables training networks with 50-152 layers without exploding compute costs.
 
 ```{code-cell}
 class BottleneckBlock(nn.Module):
     """
     Bottleneck block for deeper ResNets (ResNet-50/101/152).
-    Uses 1x1 -> 3x3 -> 1x1 convolutions.
+    Uses the "reduce-compute-expand" pattern: 1x1 -> 3x3 -> 1x1
+
+    Architecture: x -> [1x1 -> BN -> ReLU -> 3x3 -> BN -> ReLU -> 1x1 -> BN] -> + x -> ReLU
+                      \_______________________ F(x) _______________________/
+
+    This saves 88% parameters compared to basic blocks for 256-channel features!
     """
-    expansion = 4  # Output channels = in_channels * 4
+    expansion = 4  # The final 1x1 conv expands by this factor
 
     def __init__(self, in_channels, bottleneck_channels, stride=1):
+        """
+        Args:
+            in_channels: Input channels (e.g., 256)
+            bottleneck_channels: Narrow "bottleneck" channels (e.g., 64)
+            stride: Stride for the 3x3 conv (1 for same size, 2 for downsampling)
+
+        Output will have in_channels * expansion channels (e.g., 64 * 4 = 256)
+        """
         super().__init__()
 
         out_channels = bottleneck_channels * self.expansion
 
-        # 1x1 conv: reduce dimensions
-        self.conv1 = nn.Conv2d(in_channels, bottleneck_channels,
-                               kernel_size=1, bias=False)
+        # Step 1: REDUCE dimensions with 1x1 conv (256 -> 64 channels)
+        # This makes the next 3x3 conv much cheaper
+        self.conv1 = nn.Conv2d(
+            in_channels, bottleneck_channels,
+            kernel_size=1, bias=False
+        )
         self.bn1 = nn.BatchNorm2d(bottleneck_channels)
 
-        # 3x3 conv: main computation
-        self.conv2 = nn.Conv2d(bottleneck_channels, bottleneck_channels,
-                               kernel_size=3, stride=stride, padding=1, bias=False)
+        # Step 2: COMPUTE spatial features with 3x3 conv (64 -> 64 channels)
+        # This is the expensive operation, but on fewer channels
+        self.conv2 = nn.Conv2d(
+            bottleneck_channels, bottleneck_channels,
+            kernel_size=3, stride=stride, padding=1, bias=False
+        )
         self.bn2 = nn.BatchNorm2d(bottleneck_channels)
 
-        # 1x1 conv: expand dimensions
-        self.conv3 = nn.Conv2d(bottleneck_channels, out_channels,
-                               kernel_size=1, bias=False)
+        # Step 3: EXPAND back to original dimensions with 1x1 conv (64 -> 256 channels)
+        # This restores the channel count for the skip connection
+        self.conv3 = nn.Conv2d(
+            bottleneck_channels, out_channels,
+            kernel_size=1, bias=False
+        )
         self.bn3 = nn.BatchNorm2d(out_channels)
 
-        # Skip connection
+        # Skip connection (identity or projection)
         self.skip = nn.Sequential()
         if stride != 1 or in_channels != out_channels:
+            # Use 1x1 conv to match dimensions
             self.skip = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1,
-                         stride=stride, bias=False),
+                nn.Conv2d(in_channels, out_channels,
+                         kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels)
             )
 
     def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = F.relu(self.bn2(self.conv2(out)))
-        out = self.bn3(self.conv3(out))
+        """
+        Forward pass through bottleneck: H(x) = F(x) + x
 
-        out += self.skip(x)  # Residual connection
+        The bottleneck pattern reduces parameters while maintaining representational power.
+        """
+        # REDUCE: 1x1 conv shrinks channels
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = F.relu(out)
+
+        # COMPUTE: 3x3 conv learns spatial patterns (on fewer channels)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = F.relu(out)
+
+        # EXPAND: 1x1 conv restores channels
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        # Add skip connection
+        out += self.skip(x)
         out = F.relu(out)
 
         return out
@@ -487,6 +592,7 @@ x = torch.randn(1, 256, 28, 28)
 output = bottleneck(x)
 print(f"Input shape: {x.shape}")
 print(f"Output shape: {output.shape}")  # Should be (1, 256, 28, 28)
+print(f"Bottleneck saves 88% parameters compared to basic block!")
 print(f"Bottleneck block works! ✓")
 ```
 
@@ -573,48 +679,82 @@ print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 
 ### Training Example on CIFAR-10
 
+**What is CIFAR-10?**
+
+CIFAR-10 (Canadian Institute For Advanced Research) is a classic computer vision benchmark dataset containing:
+- **60,000 color images** (50,000 training, 10,000 test)
+- **32×32 pixels** per image (small, but challenging)
+- **10 classes**: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+- **Balanced**: 6,000 images per class
+
+It's widely used for:
+- Testing neural network architectures (ResNet achieves ~95% accuracy)
+- Educational examples (small enough to train quickly)
+- Benchmarking improvements in deep learning
+
+For our ResNet tutorial, CIFAR-10 provides a perfect testbed to see how residual connections enable deeper networks to perform better than shallow ones.
+
 ```{code-cell}
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-# Data augmentation for training
+# Data augmentation for training (helps prevent overfitting)
 transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.RandomCrop(32, padding=4),      # Crop to 32x32 after padding by 4
+    transforms.RandomHorizontalFlip(),         # Flip 50% of images horizontally
+    transforms.ToTensor(),                     # Convert PIL image to tensor [0, 1]
+    transforms.Normalize(                      # Normalize to mean=0, std=1
+        (0.4914, 0.4822, 0.4465),             # CIFAR-10 mean per channel (R,G,B)
+        (0.2023, 0.1994, 0.2010)              # CIFAR-10 std per channel (R,G,B)
+    ),
 ])
 
+# Test transforms: no augmentation, just normalization
 transform_test = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
-# Note: In actual training, you would download and load the full dataset
+# Note: In actual training, you would download and load the full dataset:
+# train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+# train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=2)
 # This is a minimal example showing the training structure
 
 def train_epoch(model, dataloader, optimizer, criterion, device):
-    """Train for one epoch."""
-    model.train()
+    """
+    Train the model for one epoch (one complete pass through training data).
+
+    Args:
+        model: ResNet model to train
+        dataloader: DataLoader with training batches
+        optimizer: Optimizer (e.g., SGD)
+        criterion: Loss function (e.g., CrossEntropyLoss)
+        device: 'cuda' or 'cpu'
+
+    Returns:
+        (avg_loss, accuracy): Average loss and accuracy for this epoch
+    """
+    model.train()  # Set model to training mode (enables dropout, batchnorm updates)
     total_loss = 0
     correct = 0
     total = 0
 
     for batch_idx, (inputs, targets) in enumerate(dataloader):
+        # Move data to GPU/CPU
         inputs, targets = inputs.to(device), targets.to(device)
 
         # Forward pass
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
+        optimizer.zero_grad()              # Clear gradients from previous batch
+        outputs = model(inputs)             # Get predictions
+        loss = criterion(outputs, targets)  # Compute loss
 
         # Backward pass
-        loss.backward()
-        optimizer.step()
+        loss.backward()   # Compute gradients via backpropagation
+        optimizer.step()  # Update weights using gradients
 
-        # Statistics
+        # Track statistics
         total_loss += loss.item()
-        _, predicted = outputs.max(1)
+        _, predicted = outputs.max(1)       # Get class with highest probability
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
@@ -752,13 +892,25 @@ plt.show()
 class TabularResidualBlock(nn.Module):
     """
     Residual block for tabular data using fully connected layers.
+
+    Key differences from image ResNet:
+    - Uses Linear layers instead of Conv2d (no spatial structure in tabular data)
+    - Uses BatchNorm1d instead of BatchNorm2d (1D features, not 2D images)
+    - Adds dropout for regularization (common in tabular deep learning)
+
+    Architecture: x -> [Linear -> BN1d -> ReLU -> Dropout -> Linear -> BN1d] -> + x -> ReLU -> Dropout
     """
     def __init__(self, d_model, dropout=0.1):
+        """
+        Args:
+            d_model: Feature dimension (must be same for input/output)
+            dropout: Dropout probability for regularization
+        """
         super().__init__()
 
         # Two fully connected layers (analogous to two convs in image ResNet)
         self.fc1 = nn.Linear(d_model, d_model)
-        self.bn1 = nn.BatchNorm1d(d_model)
+        self.bn1 = nn.BatchNorm1d(d_model)  # BatchNorm1d for tabular (not 2d for images)
         self.dropout1 = nn.Dropout(dropout)
 
         self.fc2 = nn.Linear(d_model, d_model)
@@ -766,18 +918,25 @@ class TabularResidualBlock(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x):
-        # Main path: F(x)
+        """
+        Args:
+            x: (batch_size, d_model) tensor of features
+        Returns:
+            (batch_size, d_model) tensor after residual transformation
+        """
+        # Save input for skip connection
         residual = x
 
+        # Main path: F(x) = fc2(dropout(relu(bn(fc1(x)))))
         out = self.fc1(x)
         out = self.bn1(out)
         out = F.relu(out)
-        out = self.dropout1(out)
+        out = self.dropout1(out)  # Regularization
 
         out = self.fc2(out)
         out = self.bn2(out)
 
-        # Skip connection: F(x) + x
+        # Skip connection: F(x) + x (the key innovation)
         out = out + residual
         out = F.relu(out)
         out = self.dropout2(out)
