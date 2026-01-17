@@ -11,13 +11,27 @@ bibliography:
   - references.bib
 ---
 
-# Part 6: Production Deployment
+# Part 6: Production Deployment [DRAFT]
 
 Deploy your anomaly detection system to production with REST APIs, model serving, and integration with observability platforms.
+
+**What you'll learn**: How to package your trained model as a production service that processes OCSF events in near real-time, with proper model versioning, health checks, and monitoring.
+
+## Key Technologies
+
+We'll use industry-standard tools for production ML deployment:
+
+- **FastAPI**: Modern Python web framework for building REST APIs. Fast, automatic documentation, type-safe.
+- **Docker**: Containerization platform to package your service with all dependencies for consistent deployment.
+- **MLflow**: Open-source platform for model versioning, experiment tracking, and model registry.
+- **Prometheus/Grafana**: Monitoring stack for tracking system metrics and performance.
+- **Kafka**: Distributed streaming platform for handling OCSF event streams at scale.
 
 ## Deployment Architecture
 
 ### System Components
+
+The diagram below shows the complete production architecture. OCSF events flow from Kafka through preprocessing, embedding generation, vector DB lookup, and anomaly scoring. The model registry enables A/B testing and rollbacks.
 
 ```{mermaid}
 graph TB

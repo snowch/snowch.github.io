@@ -11,15 +11,13 @@ bibliography:
   - references.bib
 ---
 
-# Part 4: Evaluating Embedding Quality
+# Part 4: Evaluating Embedding Quality [DRAFT]
 
 Learn how to evaluate and validate the quality of learned embeddings before deploying to production.
 
 ## Why Evaluate Embeddings?
 
-After training your Tab
-
-ularResNet, you need to verify that the embeddings are:
+After training your TabularResNet using self-supervised learning (Part 3), you need to verify that the embeddings are:
 
 1. **Meaningful**: Similar records cluster together
 2. **Discriminative**: Different types of records are separated
@@ -30,11 +28,29 @@ Poor embeddings lead to poor anomaly detection. This part teaches you how to mea
 
 ---
 
+## Evaluation Techniques Overview
+
+We'll use four complementary approaches to evaluate embedding quality:
+
+1. **Visualization** (t-SNE, UMAP): See how embeddings cluster in 2D space
+2. **Cluster metrics** (Silhouette, Davies-Bouldin): Quantify cluster separation
+3. **Robustness testing**: Verify embeddings are stable under perturbations
+4. **Downstream task performance**: Test on actual anomaly detection
+
+**Key terminology**:
+- **t-SNE** (t-Distributed Stochastic Neighbor Embedding): Reduces high-dimensional embeddings to 2D while preserving local structure. Good for visualization but can distort global relationships.
+- **UMAP** (Uniform Manifold Approximation and Projection): Similar to t-SNE but better preserves global structure. Generally faster and more scalable.
+- **Perplexity**: A t-SNE parameter that balances attention between local and global aspects (think of it as "expected number of neighbors"). Typical values: 5-50.
+- **Silhouette Score**: Measures how similar a point is to its own cluster vs other clusters. Range: -1 to +1 (higher is better).
+- **Davies-Bouldin Index**: Measures average similarity between each cluster and its most similar one. Lower values indicate better separation.
+
+---
+
 ## 1. Embedding Space Visualization
 
 ### t-SNE Visualization
 
-t-SNE (t-Distributed Stochastic Neighbor Embedding) reduces high-dimensional embeddings to 2D for visualization.
+Now let's visualize embeddings in 2D. This code demonstrates how to use t-SNE to project high-dimensional embeddings (e.g., 256-dim) into 2D for visualization. Look for clear cluster separation - anomalies should appear as outliers or in sparse regions.
 
 ```{code-cell}
 import numpy as np

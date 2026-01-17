@@ -11,9 +11,19 @@ bibliography:
   - references.bib
 ---
 
-# Part 3: Self-Supervised Training
+# Part 3: Self-Supervised Training [DRAFT]
 
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
+
+## What is Self-Supervised Learning?
+
+**The challenge**: You have millions of OCSF security logs but no labels telling you which are "normal" vs "anomalous". Traditional supervised learning requires labeled data (e.g., "this event is malicious"), which is expensive and often unavailable for new anomaly types.
+
+**The solution**: **Self-supervised learning** creates training tasks automatically from the data itself, without human labels. The model learns useful representations by solving these artificial tasks.
+
+**Analogy**: Think of it like learning a language by filling in blanks. If you read "The cat sat on the ___", you can learn about cats and furniture even without explicit teaching. The sentence structure itself provides the supervision.
+
+For tabular data, we use two main self-supervised approaches:
 
 ## The Training Strategy
 
@@ -21,7 +31,16 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 
 ### 1. Masked Feature Prediction (MFP)
 
-Randomly mask some features and train the model to reconstruct them:
+**The idea**: Hide some features in your data and train the model to predict what's missing.
+
+**How it works**:
+- Take an OCSF record: `{user_id: 12345, status: success, bytes: 1024, duration: 5.2}`
+- Randomly mask 15% of features: `{user_id: [MASK], status: success, bytes: 1024, duration: [MASK]}`
+- Train the model to predict the masked values: `user_id = 12345`, `duration = 5.2`
+
+**Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
+
+**Practical code example**:
 
 ```python
 def masked_feature_prediction_loss(model, numerical, categorical):
@@ -51,7 +70,26 @@ def masked_feature_prediction_loss(model, numerical, categorical):
 
 ### 2. Contrastive Learning
 
-Learn embeddings where similar records cluster together:
+**The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
+
+**How it works**:
+1. Take an OCSF record (e.g., a login event)
+2. Create two slightly different versions by adding noise (e.g., add ±5% to `bytes`, randomly change some categorical values)
+3. Train the model so these two versions have **similar embeddings** (they're "positive pairs")
+4. Meanwhile, ensure embeddings from different records stay **far apart** (they're "negative pairs")
+
+**Analogy**: It's like teaching someone to recognize faces. Show them two photos of the same person from different angles and say "these are the same." Show them photos of different people and say "these are different." Over time, they learn what makes faces similar or different.
+
+**Why this works**: The model learns which variations in features are superficial (noise) vs meaningful (different events). Records with similar embeddings represent similar system behaviors, making it easy to detect anomalies as records with unusual embeddings.
+
+**Key terms**:
+- **Augmentation**: Creating slightly modified versions of data (e.g., adding noise to numerical features)
+- **Positive pairs**: Two augmented versions of the same record (should have similar embeddings)
+- **Negative pairs**: Augmented versions from different records (should have different embeddings)
+- **Temperature**: A parameter controlling how strictly the model enforces similarity (lower = stricter)
+- **SimCLR**: A popular contrastive learning framework we adapt for tabular data
+
+**Implementation**:
 
 ```{code-cell}
 import torch
@@ -150,6 +188,13 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 ```
 
 ## Complete Training Loop
+
+Now let's put it all together. The code below shows a complete training pipeline including:
+1. **Dataset creation** from OCSF numerical and categorical features
+2. **Training function** that runs contrastive learning for multiple epochs
+3. **Example usage** with simulated OCSF data
+
+**Why this code matters**: This is the actual training loop you'll use in production. Understanding the data flow (Dataset → DataLoader → Model → Loss → Optimizer) is crucial for customizing the training process to your specific OCSF schema.
 
 ```{code-cell}
 from torch.utils.data import Dataset, DataLoader
@@ -251,6 +296,10 @@ print(f"Ready for self-supervised training")
 
 ### 1. Data Preprocessing
 
+Before training, you need to prepare your OCSF data. This involves:
+- **StandardScaler**: Normalizes numerical features to have mean=0 and std=1 (prevents features with large values from dominating)
+- **LabelEncoder**: Converts categorical strings to integers (e.g., `"login" → 0`, `"logout" → 1`)
+
 ```python
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
@@ -288,7 +337,9 @@ def preprocess_ocsf_data(df, numerical_cols, categorical_cols):
 
 ### 2. Hyperparameter Tuning
 
-Key hyperparameters to tune:
+Hyperparameters control how your model learns and generalize. Getting them right can mean the difference between embeddings that clearly separate anomalies and embeddings that don't work at all.
+
+**Key hyperparameters to tune**:
 
 | Parameter | Default | Range | Impact |
 |-----------|---------|-------|--------|

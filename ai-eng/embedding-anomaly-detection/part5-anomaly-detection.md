@@ -11,9 +11,30 @@ bibliography:
   - references.bib
 ---
 
-# Part 5: Anomaly Detection Methods
+# Part 5: Anomaly Detection Methods [DRAFT]
 
 Apply various anomaly detection algorithms to your validated embeddings for OCSF observability data.
+
+**What you'll learn**: How to combine embeddings from Part 3 with anomaly detection algorithms. The vector database stores embeddings and finds similar records, while different scoring methods (distance-based, density-based, etc.) determine which records are anomalous.
+
+## Key Terminology
+
+Before diving into detection methods, let's define the key concepts:
+
+- **Vector Database**: A specialized database optimized for storing embeddings and finding similar vectors quickly using approximate nearest neighbor (ANN) search.
+
+- **k-NN (k-Nearest Neighbors)**: Finds the k most similar embeddings to a query embedding. For example, k=20 finds the 20 most similar historical events.
+
+- **LOF (Local Outlier Factor)**: Measures how isolated a point is compared to its local neighborhood. Points in sparse regions have high LOF scores (likely anomalies).
+
+- **Isolation Forest**: An algorithm that isolates anomalies by building decision trees. Anomalies are easier to isolate (require fewer splits), so they have shorter path lengths.
+
+- **Distance metrics**:
+  - **Cosine similarity**: Measures angle between vectors (0=perpendicular, 1=identical direction). Good for when magnitude doesn't matter.
+  - **Euclidean distance**: Standard geometric distance. Sensitive to both direction and magnitude.
+  - **Negative inner product**: Related to cosine but without normalization. Efficient for similarity search.
+
+- **Contamination**: The expected proportion of anomalies in your data (e.g., 0.1 = 10% anomalies). Used to set detection thresholds.
 
 ## Overview of Anomaly Detection Methods
 

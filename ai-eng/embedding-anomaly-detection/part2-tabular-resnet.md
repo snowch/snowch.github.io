@@ -11,9 +11,11 @@ bibliography:
   - references.bib
 ---
 
-# Part 2: Adapting ResNet for Tabular Data
+# Part 2: Adapting ResNet for Tabular Data [DRAFT]
 
-ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
+Building on the ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
+
+**What changes**: Instead of processing images with 2D convolutions, we'll use fully connected (Linear) layers to process rows of tabular data. The core residual connection concept ($F(x) + x$) remains identical, but the implementation details adapt to handle mixed categorical and numerical features.
 
 ## Why ResNet for Tabular Data?
 
@@ -24,17 +26,34 @@ The Gorishniy et al. (2021) paper "Revisiting Deep Learning Models for Tabular D
 3. **Better computational efficiency**: $O(n \cdot d)$ vs. $O(d^2)$ for Transformers with $d$ features
 4. **Strong baseline**: Should be tried before more complex models
 
+## Key Terminology
+
+Before diving into the architecture, let's define some terms specific to tabular deep learning:
+
+- **Fully connected (Linear) layers**: Every input feature connects to every output feature. Unlike convolutions that look at local patches, linear layers consider all features together. Think of it like a weighted combination of all input features.
+
+- **High-cardinality features**: Categorical features with many unique values (e.g., `user_id` with 10,000+ users, `entity_id` with millions of values). These require special handling since one-hot encoding would create enormous sparse vectors.
+
+- **Categorical embeddings**: Convert categorical values into dense numerical vectors (like word embeddings in NLP). For example, `user_id=12345` might map to a learned 64-dimensional vector `[0.2, -0.5, 0.8, ...]` that captures user characteristics.
+
+- **BatchNorm1d / LayerNorm**: Normalization techniques that stabilize training by ensuring activations don't explode or vanish. BatchNorm normalizes across the batch dimension, while LayerNorm normalizes across features.
+
+- **Dropout**: Randomly sets a percentage of features to zero during training to prevent overfitting. It's like forcing the network to learn multiple ways to make predictions rather than relying on specific feature combinations.
+
 ## Key Differences from Image ResNet
 
 For tabular data, we need to modify:
 
-1. **Replace 2D convolutions** with fully connected layers
+1. **Replace 2D convolutions** with fully connected layers (Linear layers that connect all features)
 2. **Handle heterogeneous features**: Mix of categorical and numerical columns
-3. **Add embeddings** for categorical features
-4. **Adjust normalization**: BatchNorm or LayerNorm for tabular features
-5. **Extract embeddings** for downstream tasks (anomaly detection, clustering)
+3. **Add embeddings** for categorical features (especially high-cardinality ones)
+4. **Adjust normalization**: BatchNorm1d or LayerNorm for 1D tabular features (not 2D images)
+5. **Add dropout** for regularization (more important for tabular data than images)
+6. **Extract embeddings** for downstream tasks (anomaly detection, clustering)
 
 ## Architecture for Tabular Data
+
+The diagram below visualizes the complete data flow through TabularResNet. Notice how categorical and numerical features are processed separately at first (left and right paths), then merged and passed through residual blocks. The green boxes are where the residual connections enable deep learning on tabular data.
 
 The tabular ResNet follows this flow:
 
@@ -200,6 +219,13 @@ plt.show()
 
 ## Tabular Residual Block
 
+Now let's implement the core building block. This code demonstrates how we adapt the residual connection concept from Part 1 to work with tabular data. The key changes from image ResNet are:
+1. **Linear layers** replace Conv2d (no spatial structure to exploit)
+2. **BatchNorm1d** instead of BatchNorm2d (1D feature vectors, not 2D images)
+3. **Dropout** added for regularization (critical for preventing overfitting on tabular data)
+
+**Why this code matters**: This block is the foundation of TabularResNet. Understanding how residual connections work with fully connected layers will help you adapt ResNet to other non-image domains.
+
 ```{code-cell}
 import torch
 import torch.nn as nn
@@ -269,6 +295,15 @@ print("Tabular residual block works! ✓")
 ```
 
 ## Complete Tabular ResNet with Embeddings
+
+Now we'll build the complete model by combining all the pieces: categorical embeddings, numerical feature processing, and stacked residual blocks. This code shows you:
+
+1. **How to handle mixed data types** (categorical + numerical) in a single model
+2. **Embedding dimensions** for categorical features with different cardinalities
+3. **Feature concatenation** strategy to combine different input types
+4. **Embedding extraction** for downstream anomaly detection tasks
+
+**Real-world application**: This is the exact architecture you'll use in Part 3 for self-supervised training on OCSF data. The `return_embedding=True` mode extracts the dense vector representations we'll use for anomaly detection via vector database similarity search.
 
 ```{code-cell}
 class TabularResNet(nn.Module):
@@ -419,9 +454,9 @@ When applying this to your 300+ field OCSF schema:
    - Typical embedding models use 50-200 features
 
 2. **Handling High Cardinality**: For fields like `entity_id`, `user_name`
-   - Use hashing trick: `hash(entity_id) % embedding_size`
-   - Or learn a shared "unknown" embedding for rare values
-   - Consider using larger embedding dimensions for high-cardinality features
+   - Use **hashing trick**: Apply a hash function to map unbounded values to fixed indices: `hash(entity_id) % embedding_size`. For example, `hash("user_abc123") % 1000 = 456` maps to embedding index 456. This allows handling millions of unique values with a fixed embedding table size, though different values may collide (share the same embedding).
+   - Or learn a shared "unknown" embedding for rare values (values seen < N times in training)
+   - Consider using larger embedding dimensions for high-cardinality features (e.g., 128-dim for `user_id` vs 32-dim for `status_code`)
 
 3. **Missing Values**: OCSF records may have sparse fields
    - Add a special "missing" category for categorical features
