@@ -80,7 +80,9 @@ This tutorial series will build your understanding of ResNet from first principl
 
 Intuitively, deeper neural networks should be more powerful:
 - More layers → More capacity to learn complex patterns
-- A 56-layer network should perform *at least as well* as a 28-layer network (it could just learn **identity mappings** — where output = input, i.e., $f(x) = x$ — for the extra layers)
+- A 56-layer network should perform *at least as well* as a 28-layer network (it could just learn **identity mappings** for the extra layers)
+
+**What is an identity mapping?** A transformation where the output equals the input: $f(x) = x$. Think of it like a "do nothing" operation - data passes through unchanged. For example, if a layer receives a vector `[1, 2, 3]`, an identity mapping would output exactly `[1, 2, 3]`. In theory, deeper networks could use identity mappings in extra layers to match shallower networks, but in practice they fail to learn even this simple operation.
 
 **But in practice, this doesn't happen.**
 
@@ -173,6 +175,8 @@ Where:
 - If no change is needed, layers can learn $F(\mathbf{x}) = 0$ (much easier than learning identity)
 - The input $\mathbf{x}$ always flows through unchanged via the skip connection
 
+**Visual comparison**: The diagrams below show the key architectural difference. On the left, a plain network block must learn the entire transformation $H(x)$ from scratch. On the right, a residual block only learns the difference $F(x)$ to add to the input, making optimization much easier.
+
 ::::{grid} 1 1 2 2
 :gutter: 3
 
@@ -230,7 +234,14 @@ graph TB
 - Skip connection provides a "gradient highway" directly to earlier layers
 - Even if $F(\mathbf{x})$ has vanishing gradients, $\mathbf{x}$ passes through unchanged
 
-### Mathematical Analysis: Gradient Flow
+### Mathematical Analysis: Gradient Flow (Optional - Skip if Math-Heavy)
+
+**Intuition**: The skip connection acts like a "gradient highway" - even if the main path's gradients shrink to zero during backpropagation, the skip connection ensures gradients can still flow unchanged back to earlier layers. This is why deep ResNets train successfully while plain deep networks fail.
+
+**Analogy**: Think of gradients like water flowing backwards through the network during training. In plain networks, the water must flow through all the layers, getting weaker at each step (like water flowing through many filters). In ResNet, the skip connection is like a direct pipe that bypasses the filters - water always flows through both paths, so even if one path gets blocked, learning still happens.
+
+<details>
+<summary><b>Click to expand mathematical proof (optional)</b></summary>
 
 During backpropagation, the gradient of the loss $\mathcal{L}$ with respect to $\mathbf{x}$ is:
 
@@ -251,6 +262,8 @@ $$
 $$
 
 **Key insight**: The gradient always has an identity component ($I$) that propagates unchanged. Even if $\frac{\partial F(\mathbf{x})}{\partial \mathbf{x}}$ vanishes, gradients still flow through the $+I$ term.
+
+</details>
 
 ### Brief CNN Primer
 
@@ -283,6 +296,13 @@ conv = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, paddin
 - The **residual connection concept** (F(x) + x) works identically for both
 
 ### Code: Basic Residual Block
+
+Now let's implement what we've learned. The code below shows how to build a BasicResidualBlock in PyTorch. This implementation demonstrates:
+1. How to create the skip connection (`F(x) + x`)
+2. Where to place batch normalization and activations for optimal gradient flow
+3. How to handle dimension mismatches with projection shortcuts
+
+**Why this matters**: Understanding this implementation is crucial for Part 2, where we'll adapt the same residual connection concept to tabular data using linear layers instead of convolutions.
 
 ```{code-cell}
 import torch
@@ -406,6 +426,10 @@ Standard architectures (for ImageNet):
 
 #### ResNet-18 Architecture
 
+The diagram below shows the complete ResNet-18 structure. Notice how each stage (green boxes) progressively reduces spatial dimensions (from 224×224 to 1×1) while increasing the number of channels (from 3 to 512). This pattern extracts increasingly abstract features: early stages detect edges and textures, while later stages recognize complex patterns and objects.
+
+**Reading the diagram**: Each box shows `operation (dimensions)` → `output shape`. The format `height×width×channels` tells you the data dimensions at each step. The 4 green stages contain the residual blocks (each stage has 2 blocks for ResNet-18).
+
 ```{mermaid}
 graph TB
     Input["Input Image<br/>224×224×3"] --> Conv1["Conv1 (7×7, 64)<br/>112×112×64"]
@@ -430,6 +454,8 @@ graph TB
     style FC fill:#F08080
     style Note1 fill:#F5DEB3,stroke:none
 ```
+
+**Why this structure?** The pattern of "downsample spatially, increase channels" is fundamental to deep learning on images. Lower layers with larger spatial dimensions capture fine details (like edges), while higher layers with more channels but smaller spatial dimensions capture semantic meaning (like "this is a cat"). The residual connections in each stage (green boxes) enable training this 18-layer network effectively.
 
 ### Bottleneck Block (ResNet-50+)
 
