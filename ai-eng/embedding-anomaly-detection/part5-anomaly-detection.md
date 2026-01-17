@@ -17,19 +17,65 @@ Apply various anomaly detection algorithms to your validated embeddings for OCSF
 
 ## Overview of Anomaly Detection Methods
 
-Once you have high-quality embeddings, you can detect anomalies using:
+Once you have high-quality embeddings, you can detect anomalies using a **vector database** as the central retrieval layer plus multiple scoring methods:
 
-1. **Density-based**: Local Outlier Factor (LOF)
-2. **Tree-based**: Isolation Forest
-3. **Distance-based**: k-NN distance, Mahalanobis distance
-4. **Clustering-based**: Distance from cluster centroids
-5. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
+1. **Vector DB retrieval**: k-NN similarity search for every event
+2. **Density-based**: Local Outlier Factor (LOF) on neighbor sets
+3. **Tree-based**: Isolation Forest (optional baseline)
+4. **Distance-based**: k-NN distance (cosine, Euclidean, negative inner product)
+5. **Clustering-based**: Distance from cluster centroids
+6. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
 
 Each method has different strengths. We'll implement all of them and compare.
 
 ---
 
-## 1. Local Outlier Factor (LOF)
+## 1. Vector DB Retrieval (Central Layer)
+
+The vector database is the **system of record** for embeddings. For each incoming event:
+
+1. Generate the embedding with TabularResNet.
+2. Query the vector DB for k nearest neighbors.
+3. Compute anomaly scores from neighbor distances or density.
+4. Persist the new embedding for future comparisons (if it's not an outlier).
+
+```{code-cell}
+# Pseudocode interface for a vector DB client
+def retrieve_neighbors(vector_db, embedding, k=20):
+    """
+    Query the vector database for nearest neighbors.
+
+    Returns:
+        neighbors: list of (neighbor_id, distance)
+    """
+    return vector_db.search(embedding, top_k=k)
+
+def score_from_neighbors(neighbors, percentile=95):
+    """
+    Basic distance-based scoring from neighbor distances.
+    """
+    distances = [d for _, d in neighbors]
+    threshold = np.percentile(distances, percentile)
+    score = np.mean(distances)
+    return score, threshold
+
+# Example usage
+neighbors = retrieve_neighbors(vector_db, embedding, k=20)
+score, threshold = score_from_neighbors(neighbors, percentile=95)
+is_anomaly = score > threshold
+```
+
+---
+
+### Scaling Notes: FAISS vs Distributed Vector DBs
+
+- **FAISS** is excellent for fast similarity search on a single machine or small clusters, but it is **memory-bound** and requires careful sharding/replication for very large datasets.
+- For **large-scale, multi-tenant, or high-ingest** systems, prefer a distributed vector database with built-in indexing, replication, and tiered storage.
+- Example: **VAST Data Vector DB** (or similar managed/distributed vector DBs) for very large volumes and near real-time ingestion.
+
+---
+
+## 2. Local Outlier Factor (LOF)
 
 LOF identifies outliers based on local density deviation.
 
@@ -232,65 +278,15 @@ print(f"  F1-Score:  {f1_knn:.3f}")
 
 ---
 
-## 4. Mahalanobis Distance
+## 4. Supported Similarity Metrics
 
-Accounts for correlations in the data.
+For vector DB–driven retrieval, stick to metrics supported by VAST Vector DB:
 
-```{code-cell}
-from scipy.spatial.distance import mahalanobis
-from scipy.stats import chi2
+- **Cosine similarity**
+- **Euclidean distance (L2)**
+- **Negative inner product**
 
-def detect_anomalies_mahalanobis(embeddings, threshold_pvalue=0.01):
-    """
-    Detect anomalies using Mahalanobis distance.
-
-    Args:
-        embeddings: Embedding vectors
-        threshold_pvalue: P-value threshold for chi-squared test
-
-    Returns:
-        predictions, scores
-    """
-    # Compute mean and covariance
-    mean = np.mean(embeddings, axis=0)
-    cov = np.cov(embeddings.T)
-
-    # Add small regularization to avoid singular matrix
-    cov_reg = cov + np.eye(cov.shape[0]) * 1e-6
-
-    try:
-        cov_inv = np.linalg.inv(cov_reg)
-    except np.linalg.LinAlgError:
-        print("Warning: Singular covariance matrix, using pseudo-inverse")
-        cov_inv = np.linalg.pinv(cov_reg)
-
-    # Compute Mahalanobis distance for each point
-    mahal_distances = np.array([
-        mahalanobis(x, mean, cov_inv) for x in embeddings
-    ])
-
-    # Chi-squared threshold
-    df = embeddings.shape[1]  # Degrees of freedom = embedding dimension
-    threshold = chi2.ppf(1 - threshold_pvalue, df)
-
-    # Anomalies: Mahalanobis distance exceeds threshold
-    predictions = (mahal_distances > np.sqrt(threshold)).astype(int)
-
-    return predictions, mahal_distances
-
-# Detect anomalies
-predicted_labels_mahal, scores_mahal = detect_anomalies_mahalanobis(all_embeddings, threshold_pvalue=0.01)
-
-# Evaluate
-precision_mahal = precision_score(true_labels, predicted_labels_mahal)
-recall_mahal = recall_score(true_labels, predicted_labels_mahal)
-f1_mahal = f1_score(true_labels, predicted_labels_mahal)
-
-print(f"Mahalanobis Distance Results:")
-print(f"  Precision: {precision_mahal:.3f}")
-print(f"  Recall:    {recall_mahal:.3f}")
-print(f"  F1-Score:  {f1_mahal:.3f}")
-```
+Use one of these metrics consistently across indexing, retrieval, and scoring to keep anomaly thresholds stable.
 
 ---
 
@@ -444,15 +440,6 @@ def compare_anomaly_methods(embeddings, true_labels):
         'Precision': precision_score(true_labels, pred_knn),
         'Recall': recall_score(true_labels, pred_knn),
         'F1-Score': f1_score(true_labels, pred_knn)
-    })
-
-    # Mahalanobis
-    pred_mahal, _ = detect_anomalies_mahalanobis(embeddings)
-    results.append({
-        'Method': 'Mahalanobis Distance',
-        'Precision': precision_score(true_labels, pred_mahal),
-        'Recall': recall_score(true_labels, pred_mahal),
-        'F1-Score': f1_score(true_labels, pred_mahal)
     })
 
     # Clustering
