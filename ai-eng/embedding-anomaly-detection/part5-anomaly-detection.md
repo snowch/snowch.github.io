@@ -618,6 +618,8 @@ In this part, you learned:
 
 **Next**: In [Part 6](part6-production-deployment), we'll deploy this system to production with REST APIs for embedding model serving and integration with observability platforms.
 
+**Advanced Extension**: For production systems with multiple observability data sources (logs, metrics, traces, configuration changes), see [Part 8: Multi-Source Correlation](part8-multi-source-correlation) to learn how to correlate anomalies across sources and automatically identify root causes.
+
 ---
 
 ## References

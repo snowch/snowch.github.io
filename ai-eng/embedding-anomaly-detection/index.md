@@ -13,7 +13,7 @@ bibliography:
 
 # Embedding-Based Anomaly Detection for Observability [DRAFT]
 
-A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
+A comprehensive 8-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
 **What you'll learn**: How to build, train, and deploy a **custom embedding model** (TabularResNet) specifically designed for OCSF observability data. This model transforms security logs and system metrics into vector representations. Anomaly detection happens entirely through vector database similarity search—no separate detection model needed. The system processes streaming OCSF events in near real-time to automatically identify unusual behavior.
 
@@ -150,10 +150,24 @@ Monitor and maintain the system:
 **Monitoring** · 35 min read
 :::
 
+:::{grid-item-card} Part 8: Multi-Source Correlation
+:link: part8-multi-source-correlation
+:link-type: doc
+
+Extend to multiple data sources for root cause analysis:
+- Training separate models for logs, metrics, traces, config
+- Unified vector database with metadata tags
+- Temporal correlation across sources
+- Causal graph construction
+- Automated root cause ranking
+
+**Advanced** · 50 min read
+:::
+
 :::{grid-item-card} Complete Series
 :class-card: sd-border-primary
 
-**Total**: ~4 hours of comprehensive, hands-on content
+**Total**: ~5 hours of comprehensive, hands-on content
 
 All code examples are executable and production-ready.
 :::
@@ -172,6 +186,8 @@ By the end of this series, you'll have:
 4. **Vector-Based Anomaly Detection**: Detection through pure vector DB operations (k-NN distance, density)—no classical DL detection model
 5. **Monitoring & Alerting**: Track embedding drift, detection quality, and system health
 6. **Automated Retraining**: Triggers retraining of the custom embedding model based on drift and performance degradation
+
+**Optional Extension (Part 8)**: For advanced production deployments, extend the system to correlate anomalies across multiple observability data sources (logs, metrics, traces, configuration changes) for automated root cause analysis.
 
 ### System Architecture
 
