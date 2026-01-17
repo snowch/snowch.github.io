@@ -31,6 +31,14 @@ This tutorial series takes you from ResNet fundamentals to deploying and monitor
 
 **Target Audience**: ML engineers, security engineers, and data scientists working with observability data
 
+**Applicability**: While this series uses **OCSF security logs** as the running example, the TabularResNet embedding approach applies to **any structured observability data**:
+- **Telemetry/Metrics**: Time-series data (CPU%, memory, latency) with metadata (host, service, region) → convert to tabular rows
+- **Configuration data**: Key-value pairs, settings, deployment configs → naturally tabular
+- **Distributed traces**: Span attributes (service, duration, status_code, error) → tabular features per span
+- **Application logs**: JSON logs, syslog, custom formats → any structured schema works
+
+**The key requirement**: Your data can be represented as **rows with categorical and numerical features**. If you can create a pandas DataFrame from your data, you can use this approach.
+
 **Prerequisites**:
 - Basic Python and PyTorch
 - Understanding of neural networks (or complete our [Neural Networks From Scratch](/ai-eng/nnfs/index.md) series first)

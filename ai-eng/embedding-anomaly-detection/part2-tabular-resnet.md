@@ -467,6 +467,44 @@ When applying this to your 300+ field OCSF schema:
    - Extract: hour_of_day, day_of_week, time_since_last_event
    - Treat as numerical or cyclical (sin/cos encoding) features
 
+### Adapting to Other Observability Data
+
+While this series uses OCSF security logs, the same architecture works for any structured observability data. Here's how to adapt the feature selection for different data types:
+
+**Telemetry/Metrics Data:**
+```python
+# Example: Prometheus-style metrics with labels
+categorical_features = ['host', 'service', 'metric_name', 'environment', 'region']
+numerical_features = ['value', 'hour_of_day', 'day_of_week', 'moving_avg_1h', 'std_dev_1h']
+# High-cardinality: 'host' (thousands), 'service' (hundreds)
+```
+
+**Distributed Traces:**
+```python
+# Example: OpenTelemetry span data
+categorical_features = ['service_name', 'operation', 'status_code', 'error_type', 'parent_span_id']
+numerical_features = ['duration_ms', 'span_count', 'error_count', 'queue_time_ms']
+# High-cardinality: 'parent_span_id', 'trace_id' (millions)
+```
+
+**Configuration Data:**
+```python
+# Example: Kubernetes configs, deployment manifests
+categorical_features = ['resource_type', 'namespace', 'deployment_strategy', 'image_tag']
+numerical_features = ['replica_count', 'cpu_limit', 'memory_limit', 'version_number']
+# High-cardinality: 'image_tag', 'config_hash'
+```
+
+**Application Logs (JSON/Structured):**
+```python
+# Example: Application event logs
+categorical_features = ['log_level', 'component', 'user_id', 'transaction_type', 'error_code']
+numerical_features = ['response_time_ms', 'bytes_processed', 'retry_count', 'cache_hit_rate']
+# High-cardinality: 'user_id', 'session_id', 'transaction_id'
+```
+
+**Key principle**: Any data that can be represented as `(categorical_features, numerical_features)` pairs works with TabularResNet. The embedding model learns representations specific to your domain.
+
 ---
 
 ## Comparison with Image ResNet

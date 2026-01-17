@@ -294,9 +294,11 @@ print(f"Ready for self-supervised training")
 
 ## Training Best Practices
 
+**Note on Data Types**: While the examples use OCSF security logs, self-supervised learning works identically for **any structured observability data** (telemetry, traces, configs, application logs). The training pipeline (`Dataset → DataLoader → Model → Loss`) remains the same—just change the feature columns to match your data schema.
+
 ### 1. Data Preprocessing
 
-Before training, you need to prepare your OCSF data. This involves:
+Before training, you need to prepare your data (OCSF logs, metrics, traces, etc.). This involves:
 - **StandardScaler**: Normalizes numerical features to have mean=0 and std=1 (prevents features with large values from dominating)
 - **LabelEncoder**: Converts categorical strings to integers (e.g., `"login" → 0`, `"logout" → 1`)
 
