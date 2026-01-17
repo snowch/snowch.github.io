@@ -13,7 +13,9 @@ bibliography:
 
 # Embedding-Based Anomaly Detection for Observability [DRAFT]
 
-A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF observability data.
+A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
+
+**What you'll learn**: How to transform security logs and system metrics into mathematical representations (embeddings) that help automatically identify unusual behavior in your infrastructure.
 
 ---
 
@@ -31,6 +33,12 @@ This tutorial series takes you from ResNet fundamentals to deploying and monitor
 **Prerequisites**:
 - Basic Python and PyTorch
 - Understanding of neural networks (or complete our [Neural Networks From Scratch](/ai-eng/nnfs/index.md) series first)
+
+**Key Terms** (explained in detail throughout the series):
+- **Embeddings**: Dense numerical vectors that capture the essence of complex data (like converting a security log into a list of numbers)
+- **Self-supervised learning**: Training a model without labeled data by creating learning tasks from the data itself
+- **Vector database**: A specialized database for storing and quickly searching through embeddings based on similarity
+- **ResNet**: A deep learning architecture that uses "residual connections" to train very deep networks effectively
 
 ---
 
@@ -157,6 +165,13 @@ By the end of this series, you'll have:
 6. **Retraining Pipeline**: Automated triggers based on performance degradation
 
 ### System Architecture
+
+This diagram shows the complete end-to-end system you'll build. Data flows from left to right through several stages: raw observability data is transformed into embeddings, stored in a vector database for fast similarity search, and then analyzed for anomalies. The monitoring components (shown in red/purple) watch for system degradation and trigger automatic retraining when needed.
+
+**Diagram legend**:
+- **Solid arrows** (→): Main data flow path
+- **Dotted arrows** (⇢): Monitoring and feedback loops
+- **Colors**: Blue=Data input, Green=ML model, Yellow=Vector storage, Orange=Detection, Red/Purple=Monitoring
 
 ```{mermaid}
 graph TB
