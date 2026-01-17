@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 2: Adapting ResNet for Tabular Data
+# Part 2: Adapting ResNet for Tabular Data [DRAFT]
 
 ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
 

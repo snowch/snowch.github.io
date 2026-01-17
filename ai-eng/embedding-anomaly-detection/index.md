@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# [DRAFT] Embedding-Based Anomaly Detection for Observability
+# Embedding-Based Anomaly Detection for Observability [DRAFT]
 
 A comprehensive 7-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF observability data.
 
