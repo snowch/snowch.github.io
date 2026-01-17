@@ -13,18 +13,7 @@ bibliography:
 
 # Part 2: Adapting ResNet for Tabular Data
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 1: Understanding ResNet Architecture](part1-understanding-resnet) | **Part 2 of 7** | [Next: Part 3 - Self-Supervised Training →](part3-self-supervised-training)
-
-Building on the ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
-:::
-::::
+ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
 
 ## Why ResNet for Tabular Data?
 
