@@ -13,18 +13,7 @@ bibliography:
 
 # Part 5: Anomaly Detection Methods
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 4: Evaluating Embedding Quality](part4-embedding-quality) | **Part 5 of 7** | [Next: Part 6 - Production Deployment →](part6-production-deployment)
-
 Apply various anomaly detection algorithms to your validated embeddings for OCSF observability data.
-:::
-::::
 
 ## Overview of Anomaly Detection Methods
 
