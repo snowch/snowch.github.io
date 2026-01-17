@@ -180,15 +180,11 @@ for y_start, y_end in arrow_pairs:
     ax.annotate('', xy=(x_center, y_end), xytext=(x_center, y_start),
                 arrowprops=dict(arrowstyle='->', lw=2, color='black'))
 
-# Add skip connection visualization
-skip_x = 11
-skip_y_start = 6.5
-skip_y_end = 5.3
-ax.annotate('', xy=(skip_x, skip_y_end), xytext=(skip_x, skip_y_start),
-            arrowprops=dict(arrowstyle='->', lw=2.5, color='blue',
-                          connectionstyle="arc3,rad=0.8"))
-ax.text(skip_x + 1.2, (skip_y_start + skip_y_end)/2, 'Skip\nConnection',
-        ha='left', va='center', fontsize=9, color='blue', fontweight='bold')
+# Add note about internal skip connections in each block
+ax.text(11.5, 5, '*Each residual block\ncontains an internal\nskip connection',
+        ha='left', va='center', fontsize=8, style='italic', color='darkgreen',
+        bbox=dict(boxstyle='round,pad=0.4', facecolor='lightyellow',
+                 edgecolor='darkgreen', linewidth=1, linestyle='--'))
 
 # Add side annotations
 ax.text(0.5, 6.5, 'Feature\nExtraction', ha='left', va='center',
