@@ -21,7 +21,7 @@ Deploy your anomaly detection system to production with REST APIs, model serving
 
 ```{mermaid}
 graph TB
-    OCSF[OCSF Data Stream<br/>Kafka/Kinesis] --> Preprocessor[Preprocessor Service<br/>Feature Engineering]
+    OCSF[OCSF Data Stream<br/>Kafka] --> Preprocessor[Preprocessor Service<br/>Feature Engineering]
     Preprocessor --> Embedding[Embedding Service<br/>TabularResNet]
     Embedding --> VectorDB[Vector DB<br/>Index + Similarity Search]
     VectorDB --> Detector[Anomaly Detector<br/>k-NN/Distance/Thresholds]
