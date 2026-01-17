@@ -426,7 +426,7 @@ def train_ocsf_anomaly_detector(
     device='cuda'
 ):
     """
-    Complete pipeline to train anomaly detection model on OCSF data.
+    Complete pipeline to train custom TabularResNet embedding model on OCSF data.
 
     Args:
         ocsf_df: DataFrame with OCSF records
