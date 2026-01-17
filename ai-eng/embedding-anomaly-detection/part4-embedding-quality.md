@@ -13,18 +13,7 @@ bibliography:
 
 # Part 4: Evaluating Embedding Quality
 
-::::{grid} 1
-:gutter: 2
-
-:::{grid-item-card} Series: Embedding-Based Anomaly Detection for Observability
-:link: index
-:link-type: doc
-
-[← Part 3: Self-Supervised Training](part3-self-supervised-training) | **Part 4 of 7** | [Next: Part 5 - Anomaly Detection Methods →](part5-anomaly-detection)
-
 Learn how to evaluate and validate the quality of learned embeddings before deploying to production.
-:::
-::::
 
 ## Why Evaluate Embeddings?
 
