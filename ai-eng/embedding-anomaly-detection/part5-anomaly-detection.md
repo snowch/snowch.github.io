@@ -70,8 +70,8 @@ is_anomaly = score > threshold
 ### Scaling Notes: FAISS vs Distributed Vector DBs
 
 - **FAISS** is excellent for fast similarity search on a single machine or small clusters, but it is **memory-bound** and requires careful sharding/replication for very large datasets.
-- For **large-scale, multi-tenant, or high-ingest** systems, prefer a distributed vector database with built-in indexing, replication, and tiered storage.
-- Example: **VAST Data Vector DB** (or similar managed/distributed vector DBs) for very large volumes and near real-time ingestion.
+- For **large-scale, multi-tenant, or high-ingest** systems, prefer a distributed vector database with built-in indexing, replication, and all-flash storage.
+- Example: [**VAST Data Vector DB**](https://www.vastdata.com/features/ai-ready) for very large volumes and near real-time ingestion.
 
 ---
 
