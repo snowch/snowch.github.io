@@ -23,8 +23,8 @@ This tutorial series takes you from ResNet fundamentals to deploying and monitor
 
 - Build embeddings from high-dimensional tabular data
 - Train models using self-supervised learning
-- Detect anomalies using multiple algorithms
-- Deploy to production with proper monitoring
+- Detect anomalies using a vector database as the central retrieval layer
+- Deploy to production with proper monitoring for near real-time detection
 
 **Target Audience**: ML engineers, security engineers, and data scientists working with observability data
 
@@ -150,10 +150,11 @@ All code examples are executable and production-ready.
 By the end of this series, you'll have:
 
 1. **TabularResNet Model**: Trained on OCSF observability data using self-supervised learning
-2. **Anomaly Detector**: Multi-method ensemble (LOF + Isolation Forest)
-3. **Production API**: FastAPI service with health checks and metrics
-4. **Monitoring Dashboard**: Track drift, alert quality, and performance
-5. **Retraining Pipeline**: Automated triggers based on performance degradation
+2. **Vector Database**: Stores embeddings and supports similarity search at scale
+3. **Anomaly Detector**: Vector-db-driven scoring (k-NN distance, density, thresholds)
+4. **Production API**: FastAPI service with health checks and metrics
+5. **Monitoring Dashboard**: Track drift, alert quality, and performance
+6. **Retraining Pipeline**: Automated triggers based on performance degradation
 
 ### System Architecture
 
@@ -167,9 +168,13 @@ graph TB
         Preprocessor[Feature Extraction<br/>Categorical + Numerical]
     end
 
+    subgraph "Vector Search"
+        VectorDB[Vector DB<br/>Index + Similarity Search]
+    end
+
     subgraph "Model Serving"
         Embedding[TabularResNet<br/>Embedding Generation]
-        Detector[Anomaly Detector<br/>LOF/IForest]
+        Detector[Anomaly Detector<br/>k-NN/Distance/Thresholds]
     end
 
     subgraph "Monitoring & Alerting"
@@ -185,7 +190,8 @@ graph TB
 
     OCSF --> Preprocessor
     Preprocessor --> Embedding
-    Embedding --> Detector
+    Embedding --> VectorDB
+    VectorDB --> Detector
     Detector --> Alerts
 
     Embedding -.Monitor.-> Drift
@@ -197,9 +203,11 @@ graph TB
     Retraining -.Update.-> Registry
     Registry -.Deploy.-> Embedding
     Registry -.Deploy.-> Detector
+    Registry -.Deploy.-> VectorDB
 
     style OCSF fill:#ADD8E6
     style Embedding fill:#90EE90
+    style VectorDB fill:#FFD700
     style Detector fill:#FFA500
     style Drift fill:#FF6347
     style Metrics fill:#DDA0DD
@@ -224,6 +232,14 @@ Embeddings compress high-dimensional OCSF data (300+ fields) into dense vectors 
 - Enable efficient distance calculations
 - Support multiple detection algorithms
 - Generalize to new anomaly types
+
+### Why a Vector Database?
+
+A vector database makes similarity search the **central** mechanism for anomaly detection by:
+- Storing and indexing embeddings for fast nearest-neighbor queries
+- Enabling k-NN distance scoring, density estimation, and thresholding at scale
+- Supporting incremental updates as new normal behavior arrives
+- Providing consistent retrieval for both batch and near real-time pipelines
 
 ---
 

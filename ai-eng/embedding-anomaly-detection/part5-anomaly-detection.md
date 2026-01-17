@@ -17,19 +17,65 @@ Apply various anomaly detection algorithms to your validated embeddings for OCSF
 
 ## Overview of Anomaly Detection Methods
 
-Once you have high-quality embeddings, you can detect anomalies using:
+Once you have high-quality embeddings, you can detect anomalies using a **vector database** as the central retrieval layer plus multiple scoring methods:
 
-1. **Density-based**: Local Outlier Factor (LOF)
-2. **Tree-based**: Isolation Forest
-3. **Distance-based**: k-NN distance, Mahalanobis distance
-4. **Clustering-based**: Distance from cluster centroids
-5. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
+1. **Vector DB retrieval**: k-NN similarity search for every event
+2. **Density-based**: Local Outlier Factor (LOF) on neighbor sets
+3. **Tree-based**: Isolation Forest (optional baseline)
+4. **Distance-based**: k-NN distance, Mahalanobis distance
+5. **Clustering-based**: Distance from cluster centroids
+6. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
 
 Each method has different strengths. We'll implement all of them and compare.
 
 ---
 
-## 1. Local Outlier Factor (LOF)
+## 1. Vector DB Retrieval (Central Layer)
+
+The vector database is the **system of record** for embeddings. For each incoming event:
+
+1. Generate the embedding with TabularResNet.
+2. Query the vector DB for k nearest neighbors.
+3. Compute anomaly scores from neighbor distances or density.
+4. Persist the new embedding for future comparisons (if it's not an outlier).
+
+```{code-cell}
+# Pseudocode interface for a vector DB client
+def retrieve_neighbors(vector_db, embedding, k=20):
+    """
+    Query the vector database for nearest neighbors.
+
+    Returns:
+        neighbors: list of (neighbor_id, distance)
+    """
+    return vector_db.search(embedding, top_k=k)
+
+def score_from_neighbors(neighbors, percentile=95):
+    """
+    Basic distance-based scoring from neighbor distances.
+    """
+    distances = [d for _, d in neighbors]
+    threshold = np.percentile(distances, percentile)
+    score = np.mean(distances)
+    return score, threshold
+
+# Example usage
+neighbors = retrieve_neighbors(vector_db, embedding, k=20)
+score, threshold = score_from_neighbors(neighbors, percentile=95)
+is_anomaly = score > threshold
+```
+
+---
+
+### Scaling Notes: FAISS vs Distributed Vector DBs
+
+- **FAISS** is excellent for fast similarity search on a single machine or small clusters, but it is **memory-bound** and requires careful sharding/replication for very large datasets.
+- For **large-scale, multi-tenant, or high-ingest** systems, prefer a distributed vector database with built-in indexing, replication, and tiered storage.
+- Example: **VAST Data Vector DB** (or similar managed/distributed vector DBs) for very large volumes and near real-time ingestion.
+
+---
+
+## 2. Local Outlier Factor (LOF)
 
 LOF identifies outliers based on local density deviation.
 

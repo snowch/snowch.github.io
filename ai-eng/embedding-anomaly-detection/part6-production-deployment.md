@@ -23,7 +23,8 @@ Deploy your anomaly detection system to production with REST APIs, model serving
 graph TB
     OCSF[OCSF Data Stream<br/>Kafka/Kinesis] --> Preprocessor[Preprocessor Service<br/>Feature Engineering]
     Preprocessor --> Embedding[Embedding Service<br/>TabularResNet]
-    Embedding --> Detector[Anomaly Detector<br/>LOF/IForest/Ensemble]
+    Embedding --> VectorDB[Vector DB<br/>Index + Similarity Search]
+    VectorDB --> Detector[Anomaly Detector<br/>k-NN/Distance/Thresholds]
     Detector --> AlertManager[Alert Manager]
     AlertManager --> Observability[Observability Platform<br/>Prometheus/Grafana]
 
@@ -33,6 +34,7 @@ graph TB
     style OCSF fill:#ADD8E6
     style Preprocessor fill:#FFFFE0
     style Embedding fill:#90EE90
+    style VectorDB fill:#FFD700
     style Detector fill:#FFA500
     style AlertManager fill:#FF6347
     style Observability fill:#DDA0DD
@@ -58,7 +60,7 @@ app = FastAPI(title="OCSF Anomaly Detection API", version="1.0.0")
 MODEL = None
 SCALER = None
 ENCODERS = None
-DETECTOR = None
+VECTOR_DB = None
 
 class OCSFRecord(BaseModel):
     """OCSF record schema."""
@@ -78,7 +80,7 @@ class AnomalyResponse(BaseModel):
 @app.on_event("startup")
 async def load_models():
     """Load models at startup."""
-    global MODEL, SCALER, ENCODERS, DETECTOR
+    global MODEL, SCALER, ENCODERS, VECTOR_DB
 
     # Load TabularResNet
     checkpoint = torch.load('models/ocsf_anomaly_detector.pt', map_location='cpu')
@@ -89,9 +91,8 @@ async def load_models():
     SCALER = checkpoint['scaler']
     ENCODERS = checkpoint['encoders']
 
-    # Load anomaly detector
-    import joblib
-    DETECTOR = joblib.load('models/lof_detector.pkl')
+    # Initialize vector DB client (pseudo-interface)
+    VECTOR_DB = init_vector_db_client(index_name="ocsf-embeddings")
 
     print("Models loaded successfully")
 
@@ -115,11 +116,14 @@ async def predict_anomaly(record: OCSFRecord):
             embedding = MODEL(numerical, categorical, return_embedding=True)
             embedding_np = embedding.numpy()
 
-        # 3. Detect anomaly
-        prediction = DETECTOR.predict(embedding_np)
-        score = DETECTOR.score_samples(embedding_np)[0]
+        # 3. Retrieve neighbors from vector DB and score
+        neighbors = VECTOR_DB.search(embedding_np, top_k=20)
+        distances = [d for _, d in neighbors]
+        score = float(np.mean(distances))
+        threshold = float(np.percentile(distances, 95))
+        prediction = score > threshold
 
-        is_anomaly = prediction[0] == -1
+        is_anomaly = bool(prediction)
         confidence = abs(score)  # Higher = more confident
 
         return AnomalyResponse(
@@ -146,7 +150,7 @@ async def health_check():
     return {
         "status": "healthy",
         "model_loaded": MODEL is not None,
-        "detector_loaded": DETECTOR is not None
+        "vector_db_connected": VECTOR_DB is not None
     }
 
 @app.get("/metrics")
@@ -273,7 +277,7 @@ services:
       - ./logs:/app/logs
     environment:
       - MODEL_PATH=/app/models/ocsf_anomaly_detector.pt
-      - DETECTOR_PATH=/app/models/lof_detector.pkl
+      - VECTOR_DB_URL=http://vector-db:6333
       - LOG_LEVEL=INFO
     deploy:
       resources:
@@ -462,17 +466,17 @@ class StreamingAnomalyDetector:
     """
     Real-time anomaly detection from Kafka streams.
     """
-    def __init__(self, model, detector, kafka_brokers, input_topic, output_topic):
+    def __init__(self, model, vector_db, kafka_brokers, input_topic, output_topic):
         """
         Args:
             model: TabularResNet model
-            detector: Anomaly detector (LOF/IForest)
+            vector_db: Vector database client for k-NN retrieval
             kafka_brokers: List of Kafka broker addresses
             input_topic: Kafka topic for OCSF records
             output_topic: Kafka topic for alerts
         """
         self.model = model
-        self.detector = detector
+        self.vector_db = vector_db
 
         self.consumer = KafkaConsumer(
             input_topic,
@@ -491,7 +495,7 @@ class StreamingAnomalyDetector:
 
     def process_stream(self):
         """
-        Process incoming OCSF records in real-time.
+        Process incoming OCSF records in near real-time.
         """
         print("Streaming anomaly detection started...")
 
@@ -506,11 +510,14 @@ class StreamingAnomalyDetector:
                 with torch.no_grad():
                     embedding = self.model(numerical, categorical, return_embedding=True)
 
-                # Detect anomaly
-                prediction = self.detector.predict(embedding.numpy())
-                score = self.detector.score_samples(embedding.numpy())[0]
+                # Detect anomaly via vector DB retrieval
+                neighbors = self.vector_db.search(embedding.numpy(), top_k=20)
+                distances = [d for _, d in neighbors]
+                score = float(np.mean(distances))
+                threshold = float(np.percentile(distances, 95))
+                is_anomaly = score > threshold
 
-                if prediction[0] == -1:  # Anomaly detected
+                if is_anomaly:
                     alert = {
                         'record_id': record.get('id'),
                         'timestamp': record.get('timestamp'),
@@ -532,7 +539,7 @@ def preprocess_ocsf(record):
     pass
 
 print("StreamingAnomalyDetector class defined")
-print("Usage: detector = StreamingAnomalyDetector(model, detector, brokers, 'ocsf-input', 'anomaly-alerts')")
+print("Usage: detector = StreamingAnomalyDetector(model, vector_db, brokers, 'ocsf-input', 'anomaly-alerts')")
 ```
 
 ### Batch Inference
