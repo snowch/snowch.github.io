@@ -78,7 +78,7 @@ This tutorial will build your understanding of ResNet from first principles, the
 
 Intuitively, deeper neural networks should be more powerful:
 - More layers → More capacity to learn complex patterns
-- A 56-layer network should perform *at least as well* as a 28-layer network (it could just learn identity mappings for the extra layers)
+- A 56-layer network should perform *at least as well* as a 28-layer network (it could just learn **identity mappings** — where output = input, i.e., $f(x) = x$ — for the extra layers)
 
 **But in practice, this doesn't happen.**
 
@@ -131,7 +131,7 @@ Two main issues:
 
 1. **Vanishing Gradients**: As gradients backpropagate through many layers, they get multiplied by small weight matrices repeatedly, shrinking exponentially. Deep layers learn very slowly or not at all.
 
-2. **Degraded Optimization Landscape**: Very deep networks create complex, non-convex loss surfaces that are hard for SGD to navigate. Even though a solution exists (copy shallower network + identity layers), the optimizer can't find it.
+2. **Degraded Optimization Landscape**: Very deep networks create complex, non-convex loss surfaces that are hard for SGD to navigate. Even though a solution exists (copy the shallower network and make extra layers just pass data through unchanged), the optimizer can't find it.
 
 ### What We Need
 
@@ -219,8 +219,9 @@ graph TB
 ### Why This Works: Intuition
 
 **Learning Identity is Easy**:
-- If the optimal mapping is identity ($H(\mathbf{x}) = \mathbf{x}$), the network just needs to learn $F(\mathbf{x}) = 0$
-- Pushing weights toward zero is much easier than learning exact identity mappings from scratch
+- If the optimal mapping is identity (output = input, i.e., $H(\mathbf{x}) = \mathbf{x}$), the network just needs to learn $F(\mathbf{x}) = 0$
+- Pushing weights toward zero is much easier than learning the identity function from scratch with many layers
+- This means "doing nothing" (keeping the input unchanged) is easy to learn
 
 **Gradient Flow**:
 - Gradients flow through both paths (main path *and* skip connection)
