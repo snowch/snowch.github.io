@@ -34,7 +34,6 @@ import logging
 import warnings
 
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore", message="Matplotlib is building the font cache*")
 
 import torch
 import matplotlib
