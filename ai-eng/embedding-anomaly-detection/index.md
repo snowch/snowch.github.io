@@ -60,13 +60,13 @@ This tutorial series takes you from ResNet fundamentals to deploying and monitor
 :link: part1-understanding-resnet
 :link-type: doc
 
-Learn the fundamentals of Residual Networks, including:
+Learn the core concepts behind Residual Networks:
 - The degradation problem in deep networks
-- Residual connections and gradient flow
-- Building complete ResNet architectures
-- Training on CIFAR-10
+- Skip connections and why they work
+- Gradient flow visualization
+- Architecture patterns (basic and bottleneck blocks)
 
-**Foundation** · 45 min read
+**Foundation** · 35 min read
 :::
 
 :::{grid-item-card} Part 2: Adapting ResNet for Tabular Data
