@@ -483,6 +483,8 @@ numerical_features = ['response_time_ms', 'bytes_processed',
 
 **Key principle**: Any data that can be represented as `(categorical_features, numerical_features)` pairs works with TabularResNet. The embedding model learns representations specific to your domain.
 
+**Advanced**: For production systems that correlate anomalies across multiple observability sources (logs + metrics + traces + config), see [Part 9: Multi-Source Correlation](part9-multi-source-correlation), which shows how to train separate TabularResNet models for each source type and correlate their anomalies for root cause analysis.
+
 ---
 
 ## Comparison with Image ResNet
