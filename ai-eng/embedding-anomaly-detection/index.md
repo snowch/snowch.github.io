@@ -181,7 +181,7 @@ All code examples are executable and production-ready.
 By the end of this series, you'll have:
 
 1. **Custom TabularResNet Embedding Model**: Trained from scratch on your OCSF data using self-supervised learning
-2. **Embedding Service**: FastAPI API that deploys the custom model to generate embeddings from streaming OCSF events
+2. **Embedding Service**: FastAPI REST API that serves the custom TabularResNet model, generating embeddings for OCSF events via HTTP requests
 3. **Vector Database**: Stores embeddings and performs k-NN similarity search at scale
 4. **Vector-Based Anomaly Detection**: Detection through pure vector DB operations (k-NN distance, density)—no classical DL detection model
 5. **Monitoring & Alerting**: Track embedding drift, detection quality, and system health
