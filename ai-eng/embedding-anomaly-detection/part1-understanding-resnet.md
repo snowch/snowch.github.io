@@ -89,6 +89,9 @@ Intuitively, deeper neural networks should be more powerful:
 ```{code-cell}
 :tags: [remove-input]
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -272,6 +275,9 @@ The gradient flow explanation above is theoretical. Let's **see it in action** b
 
 ```{code-cell}
 :tags: [hide-input]
+
+import warnings
+warnings.filterwarnings('ignore')
 
 import torch
 import torch.nn as nn
