@@ -188,9 +188,9 @@ Where:
 :::{grid-item-card} Plain Network Block
 ```{mermaid}
 graph TB
-    X1[x<br/>Input] --> L1[Conv/Linear<br/>Layer 1]
-    L1 --> L2[Conv/Linear<br/>Layer 2]
-    L2 --> H1[H&#40;x&#41;<br/>Output]
+    X1["x<br/>Input"] --> L1["Conv/Linear<br/>Layer 1"]
+    L1 --> L2["Conv/Linear<br/>Layer 2"]
+    L2 --> H1["H(x)<br/>Output"]
 
     style X1 fill:#ADD8E6
     style L1 fill:#F08080
@@ -202,11 +202,11 @@ graph TB
 :::{grid-item-card} Residual Block
 ```{mermaid}
 graph TB
-    X2[x<br/>Input] --> L3[Conv/Linear<br/>Layer 1]
-    L3 --> L4[Conv/Linear<br/>Layer 2]
+    X2["x<br/>Input"] --> L3["Conv/Linear<br/>Layer 1"]
+    L3 --> L4["Conv/Linear<br/>Layer 2"]
     L4 --> Add((+))
     X2 -.Skip Connection.-> Add
-    Add --> H2[H&#40;x&#41;<br/>Output]
+    Add --> H2["H(x)<br/>Output"]
 
     style X2 fill:#ADD8E6
     style L3 fill:#F08080
