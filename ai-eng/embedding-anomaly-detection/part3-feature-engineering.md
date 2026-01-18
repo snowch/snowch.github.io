@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 3: Feature Engineering for OCSF Data [DRAFT]
+# Part 3: Feature Engineering for OCSF Data
 
 Learn how to transform raw OCSF security logs into the feature arrays that TabularResNet expects.
 
@@ -86,6 +86,18 @@ The [Open Cybersecurity Schema Framework (OCSF)](https://schema.ocsf.io/) provid
 
 ## Loading OCSF Data
 
+**What we're doing**: Reading OCSF events from storage into Python dictionaries for processing.
+
+**Why**: OCSF data typically arrives in newline-delimited JSON format (`.jsonl`) where each line is a complete event. This format is:
+- Space-efficient for large datasets
+- Streamable (process one event at a time without loading everything into memory)
+- Standard format for security log exports
+
+**Pitfalls**:
+- **Memory**: Loading all events at once can exhaust memory. For large datasets (millions of events), use generators or process in batches
+- **Malformed JSON**: Production logs often contain corrupted lines. Always wrap `json.loads()` in try/except
+- **Encoding issues**: Security logs may contain non-UTF-8 characters. Use `encoding='utf-8', errors='replace'` when opening files
+
 ### From JSON Files
 
 ```{code-cell}
@@ -99,8 +111,13 @@ def load_ocsf_from_file(filepath):
     events = []
     with open(filepath, 'r') as f:
         for line in f:
-            if line.strip():
-                events.append(json.loads(line))
+            if line.strip():  # Skip empty lines
+                try:
+                    events.append(json.loads(line))
+                except json.JSONDecodeError as e:
+                    # Log malformed lines instead of crashing
+                    print(f"Skipping malformed JSON: {e}")
+                    continue
     return events
 
 # Example usage
@@ -108,7 +125,39 @@ events = load_ocsf_from_file('ocsf_events.jsonl')
 print(f"Loaded {len(events)} OCSF events")
 ```
 
+**Further processing**: For production systems with large datasets, use a generator pattern:
+
+```python
+def load_ocsf_generator(filepath):
+    """Memory-efficient generator for OCSF events."""
+    with open(filepath, 'r') as f:
+        for line in f:
+            if line.strip():
+                try:
+                    yield json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+# Process one at a time without loading all into memory
+for event in load_ocsf_generator('ocsf_events.jsonl'):
+    features = extract_features(event)
+    # ... process features
+```
+
 ### From Streaming Sources
+
+**What we're doing**: Consuming OCSF events from a Kafka stream for near real-time processing.
+
+**Why**: Production security systems generate millions of events per day. Kafka provides:
+- **Buffering**: Handles burst traffic without data loss
+- **Scalability**: Multiple consumers can process events in parallel
+- **Replay**: Can reprocess historical events for retraining models
+
+**How it works**:
+1. Consumer polls Kafka topic for new messages
+2. Each message contains one OCSF event (JSON string)
+3. Decode bytes to UTF-8 and parse JSON
+4. Yield event for feature extraction
 
 ```{code-cell}
 :tags: [skip-execution]
@@ -130,7 +179,7 @@ def consume_ocsf_from_kafka(topic, bootstrap_servers):
     conf = {
         'bootstrap.servers': bootstrap_servers,
         'group.id': 'ocsf-feature-engineering',
-        'auto.offset.reset': 'earliest'
+        'auto.offset.reset': 'earliest'  # Start from beginning if no offset
     }
 
     consumer = Consumer(conf)
@@ -138,7 +187,7 @@ def consume_ocsf_from_kafka(topic, bootstrap_servers):
 
     try:
         while True:
-            msg = consumer.poll(1.0)
+            msg = consumer.poll(1.0)  # 1 second timeout
             if msg is None:
                 continue
             if msg.error():
@@ -157,11 +206,26 @@ def consume_ocsf_from_kafka(topic, bootstrap_servers):
 #     features = extract_features(event)
 ```
 
+**Pitfalls**:
+- **Backpressure**: If feature extraction is slow, Kafka consumer lag will grow. Monitor consumer lag metrics and scale consumers horizontally if needed
+- **Deserialization errors**: Kafka messages may contain invalid JSON. Always wrap parsing in try/except
+- **Offset management**: If processing crashes, `auto.offset.reset` determines whether to replay or skip events. For training, use 'earliest' to reprocess all data. For production inference, use 'latest' to process only new events
+
 ---
 
 ## Extracting Raw Features
 
 ### Flattening Nested Fields
+
+**What we're doing**: Converting nested JSON dictionaries into flat key-value pairs.
+
+**Why**: TabularResNet expects flat feature vectors, not nested objects. OCSF uses deep nesting (e.g., `actor.user.name` is 3 levels deep), so we need to flatten before feature extraction.
+
+**How it works**:
+- Recursively traverse the dictionary tree
+- Concatenate parent keys with child keys using underscores
+- Example: `{"actor": {"user": {"name": "john"}}}` → `{"actor_user_name": "john"}`
+- Arrays: Take first element (most arrays in OCSF have single values) and add a `_count` field for length
 
 ```{code-cell}
 import pandas as pd
@@ -221,9 +285,29 @@ for key, value in flat_event.items():
     print(f"  {key}: {value}")
 ```
 
+**Pitfalls**:
+- **Name collisions**: If keys at different levels have same name, they'll collide. Example: `{"user": {"id": 1}, "id": 2}` → both become `id`. Use more specific key names or include full path
+- **Array handling**: Taking only the first element loses information if arrays have multiple values. For security logs with multiple IPs or ports, consider extracting all values or computing summary statistics (min/max/count)
+- **Explosion of features**: Deep nesting creates many features. A 5-level nested object can produce 50+ flattened keys. Filter to only useful fields after flattening
+
+**Further processing needed**: After flattening, you'll have 100-300 fields. Next step is feature selection to choose the 20-50 most informative ones.
+
 ### Selecting Core Features
 
-Not all 300+ possible OCSF fields are useful. Start with a focused set:
+**What we're doing**: Choosing the most informative subset of OCSF fields for anomaly detection.
+
+**Why**: Not all 300+ OCSF fields are useful. Many are:
+- Always null for your data source
+- Redundant (e.g., `time` and `time_dt` contain same information)
+- Too high cardinality (e.g., unique message text)
+- Not predictive of anomalies
+
+Starting with 20-50 core features keeps the model focused and reduces overfitting.
+
+**How to choose**:
+1. **Domain knowledge**: Security experts know which fields matter (user_id, IP addresses, status codes)
+2. **Data exploration**: Check which fields have non-null values >90% of the time
+3. **Tree-based importance** (Part 2): Train Random Forest on sample data and rank features by importance score
 
 ```{code-cell}
 def extract_core_features(event):
@@ -269,7 +353,17 @@ print("Numerical features:", num_features)
 
 ## Engineering Temporal Features
 
-Timestamps are critical for security anomaly detection. Extract multiple temporal features:
+**What we're doing**: Extracting time-based patterns from Unix timestamps.
+
+**Why**: Temporal patterns are critical for anomaly detection because:
+- **Normal behavior varies by time**: Logins at 3 AM are suspicious, but normal at 9 AM
+- **Attack patterns have timing**: Brute force attacks happen rapidly; data exfiltration often happens off-hours
+- **Cyclical patterns matter**: Monday mornings have different traffic than Sunday nights
+
+**Types of temporal features**:
+1. **Categorical**: hour_of_day (0-23), day_of_week (0-6), is_weekend, is_business_hours
+2. **Cyclical (sin/cos)**: Preserves circular nature of time (23:00 is close to 00:00)
+3. **Aggregations**: Time since last event, events per hour (covered in next section)
 
 ```{code-cell}
 from datetime import datetime
@@ -334,15 +428,40 @@ for key, value in temporal.items():
 ```
 
 **Why cyclical encoding?**
-- Problem: Hour 23 and hour 0 are only 1 hour apart, but numerically 23 units apart
-- Solution: Encode as (sin, cos) pair on unit circle
-- Result: Similar hours have similar encodings (23:00 and 00:00 are close in (sin, cos) space)
+- **Problem**: Hour 23 and hour 0 are only 1 hour apart, but numerically 23 units apart
+- **Solution**: Encode as (sin, cos) pair on unit circle
+- **Result**: Similar hours have similar encodings (23:00 and 00:00 are close in (sin, cos) space)
+
+**How it works**:
+- Map hour to angle: `angle = 2π × hour / 24`
+- Convert to (sin, cos): `(sin(angle), cos(angle))`
+- Hours near each other → similar (sin, cos) values
+- Example: hour=0 → (0, 1), hour=23 → (≈-0.26, ≈0.97) are close in Euclidean space
+
+**Further processing**: These temporal features will be:
+- **Categorical** (hour_of_day, day_of_week, is_weekend, is_business_hours): Fed to categorical embeddings in TabularResNet
+- **Numerical** (hour_sin, hour_cos, day_sin, day_cos): Normalized with StandardScaler before feeding to TabularResNet
+
+**Pitfalls**:
+- **Timezone issues**: OCSF timestamps are typically UTC. If your normal behavior patterns are timezone-specific (e.g., logins spike at 9 AM local time), convert to local timezone before extracting hour
+- **Categorical vs cyclical**: Don't use both raw hour (0-23) AND (hour_sin, hour_cos) as features. They encode the same information - use cyclical for better gradient flow
 
 ---
 
 ## Engineering Derived Features
 
-Create higher-level features from raw values:
+**What we're doing**: Creating new features by combining or transforming existing fields.
+
+**Why**: Raw OCSF fields often need transformation to be useful:
+- **Rates matter more than totals**: `bytes_per_second` is more informative than raw `bytes` value
+- **Ratios reveal patterns**: `upload_ratio` (upload/total) can detect data exfiltration
+- **Domain features**: Extracting TLD from URLs can reveal phishing (unusual TLDs like `.tk`, `.ru`)
+
+**Examples**:
+- Network transfer rates: `bytes_per_second = total_bytes / duration`
+- Upload/download ratio: `upload_ratio = bytes_out / (bytes_in + bytes_out)`
+- Domain features: Extract TLD, domain length from hostnames
+- Boolean indicators: `is_default_port`, `has_user_agent`
 
 ```{code-cell}
 def extract_derived_features(event):
@@ -416,7 +535,20 @@ for key, value in derived.items():
 
 ## Engineering Aggregation Features
 
-For anomaly detection, behavior over time is crucial:
+**What we're doing**: Computing statistics over recent events (rolling windows) to capture behavioral patterns.
+
+**Why this is critical for anomaly detection**:
+- **Single events lack context**: One failed login is normal; 50 in 10 minutes is a brute force attack
+- **Behavioral baselines**: How many events does this user normally generate per hour?
+- **Velocity features**: Rapid changes in behavior (e.g., sudden spike in data transfer) are anomalies
+
+**How it works**:
+1. Maintain a sliding window of recent events per user (e.g., last 60 minutes)
+2. For each new event, compute statistics over the user's recent events
+3. Remove events outside the time window to keep memory bounded
+4. Features: event counts, failure rates, unique IPs, average bytes, time since last event
+
+**Memory management**: Use `deque` with `maxlen` or timestamp-based pruning to prevent unbounded memory growth.
 
 ```{code-cell}
 :tags: [skip-execution]
@@ -519,6 +651,17 @@ for event in events:
 - Many unique IPs from one user → Compromised account
 - Unusual bytes transferred → Data exfiltration
 
+**Pitfalls**:
+- **Cold start problem**: First event for a user has no history. Aggregations return 0, which may be flagged as anomalous. Solution: Have a "warm-up period" or special handling for new users
+- **Memory growth**: Tracking millions of users indefinitely exhausts memory. Solution: Periodically purge inactive users (no events in N hours), or use external state store (Redis) for production
+- **Out-of-order events**: If events arrive out of timestamp order (common with distributed systems), aggregations may be incorrect. Solution: Buffer events and sort by timestamp before processing, or use a stateless approach (query from database)
+- **Window size choice**: Too small (5 minutes) → noisy, too large (24 hours) → misses short attacks. Start with 60 minutes for most security use cases
+
+**Further processing**: For production systems processing millions of events:
+- **Use external state**: Store user aggregations in Redis with TTL (time-to-live) instead of in-memory dictionaries
+- **Batch processing**: For training data, precompute aggregations in Spark/Dask rather than streaming aggregator
+- **Multiple windows**: Compute 1h, 4h, and 24h aggregations to capture different attack timescales
+
 ---
 
 ## Handling Missing Values
@@ -581,9 +724,27 @@ for key, value in processed.items():
 
 ## Handling High Cardinality
 
-IP addresses, user IDs, and session IDs can have millions of unique values.
+**What we're doing**: Reducing unbounded categorical features (millions of unique values) to fixed-size representations.
+
+**Why**: Some OCSF fields have extreme cardinality:
+- **IP addresses**: Millions of unique client IPs
+- **User IDs**: Can be millions in large organizations
+- **Session IDs**: Unique per login session
+- **URLs/Paths**: Unbounded unique strings
+
+TabularResNet's categorical embeddings need fixed vocabulary sizes. We can't create an embedding table with millions of rows.
+
+**Two techniques**:
+1. **Hashing trick**: Map unlimited values to fixed buckets (e.g., 1000)
+2. **Subnet encoding**: For IPs, group by subnet (192.168.1.x) instead of full address
 
 ### Hashing Trick
+
+**How it works**:
+- Apply hash function to value (e.g., `hash("192.168.1.100")`)
+- Modulo by number of buckets: `hash(value) % 1000` → bucket ID 0-999
+- Different values usually map to different buckets (collisions are rare with good hash functions)
+- **Tradeoff**: Some collisions are acceptable - model learns that bucket 456 represents "this group of similar IPs"
 
 ```{code-cell}
 def hash_categorical_feature(value, num_buckets=1000):
@@ -615,7 +776,18 @@ for ip in ips:
     print(f"{ip} → bucket {hash_categorical_feature(ip, 1000)}")
 ```
 
+**Pitfalls**:
+- **Collision rate**: With 1M unique IPs and 1000 buckets, expect ~1000 collisions (birthday paradox). Increase buckets (10K-100K) if cardinality is very high
+- **No semantic meaning**: Hashing loses all structure. IPs 192.168.1.100 and 192.168.1.101 (same subnet) map to random different buckets. Use subnet encoding if network structure matters
+- **Inference mismatch**: Use same num_buckets in training and inference, otherwise hashed values won't align
+
 ### IP Subnet Encoding
+
+**How it works**:
+- Keep first 3 octets (subnet): `192.168.1.x`
+- Maps all IPs in same /24 subnet to same category
+- Reduces cardinality from millions to thousands
+- **Advantage over hashing**: Preserves network structure - IPs from same subnet have same encoding
 
 ```{code-cell}
 def encode_ip_subnet(ip_address):
@@ -733,7 +905,18 @@ features = extractor.extract(event)
 
 ## Preparing for TabularResNet
 
-Final step: Convert to format expected by Part 2's TabularResNet:
+**What we're doing**: Converting DataFrame of mixed-type features into the numerical/categorical arrays TabularResNet expects.
+
+**Why this is critical**:
+- **TabularResNet needs specific input format**: Two separate arrays - one for numerical features (floats), one for categorical features (integers)
+- **Normalization matters**: Neural networks train poorly with unnormalized inputs. StandardScaler ensures all numerical features have mean=0, std=1
+- **Categorical encoding**: Convert string categories ("success", "failure") to integer indices (0, 1, 2, ...)
+- **Save encoders/scalers**: Must use the SAME encoding at inference time, or model sees unknown values
+
+**Steps**:
+1. **Encode categoricals**: LabelEncoder maps strings → integers. Save encoder for inference
+2. **Normalize numericals**: StandardScaler makes mean=0, std=1. Save scaler for inference
+3. **Track cardinalities**: TabularResNet needs to know vocabulary size for each categorical (to create embedding tables)
 
 ```{code-cell}
 :tags: [skip-execution]
@@ -792,6 +975,27 @@ def prepare_for_tabular_resnet(df, categorical_cols, numerical_cols):
 #     num_blocks=6
 # )
 ```
+
+**Pitfalls**:
+- **New categories at inference**: If inference data contains categorical value "error_code=500" never seen in training, LabelEncoder will crash. Solution: Add 'UNKNOWN' to training vocabulary (as done above with `unique_vals + ['UNKNOWN']`) and map unseen values to it
+- **Normalization leakage**: If you fit StandardScaler on full dataset (train + validation), validation scores are overly optimistic. Solution: Fit scaler only on training data, transform both train and validation with it
+- **Feature order matters**: Categorical/numerical arrays must have same column order at inference as training. Solution: Save feature column names alongside encoders/scalers
+- **Scaling before splitting**: NEVER scale data before train/test split. Always split first, then fit scaler on train only
+
+**Further processing needed**:
+- **Save artifacts**: Pickle encoders, scaler, feature names, cardinalities for inference
+  ```python
+  import pickle
+  with open('feature_artifacts.pkl', 'wb') as f:
+      pickle.dump({
+          'encoders': encoders,
+          'scaler': scaler,
+          'categorical_cols': categorical_cols,
+          'numerical_cols': numerical_cols,
+          'cardinalities': cardinalities
+      }, f)
+  ```
+- **Inference function**: Load artifacts and apply same transformations to new events
 
 ---
 
