@@ -79,6 +79,11 @@ The tabular ResNet follows this flow:
 ```{code-cell}
 :tags: [remove-input]
 
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 

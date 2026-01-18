@@ -53,6 +53,11 @@ We'll use four complementary approaches to evaluate embedding quality:
 Now let's visualize embeddings in 2D. This code demonstrates how to use t-SNE to project high-dimensional embeddings (e.g., 256-dim) into 2D for visualization. Look for clear cluster separation - anomalies should appear as outliers or in sparse regions.
 
 ```{code-cell}
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE

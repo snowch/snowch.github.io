@@ -51,6 +51,11 @@ This part teaches you how to detect and respond to these issues.
 ### Statistical Drift Tests
 
 ```{code-cell}
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 import numpy as np
 from scipy.stats import ks_2samp, wasserstein_distance
 import matplotlib.pyplot as plt
