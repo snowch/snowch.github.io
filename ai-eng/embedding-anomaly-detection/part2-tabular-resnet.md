@@ -236,12 +236,30 @@ class TabularResNet(nn.Module):
     ):
         """
         Args:
-            num_numerical_features: Number of continuous features
-            categorical_cardinalities: List of cardinalities for each categorical feature
-            d_model: Hidden dimension size
-            num_blocks: Number of residual blocks
-            dropout: Dropout probability
-            num_classes: Number of output classes (None for unsupervised embeddings)
+            num_numerical_features: Number of continuous/numerical features
+                (e.g., 50 for network_bytes_in, duration, etc.)
+
+            categorical_cardinalities: List of unique values per categorical feature
+                (e.g., [100, 50, 200, 1000] for user_id, status_id, entity_id, etc.)
+                Length of list = number of categorical features
+
+            d_model: Internal hidden dimension (typically 128-512)
+                - Larger = more capacity, more parameters
+                - Common values: 128, 256, 512
+                - This is your final embedding dimension
+
+            num_blocks: Number of stacked residual blocks (typically 4-12)
+                - More blocks = deeper network, more capacity
+                - Diminishing returns beyond 8-10 blocks for most tabular data
+                - Start with 6, increase if underfitting
+
+            dropout: Dropout probability for regularization (typically 0.1-0.3)
+                - Higher = more regularization, less overfitting
+                - 0.1 = light, 0.2 = moderate, 0.3 = heavy
+
+            num_classes: Number of output classes for supervised learning
+                - None = embedding-only mode (for anomaly detection)
+                - int = classification mode (e.g., 10 for 10-class problem)
         """
         super().__init__()
 
