@@ -422,6 +422,8 @@ configs = [
 
 ## Design Considerations for OCSF Data
 
+**Note**: This section provides high-level guidance on preparing OCSF data for TabularResNet. For comprehensive, step-by-step examples of transforming raw OCSF JSON into model-ready features (including parsing nested structures, temporal encoding, aggregations, and handling high cardinality), see [Part 3: Feature Engineering for OCSF Data](part3-feature-engineering).
+
 When applying this to your 300+ field OCSF schema:
 
 1. **Feature Selection**: Not all 300+ fields may be informative
@@ -439,6 +441,7 @@ When applying this to your 300+ field OCSF schema:
    - Or learn a shared "unknown" embedding for rare values (values seen < N times in training)
    - Consider using larger embedding dimensions for high-cardinality features
      (e.g., 128-dim for `user_id` vs 32-dim for `status_code`)
+   - See [Part 3](part3-feature-engineering) for detailed examples of hashing and IP subnet encoding
 
 3. **Missing Values**: OCSF records may have sparse fields
    - Add a special "missing" category for categorical features
@@ -448,6 +451,7 @@ When applying this to your 300+ field OCSF schema:
 4. **Temporal Features**: For `timestamp` fields
    - Extract: hour_of_day, day_of_week, time_since_last_event
    - Treat as numerical or cyclical (sin/cos encoding) features
+   - See [Part 3](part3-feature-engineering) for complete examples of cyclical encoding and aggregation features
 
 ### Adapting to Other Observability Data
 
