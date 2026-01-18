@@ -325,22 +325,6 @@ All code from this series is available in executable notebooks. Each part includ
 
 ---
 
-## Citation
-
-If you use this tutorial series in your work, please cite:
-
-```
-Gorishniy, Y., Rubachev, I., Khrulkov, V., & Babenko, A. (2021).
-Revisiting Deep Learning Models for Tabular Data.
-Neural Information Processing Systems (NeurIPS).
-
-He, K., Zhang, X., Ren, S., & Sun, J. (2016).
-Deep Residual Learning for Image Recognition.
-IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
-```
-
----
-
 ## Related Content
 
 ### Prerequisites
