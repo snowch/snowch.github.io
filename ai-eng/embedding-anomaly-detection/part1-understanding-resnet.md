@@ -432,7 +432,7 @@ Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduc
 
 **When to use**: Deeper networks (50+ layers) where parameter efficiency is critical
 
-**Why this works - Intuition**:
+#### Why This Works: Intuition
 
 The bottleneck design is based on a key insight: **most of the useful computation can happen in a lower-dimensional space**.
 
