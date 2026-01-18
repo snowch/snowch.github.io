@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 1: Understanding ResNet Architecture [DRAFT]
+# Part 1: Understanding ResNet Architecture
 
 This tutorial series builds a production-ready anomaly detection system using ResNet embeddings for observability data.
 
