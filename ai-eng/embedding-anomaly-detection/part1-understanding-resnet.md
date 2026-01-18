@@ -382,9 +382,11 @@ print("enabling effective training of deep networks.")
 
 ---
 
-### Brief CNN Primer
+### Brief CNN Primer (Skippable for Tabular-Only Users)
 
-Before implementing the residual block, let's briefly explain **Convolutional Neural Networks (CNNs)** used in the image-based examples. If you're only interested in tabular data, you can skim this section and jump to [Part 2: Adapting ResNet for Tabular Data](part2-tabular-resnet).
+Before implementing the residual block, let's briefly explain **Convolutional Neural Networks (CNNs)** used in the image-based examples.
+
+**For tabular data users**: You can skim or skip this CNN primer and the Conv2d implementation below. The key concept you need is the **skip connection** (F(x) + x), which works identically for both Conv2d (images) and Linear layers (tabular). Part 2 will show the tabular-specific implementation using Linear layers.
 
 **What are Convolutions?**
 
@@ -419,7 +421,7 @@ Now let's implement what we've learned. The code below shows how to build a Basi
 2. Where to place batch normalization and activations for optimal gradient flow
 3. How to handle dimension mismatches with projection shortcuts
 
-**Why this matters**: Understanding this implementation is crucial for Part 2, where we'll adapt the same residual connection concept to tabular data using linear layers instead of convolutions.
+**Why this matters**: Understanding the **residual connection concept** (F(x) + x) shown here is crucial for Part 2, where we'll adapt it to tabular data using linear layers instead of convolutions. The Conv2d details are image-specific, but the skip connection pattern applies to all domains.
 
 ```{code-cell}
 import torch
