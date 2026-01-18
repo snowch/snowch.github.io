@@ -188,9 +188,9 @@ Where:
 :::{grid-item-card} Plain Network Block
 ```{mermaid}
 graph TB
-    X1[x<br/>Input] --> L1[Conv/Linear<br/>Layer 1]
-    L1 --> L2[Conv/Linear<br/>Layer 2]
-    L2 --> H1[H&#40;x&#41;<br/>Output]
+    X1["x<br/>Input"] --> L1["Conv/Linear<br/>Layer 1"]
+    L1 --> L2["Conv/Linear<br/>Layer 2"]
+    L2 --> H1["H(x)<br/>Output"]
 
     style X1 fill:#ADD8E6
     style L1 fill:#F08080
@@ -202,11 +202,11 @@ graph TB
 :::{grid-item-card} Residual Block
 ```{mermaid}
 graph TB
-    X2[x<br/>Input] --> L3[Conv/Linear<br/>Layer 1]
-    L3 --> L4[Conv/Linear<br/>Layer 2]
+    X2["x<br/>Input"] --> L3["Conv/Linear<br/>Layer 1"]
+    L3 --> L4["Conv/Linear<br/>Layer 2"]
     L4 --> Add((+))
     X2 -.Skip Connection.-> Add
-    Add --> H2[H&#40;x&#41;<br/>Output]
+    Add --> H2["H(x)<br/>Output"]
 
     style X2 fill:#ADD8E6
     style L3 fill:#F08080
@@ -428,7 +428,24 @@ Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduc
 
 **When to use**: Deeper networks (50+ layers) where parameter efficiency is critical
 
-**The key insight**: Most representational power comes from the transformations, not the dimensionality itself. The bottleneck temporarily reduces dimensions for computation, then expands back.
+**Why this works - Intuition**:
+
+The bottleneck design is based on a key insight: **most of the useful computation can happen in a lower-dimensional space**.
+
+**Analogy**: Think of data compression. A high-resolution image can be compressed to a smaller size, processed efficiently, then decompressed back. The compressed version still captures the essential information needed for processing.
+
+**What's happening**:
+1. **Reduce (1×1 conv/linear)**: Projects high-dimensional features into a compact representation that captures the essential patterns. Like compressing an image before editing it.
+2. **Compute (3×3 conv/linear)**: Performs the expensive transformations on this compact representation. Since we're working with fewer dimensions (64 instead of 256), this is much cheaper.
+3. **Expand (1×1 conv/linear)**: Projects back to the original high-dimensional space. Like decompressing after processing.
+
+**Why it doesn't hurt performance**: The network learns to project into a lower-dimensional subspace where the meaningful transformations happen. The high dimensionality at input/output provides representational capacity, but the actual computation happens efficiently in the bottleneck.
+
+**Concrete example** (256-dim features):
+- **Basic block**: Two 256×256 transformations = 2 × (256² = 65,536) = ~131K params (plus bias/batch norm)
+- **Bottleneck block**: 256×64 + 64×64 + 64×256 = 16,384 + 4,096 + 16,384 = ~37K params (88% reduction!)
+
+The bottleneck achieves similar representational power with far fewer parameters by concentrating computation in a lower-dimensional space.
 
 ### Visual Comparison
 
