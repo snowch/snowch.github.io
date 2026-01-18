@@ -212,7 +212,7 @@ Now we'll build the complete model by combining all the pieces: categorical embe
 3. **Feature concatenation** strategy to combine different input types
 4. **Embedding extraction** for downstream anomaly detection tasks
 
-**Real-world application**: This is the exact architecture you'll use in Part 3 for self-supervised training on OCSF data. The `return_embedding=True` mode extracts the dense vector representations we'll use for anomaly detection via vector database similarity search.
+**Real-world application**: This is the exact architecture you'll use in [Part 3](part3-self-supervised-training) for self-supervised training on OCSF data. The `return_embedding=True` mode extracts the dense vector representations we'll use for anomaly detection via vector database similarity search.
 
 ```{code-cell}
 class TabularResNet(nn.Module):
