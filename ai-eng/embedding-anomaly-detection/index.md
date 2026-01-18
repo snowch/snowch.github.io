@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Embedding-Based Anomaly Detection for Observability [DRAFT]
+# Embedding-Based Anomaly Detection for Observability
 
 A comprehensive 8-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
@@ -322,22 +322,6 @@ All code from this series is available in executable notebooks. Each part includ
 - **Runnable code cells**: Test concepts immediately
 - **Visualizations**: Understand embeddings and anomalies
 - **Production examples**: Real-world deployment patterns
-
----
-
-## Citation
-
-If you use this tutorial series in your work, please cite:
-
-```
-Gorishniy, Y., Rubachev, I., Khrulkov, V., & Babenko, A. (2021).
-Revisiting Deep Learning Models for Tabular Data.
-Neural Information Processing Systems (NeurIPS).
-
-He, K., Zhang, X., Ren, S., & Sun, J. (2016).
-Deep Residual Learning for Image Recognition.
-IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
-```
 
 ---
 
