@@ -238,26 +238,35 @@ class TabularResNet(nn.Module):
         Args:
             num_numerical_features: Number of continuous/numerical features
                 (e.g., 50 for network_bytes_in, duration, etc.)
+                ⚠️ Data-determined, not a hyperparameter to tune
 
             categorical_cardinalities: List of unique values per categorical feature
                 (e.g., [100, 50, 200, 1000] for user_id, status_id, entity_id, etc.)
                 Length of list = number of categorical features
+                ⚠️ Data-determined, not a hyperparameter to tune
 
             d_model: Internal hidden dimension (typically 128-512)
+                ✓ HYPERPARAMETER - Tune this
                 - Larger = more capacity, more parameters
                 - Common values: 128, 256, 512
                 - This is your final embedding dimension
+                - Try: [128, 256, 512] and pick based on validation performance
 
             num_blocks: Number of stacked residual blocks (typically 4-12)
+                ✓ HYPERPARAMETER - Tune this
                 - More blocks = deeper network, more capacity
                 - Diminishing returns beyond 8-10 blocks for most tabular data
                 - Start with 6, increase if underfitting
+                - Try: [4, 6, 8, 10] and monitor validation loss
 
             dropout: Dropout probability for regularization (typically 0.1-0.3)
+                ✓ HYPERPARAMETER - Tune this
                 - Higher = more regularization, less overfitting
                 - 0.1 = light, 0.2 = moderate, 0.3 = heavy
+                - Try: [0.1, 0.2, 0.3] based on overfitting behavior
 
             num_classes: Number of output classes for supervised learning
+                ⚠️ Task-determined, not a hyperparameter to tune
                 - None = embedding-only mode (for anomaly detection)
                 - int = classification mode (e.g., 10 for 10-class problem)
         """
@@ -267,12 +276,15 @@ class TabularResNet(nn.Module):
         self.num_categorical = len(categorical_cardinalities)
 
         # Categorical feature embeddings
+        # Note: d_model // 4 is a fixed ratio (could be a hyperparameter in advanced setups)
+        # Lower-dimensional embeddings for categorical features is common practice
         self.embeddings = nn.ModuleList([
             nn.Embedding(cardinality, d_model // 4)
             for cardinality in categorical_cardinalities
         ])
 
         # Numerical feature projection
+        # Note: d_model // 2 is a fixed ratio (could be a hyperparameter in advanced setups)
         self.numerical_projection = nn.Linear(num_numerical_features, d_model // 2)
 
         # Total input dimension after embeddings
@@ -375,6 +387,38 @@ print(f"Categorical input shape: {categorical_data.shape}")
 print(f"Embedding output shape: {embeddings.shape}")
 print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
+
+### Hyperparameter Tuning Strategy
+
+The three key hyperparameters to tune are **d_model**, **num_blocks**, and **dropout**:
+
+**Quick tuning approach (grid search):**
+```python
+# Start with these combinations (ordered by priority)
+configs = [
+    # Baseline
+    {'d_model': 256, 'num_blocks': 6, 'dropout': 0.1},
+
+    # Vary d_model (most impact on capacity)
+    {'d_model': 128, 'num_blocks': 6, 'dropout': 0.1},
+    {'d_model': 512, 'num_blocks': 6, 'dropout': 0.1},
+
+    # Vary depth if underfitting
+    {'d_model': 256, 'num_blocks': 8, 'dropout': 0.1},
+    {'d_model': 256, 'num_blocks': 10, 'dropout': 0.1},
+
+    # Increase dropout if overfitting
+    {'d_model': 256, 'num_blocks': 6, 'dropout': 0.2},
+    {'d_model': 256, 'num_blocks': 6, 'dropout': 0.3},
+]
+```
+
+**Rules of thumb:**
+- **Underfitting** (high training loss)? → Increase `d_model` or `num_blocks`
+- **Overfitting** (train/val gap)? → Increase `dropout` or decrease `d_model`
+- **Too slow to train**? → Decrease `num_blocks` or `d_model`
+
+**What NOT to tune:** `num_numerical_features` and `categorical_cardinalities` are determined by your data schema, and `num_classes` is determined by your task (None for anomaly detection).
 
 ## Design Considerations for OCSF Data
 
