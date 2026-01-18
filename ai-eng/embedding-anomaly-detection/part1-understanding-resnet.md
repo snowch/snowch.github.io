@@ -220,6 +220,10 @@ graph TB
 
 **Learning Identity is Easy**:
 - If the optimal mapping is identity (output = input, i.e., $H(\mathbf{x}) = \mathbf{x}$), the network just needs to learn $F(\mathbf{x}) = 0$
+- **Why?** Because $H(\mathbf{x}) = F(\mathbf{x}) + \mathbf{x}$, so if $H(\mathbf{x}) = \mathbf{x}$, then:
+  $$
+  \mathbf{x} = F(\mathbf{x}) + \mathbf{x} \implies F(\mathbf{x}) = 0
+  $$
 - Pushing weights toward zero is much easier than learning the identity function from scratch with many layers
 - This means "doing nothing" (keeping the input unchanged) is easy to learn
 
