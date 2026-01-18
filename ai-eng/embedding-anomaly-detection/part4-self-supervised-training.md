@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 3: Self-Supervised Training [DRAFT]
+# Part 4: Self-Supervised Training [DRAFT]
 
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
 
@@ -523,7 +523,7 @@ In this part, you learned:
 4. **Hyperparameter tuning** strategies
 5. **End-to-end pipeline** for OCSF data
 
-**Next**: In [Part 4](part4-embedding-quality), we'll learn how to evaluate the quality of learned embeddings using visualization and quantitative metrics.
+**Next**: In [Part 5](part5-embedding-quality), we'll learn how to evaluate the quality of learned embeddings using visualization and quantitative metrics.
 
 ---
 

@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 7: Production Monitoring [DRAFT]
+# Part 8: Production Monitoring [DRAFT]
 
 Monitor your production anomaly detection system for drift, performance degradation, and operational health.
 
@@ -689,15 +689,16 @@ In this final part, you learned:
 
 ## Series Conclusion
 
-Across this 7-part series, you've learned:
+Across this 8-part series, you've learned:
 
 1. **Part 1**: ResNet fundamentals and residual connections
 2. **Part 2**: Adapting ResNet for tabular data with embeddings
-3. **Part 3**: Self-supervised training on unlabelled data
-4. **Part 4**: Evaluating embedding quality
-5. **Part 5**: Anomaly detection methods (LOF, IForest, sequences)
-6. **Part 6**: Production deployment (APIs, Docker, A/B testing)
-7. **Part 7**: Production monitoring (drift, alerts, retraining)
+3. **Part 3**: Feature engineering for OCSF data
+4. **Part 4**: Self-supervised training on unlabelled data
+5. **Part 5**: Evaluating embedding quality
+6. **Part 6**: Anomaly detection methods (LOF, IForest, sequences)
+7. **Part 7**: Production deployment (APIs, Docker, A/B testing)
+8. **Part 8**: Production monitoring (drift, alerts, retraining)
 
 **Next Steps:**
 - Apply this to your OCSF data

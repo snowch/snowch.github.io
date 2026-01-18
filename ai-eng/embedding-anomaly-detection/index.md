@@ -13,7 +13,7 @@ bibliography:
 
 # Embedding-Based Anomaly Detection for Observability
 
-A comprehensive 8-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
+A comprehensive 9-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
 **What you'll learn**: How to build, train, and deploy a **custom embedding model** (TabularResNet) specifically designed for OCSF observability data. This model transforms security logs and system metrics into vector representations. Anomaly detection happens entirely through vector database similarity search—no separate detection model needed. The system processes streaming OCSF events in near real-time to automatically identify unusual behavior.
 
@@ -82,8 +82,22 @@ Adapt ResNet for observability data:
 **Architecture** · 30 min read
 :::
 
-:::{grid-item-card} Part 3: Self-Supervised Training
-:link: part3-self-supervised-training
+:::{grid-item-card} Part 3: Feature Engineering for OCSF Data
+:link: part3-feature-engineering
+:link-type: doc
+
+Transform OCSF JSON to model input:
+- Flattening nested JSON structures
+- Temporal and derived features
+- Aggregation and rolling windows
+- High cardinality handling
+- End-to-end feature pipeline
+
+**Data Engineering** · 40 min read
+:::
+
+:::{grid-item-card} Part 4: Self-Supervised Training
+:link: part4-self-supervised-training
 :link-type: doc
 
 Train on unlabelled data:
@@ -95,8 +109,8 @@ Train on unlabelled data:
 **Training** · 35 min read
 :::
 
-:::{grid-item-card} Part 4: Evaluating Embedding Quality
-:link: part4-embedding-quality
+:::{grid-item-card} Part 5: Evaluating Embedding Quality
+:link: part5-embedding-quality
 :link-type: doc
 
 Validate embedding quality before deployment:
@@ -108,8 +122,8 @@ Validate embedding quality before deployment:
 **Verification** · 30 min read
 :::
 
-:::{grid-item-card} Part 5: Anomaly Detection Methods
-:link: part5-anomaly-detection
+:::{grid-item-card} Part 6: Anomaly Detection Methods
+:link: part6-anomaly-detection
 :link-type: doc
 
 Apply detection algorithms:
@@ -122,8 +136,8 @@ Apply detection algorithms:
 **Detection** · 40 min read
 :::
 
-:::{grid-item-card} Part 6: Production Deployment
-:link: part6-production-deployment
+:::{grid-item-card} Part 7: Production Deployment
+:link: part7-production-deployment
 :link-type: doc
 
 Deploy to production:
@@ -136,8 +150,8 @@ Deploy to production:
 **Deployment** · 45 min read
 :::
 
-:::{grid-item-card} Part 7: Production Monitoring
-:link: part7-production-monitoring
+:::{grid-item-card} Part 8: Production Monitoring
+:link: part8-production-monitoring
 :link-type: doc
 
 Monitor and maintain the system:
@@ -150,8 +164,8 @@ Monitor and maintain the system:
 **Monitoring** · 35 min read
 :::
 
-:::{grid-item-card} Part 8: Multi-Source Correlation
-:link: part8-multi-source-correlation
+:::{grid-item-card} Part 9: Multi-Source Correlation
+:link: part9-multi-source-correlation
 :link-type: doc
 
 Extend to multiple data sources for root cause analysis:
@@ -167,7 +181,7 @@ Extend to multiple data sources for root cause analysis:
 :::{grid-item-card} Complete Series
 :class-card: sd-border-primary
 
-**Total**: ~5 hours of comprehensive, hands-on content
+**Total**: ~6 hours of comprehensive, hands-on content
 
 All code examples are executable and production-ready.
 :::
@@ -187,7 +201,7 @@ By the end of this series, you'll have:
 5. **Monitoring & Alerting**: Track embedding drift, detection quality, and system health
 6. **Automated Retraining**: Triggers retraining of the custom embedding model based on drift and performance degradation
 
-**Optional Extension (Part 8)**: For advanced production deployments, extend the system to correlate anomalies across multiple observability data sources (logs, metrics, traces, configuration changes) for automated root cause analysis.
+**Optional Extension (Part 9)**: For advanced production deployments, extend the system to correlate anomalies across multiple observability data sources (logs, metrics, traces, configuration changes) for automated root cause analysis.
 
 ### System Architecture
 
@@ -298,20 +312,21 @@ A vector database makes similarity search the **central** mechanism for anomaly 
 
 ### For ML Engineers
 **Focus**: End-to-end production system
-1. Part 1 (skim) → Part 2 → Part 3
-2. Parts 4-5 (deep dive on evaluation)
-3. Parts 6-7 (deployment and monitoring)
+1. Part 1 (skim) → Part 2 → Part 3 → Part 4
+2. Parts 5-6 (deep dive on evaluation)
+3. Parts 7-8 (deployment and monitoring)
 
 ### For Security Engineers
 **Focus**: Applying to OCSF data
 1. Part 1 (overview only) → Part 2 (deep dive)
-2. Part 5 (detection methods)
-3. Part 7 (monitoring alerts)
+2. Part 3 (feature engineering from OCSF)
+3. Part 6 (detection methods)
+4. Part 8 (monitoring alerts)
 
 ### For Researchers
 **Focus**: Model architecture and training
 1. Parts 1-2 (architecture details)
-2. Parts 3-4 (training and evaluation)
+2. Parts 3-5 (feature engineering, training, and evaluation)
 3. Compare with your own methods
 
 ---

@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 8: Multi-Source Correlation for Root Cause Analysis [DRAFT]
+# Part 9: Multi-Source Correlation for Root Cause Analysis [DRAFT]
 
 **Advanced Topic** · 50 min read
 
@@ -53,7 +53,7 @@ The key insight is that we can train **separate embedding models** for each data
 
 ### Architecture Diagram
 
-This diagram extends our Part 6 architecture to handle multiple data sources:
+This diagram extends our Part 7 architecture to handle multiple data sources:
 
 ```{mermaid}
 graph TB
@@ -568,7 +568,7 @@ Once we detect anomalies in each source independently, we need to find anomalies
 
 ### Anomaly Detection Per Source
 
-First, detect anomalies within each source using k-NN distance (from Part 5):
+First, detect anomalies within each source using k-NN distance (from Part 6):
 
 ```{code-cell} ipython3
 def detect_anomalies_per_source(index, source_type, time_window_hours=1, k=10, threshold=0.7):
@@ -636,7 +636,7 @@ print(f"  Logs: {len(log_anomalies)}")
 print(f"  Config: {len(config_anomalies)}")
 ```
 
-**What this does**: Runs standard k-NN anomaly detection (from Part 5) separately for each source type, producing a list of anomalous events per source.
+**What this does**: Runs standard k-NN anomaly detection (from Part 6) separately for each source type, producing a list of anomalous events per source.
 
 ### Finding Temporal Correlations
 
@@ -1109,14 +1109,14 @@ Impacted Services:
 Each source's embedding model needs independent retraining schedules:
 
 ```{code-cell} ipython3
-# Monitor embedding drift per source (from Part 7)
+# Monitor embedding drift per source (from Part 8)
 def should_retrain_model(source_type, drift_threshold=0.15):
     """Check if embedding model needs retraining."""
     # Compare recent embeddings to baseline distribution
     recent_embeddings = query_recent_embeddings(source_type, days=7)
     baseline_embeddings = query_baseline_embeddings(source_type)
 
-    # Compute KS statistic (from Part 7)
+    # Compute KS statistic (from Part 8)
     from scipy.stats import ks_2samp
     ks_stat, p_value = ks_2samp(recent_embeddings, baseline_embeddings)
 
@@ -1443,7 +1443,7 @@ In this part, you learned how to extend embedding-based anomaly detection to mul
 
 1. **Train separate embedding models** for logs, metrics, traces, and configuration changes
 2. **Store all embeddings in a unified vector database** with metadata tags
-3. **Detect anomalies per source** using k-NN distance (from Part 5)
+3. **Detect anomalies per source** using k-NN distance (from Part 6)
 4. **Find temporal correlations** by grouping anomalies that occur close in time
 5. **Build causal graphs** using heuristics about source types and service dependencies
 6. **Rank root causes** using graph algorithms like PageRank
@@ -1477,11 +1477,11 @@ Before deploying multi-source RCA:
 This completes the tutorial series on embedding-based anomaly detection. You now have a complete system that:
 
 1. Trains custom embedding models on observability data (Parts 1-3)
-2. Validates embedding quality (Part 4)
-3. Detects anomalies using vector database operations (Part 5)
-4. Deploys to production (Part 6)
-5. Monitors and maintains the system (Part 7)
-6. Correlates across multiple sources for root cause analysis (Part 8)
+2. Validates embedding quality (Part 5)
+3. Detects anomalies using vector database operations (Part 6)
+4. Deploys to production (Part 7)
+5. Monitors and maintains the system (Part 8)
+6. Correlates across multiple sources for root cause analysis (Part 9)
 
 ### Further Reading
 
