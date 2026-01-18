@@ -238,9 +238,7 @@ graph TB
 
 **Analogy**: Think of gradients like water flowing backwards through the network during training. In plain networks, the water must flow through all the layers, getting weaker at each step (like water flowing through many filters). In ResNet, the skip connection is like a direct pipe that bypasses the filters - water always flows through both paths, so even if one path gets blocked, learning still happens.
 
-<details>
-<summary><b>Click to expand mathematical proof (optional)</b></summary>
-
+```{dropdown} **Click to expand mathematical proof (optional)**
 During backpropagation, the gradient of the loss $\mathcal{L}$ with respect to $\mathbf{x}$ is:
 
 $$
@@ -260,8 +258,129 @@ $$
 $$
 
 **Key insight**: The gradient always has an identity component ($I$) that propagates unchanged. Even if $\frac{\partial F(\mathbf{x})}{\partial \mathbf{x}}$ vanishes, gradients still flow through the $+I$ term.
+```
 
-</details>
+### Visualizing Gradient Flow (Optional - Empirical Evidence)
+
+The gradient flow explanation above is theoretical. Let's **see it in action** by comparing gradient magnitudes in a plain network vs a residual network during backpropagation.
+
+**What this demonstrates**: In deep plain networks, gradients shrink exponentially as they flow backward through layers (vanishing gradient problem). In ResNets, the skip connections maintain strong gradient flow even to the earliest layers.
+
+```{code-cell}
+:tags: [hide-input]
+
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Simple plain network (no skip connections)
+class PlainNetwork(nn.Module):
+    def __init__(self, num_layers=10):
+        super().__init__()
+        self.layers = nn.ModuleList([
+            nn.Linear(128, 128) for _ in range(num_layers)
+        ])
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = torch.relu(layer(x))
+        return x
+
+# Simple residual network (with skip connections)
+class ResidualNetwork(nn.Module):
+    def __init__(self, num_layers=10):
+        super().__init__()
+        self.layers = nn.ModuleList([
+            nn.Linear(128, 128) for _ in range(num_layers)
+        ])
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = torch.relu(layer(x)) + x  # Skip connection!
+        return x
+
+# Create networks
+plain_net = PlainNetwork(num_layers=10)
+resnet = ResidualNetwork(num_layers=10)
+
+# Dummy input and target
+x = torch.randn(32, 128)
+target = torch.randn(32, 128)
+
+# Forward + backward for plain network
+plain_output = plain_net(x)
+plain_loss = ((plain_output - target) ** 2).mean()
+plain_loss.backward()
+
+# Collect gradient magnitudes for each layer
+plain_grads = []
+for layer in plain_net.layers:
+    if layer.weight.grad is not None:
+        plain_grads.append(layer.weight.grad.abs().mean().item())
+
+# Reset and do the same for ResNet
+resnet.zero_grad()
+resnet_output = resnet(x)
+resnet_loss = ((resnet_output - target) ** 2).mean()
+resnet_loss.backward()
+
+resnet_grads = []
+for layer in resnet.layers:
+    if layer.weight.grad is not None:
+        resnet_grads.append(layer.weight.grad.abs().mean().item())
+
+# Plot comparison
+fig, ax = plt.subplots(figsize=(10, 6))
+
+layers = list(range(1, len(plain_grads) + 1))
+ax.plot(layers, plain_grads, 'o-', color='red', linewidth=2,
+        markersize=8, label='Plain Network')
+ax.plot(layers, resnet_grads, 's-', color='blue', linewidth=2,
+        markersize=8, label='ResNet (with skip connections)')
+
+ax.set_xlabel('Layer Depth (1 = earliest layer)', fontsize=12, fontweight='bold')
+ax.set_ylabel('Gradient Magnitude', fontsize=12, fontweight='bold')
+ax.set_title('Gradient Flow Comparison: Plain vs ResNet\n(Lower layers = earlier in network)',
+             fontsize=14, fontweight='bold')
+ax.legend(fontsize=11)
+ax.grid(True, alpha=0.3)
+ax.set_yscale('log')  # Log scale to show exponential decay
+
+# Add annotations
+ax.annotate('Vanishing gradients\nin plain network',
+            xy=(2, plain_grads[1]), xytext=(3, plain_grads[1]*10),
+            arrowprops=dict(arrowstyle='->', color='red', lw=1.5),
+            fontsize=10, color='red')
+ax.annotate('Strong gradients maintained\nvia skip connections',
+            xy=(2, resnet_grads[1]), xytext=(5, resnet_grads[1]*0.1),
+            arrowprops=dict(arrowstyle='->', color='blue', lw=1.5),
+            fontsize=10, color='blue')
+
+plt.tight_layout()
+plt.show()
+
+print("Observation:")
+print(f"  Plain Network - Layer 1 gradient: {plain_grads[0]:.6f}")
+print(f"  Plain Network - Layer 10 gradient: {plain_grads[-1]:.6f}")
+print(f"  Ratio (layer 10 / layer 1): {plain_grads[-1] / plain_grads[0]:.6f}")
+print()
+print(f"  ResNet - Layer 1 gradient: {resnet_grads[0]:.6f}")
+print(f"  ResNet - Layer 10 gradient: {resnet_grads[-1]:.6f}")
+print(f"  Ratio (layer 10 / layer 1): {resnet_grads[-1] / resnet_grads[0]:.6f}")
+print()
+print("Key insight: ResNet maintains much stronger gradients in early layers,")
+print("enabling effective training of deep networks.")
+```
+
+**What you're seeing**:
+- **Red line (Plain Network)**: Gradients decay exponentially as you go to earlier layers (left side of plot)
+- **Blue line (ResNet)**: Gradients remain strong throughout all layers due to skip connections
+- **Log scale**: Shows the exponential nature of gradient decay in plain networks
+
+**Why this matters for training**: Without strong gradients in early layers, those layers barely update during training, making deep plain networks fail to learn effectively. ResNets solve this.
+
+---
 
 ### Brief CNN Primer
 
