@@ -175,7 +175,9 @@ Where:
 - If no change is needed, layers can learn $F(\mathbf{x}) = 0$ (much easier than learning identity)
 - The input $\mathbf{x}$ always flows through unchanged via the skip connection
 
-**Visual comparison**: The diagrams below show the key architectural difference. On the left, a plain network block must learn the entire transformation $H(x)$ from scratch. On the right, a residual block only learns the difference $F(x)$ to add to the input, making optimization much easier.
+**Visual comparison**: The diagrams below show the key architectural difference:
+- **Left (Plain Block)**: Learns the entire transformation $H(x)$ directly from scratch
+- **Right (Residual Block)**: Only learns the residual $F(x)$ to add to the input, where $H(x) = F(x) + x$
 
 ::::{grid} 1 1 2 2
 :gutter: 3
@@ -187,13 +189,10 @@ graph TB
     L1 --> L2[Conv/Linear<br/>Layer 2]
     L2 --> H1[H&#40;x&#41;<br/>Output]
 
-    Note1["Learns H(x) directly"]
-
     style X1 fill:#ADD8E6
     style L1 fill:#F08080
     style L2 fill:#F08080
     style H1 fill:#90EE90
-    style Note1 fill:#F5DEB3,stroke:none
 ```
 :::
 
@@ -206,16 +205,11 @@ graph TB
     X2 -.Skip Connection.-> Add
     Add --> H2[H&#40;x&#41;<br/>Output]
 
-    Note2["H(x) = F(x) + x"]
-    Note3["F(x) = learned residual"]
-
     style X2 fill:#ADD8E6
     style L3 fill:#F08080
     style L4 fill:#F08080
     style Add fill:#FFFF00
     style H2 fill:#90EE90
-    style Note2 fill:#F5DEB3,stroke:none
-    style Note3 fill:#FFFACD,stroke:none
     linkStyle 2 stroke:#0000FF,stroke-width:3px
 ```
 :::
@@ -428,7 +422,7 @@ Standard architectures (for ImageNet):
 
 The diagram below shows the complete ResNet-18 structure. Notice how each stage (green boxes) progressively reduces spatial dimensions (from 224×224 to 1×1) while increasing the number of channels (from 3 to 512). This pattern extracts increasingly abstract features: early stages detect edges and textures, while later stages recognize complex patterns and objects.
 
-**Reading the diagram**: Each box shows `operation (dimensions)` → `output shape`. The format `height×width×channels` tells you the data dimensions at each step. The 4 green stages contain the residual blocks (each stage has 2 blocks for ResNet-18).
+**Reading the diagram**: Each box shows `operation (dimensions)` → `output shape`. The format `height×width×channels` tells you the data dimensions at each step. The 4 green stages contain the residual blocks (each stage has 2 blocks for ResNet-18), giving us **18 total layers** (1 initial conv + 8 stage convs + 8 skip paths + 1 FC).
 
 ```{mermaid}
 graph TB
@@ -441,8 +435,6 @@ graph TB
     Stage4 --> AvgPool["AvgPool<br/>1×1×512"]
     AvgPool --> FC["FC (1000 classes)<br/>1000"]
 
-    Note1["Total: 18 layers<br/>(conv + FC)"]
-
     style Input fill:#ADD8E6
     style Conv1 fill:#F08080
     style MaxPool fill:#FFFFE0
@@ -452,7 +444,6 @@ graph TB
     style Stage4 fill:#90EE90
     style AvgPool fill:#FFFFE0
     style FC fill:#F08080
-    style Note1 fill:#F5DEB3,stroke:none
 ```
 
 **Why this structure?** The pattern of "downsample spatially, increase channels" is fundamental to deep learning on images. Lower layers with larger spatial dimensions capture fine details (like edges), while higher layers with more channels but smaller spatial dimensions capture semantic meaning (like "this is a cat"). The residual connections in each stage (green boxes) enable training this 18-layer network effectively.
