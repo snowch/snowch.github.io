@@ -106,6 +106,11 @@ is_anomaly = score > threshold
 LOF identifies outliers based on local density deviation.
 
 ```{code-cell}
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import LocalOutlierFactor
