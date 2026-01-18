@@ -394,7 +394,12 @@ print("enabling effective training of deep networks.")
 
 ## Building Blocks: Basic vs Bottleneck
 
-Before understanding the full architecture, let's clarify the two types of residual blocks used in ResNets.
+ResNet comes in several standard variants with different depths: **ResNet-18, ResNet-34, ResNet-50, ResNet-101, and ResNet-152**. The number indicates the total layer count (e.g., ResNet-50 has 50 layers total). These variants use two different types of residual blocks:
+
+- **Shallower networks** (ResNet-18, ResNet-34) use **basic blocks** with 2 layers each
+- **Deeper networks** (ResNet-50, ResNet-101, ResNet-152) use **bottleneck blocks** with 3 layers each for parameter efficiency
+
+Let's understand the difference between these two block types.
 
 ### Basic Block (2 Layers)
 
@@ -431,11 +436,11 @@ Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduc
 
 ```{mermaid}
 graph TB
-    B1[x<br/>256-dim] --> B2[Layer 1<br/>256→256]
-    B2 --> B3[Layer 2<br/>256→256]
-    B3 --> B4[Add]
+    B1["x<br/>256-dim"] --> B2["Layer 1<br/>256→256"]
+    B2 --> B3["Layer 2<br/>256→256"]
+    B3 --> B4["Add"]
     B1 -.Skip.-> B4
-    B4 --> B5[H&#40;x&#41;<br/>256-dim]
+    B4 --> B5["H(x)<br/>256-dim"]
 
     style B1 fill:#ADD8E6
     style B5 fill:#90EE90
@@ -446,12 +451,12 @@ graph TB
 
 ```{mermaid}
 graph TB
-    BB1[x<br/>256-dim] --> BB2[Reduce<br/>256→64]
-    BB2 --> BB3[Compute<br/>64→64]
-    BB3 --> BB4[Expand<br/>64→256]
-    BB4 --> BB5[Add]
+    BB1["x<br/>256-dim"] --> BB2["Reduce<br/>256→64"]
+    BB2 --> BB3["Compute<br/>64→64"]
+    BB3 --> BB4["Expand<br/>64→256"]
+    BB4 --> BB5["Add"]
     BB1 -.Skip.-> BB5
-    BB5 --> BB6[H&#40;x&#41;<br/>256-dim]
+    BB5 --> BB6["H(x)<br/>256-dim"]
 
     style BB1 fill:#ADD8E6
     style BB6 fill:#90EE90
