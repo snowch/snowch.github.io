@@ -212,7 +212,7 @@ Now we'll build the complete model by combining all the pieces: categorical embe
 3. **Feature concatenation** strategy to combine different input types
 4. **Embedding extraction** for downstream anomaly detection tasks
 
-**Real-world application**: This is the exact architecture you'll use in [Part 3](part3-self-supervised-training) for self-supervised training on OCSF data. The `return_embedding=True` mode extracts the dense vector representations we'll use for anomaly detection via vector database similarity search.
+**Real-world application**: This is the exact architecture you'll use in [Part 4](part4-self-supervised-training) for self-supervised training on OCSF data. The `return_embedding=True` mode extracts the dense vector representations we'll use for anomaly detection via vector database similarity search.
 
 ```{code-cell}
 class TabularResNet(nn.Module):
@@ -523,7 +523,7 @@ In this part, you learned:
 4. **Complete TabularResNet implementation** with embedding extraction
 5. **Design considerations** for real-world OCSF data
 
-**Next**: In [Part 3](part3-self-supervised-training), we'll train this model using self-supervised learning on unlabelled observability data, and learn how to evaluate embedding quality.
+**Next**: In [Part 3](part3-feature-engineering), we'll learn how to transform raw OCSF JSON events into the numerical and categorical features this model expects. Then in [Part 4](part4-self-supervised-training), we'll train the model using self-supervised learning on unlabelled observability data.
 
 ---
 

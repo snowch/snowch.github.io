@@ -117,18 +117,20 @@ project:
               title: "Part 1: Understanding ResNet Architecture"
             - file: ai-eng/embedding-anomaly-detection/part2-tabular-resnet.md
               title: "Part 2: Adapting ResNet for Tabular Data"
-            - file: ai-eng/embedding-anomaly-detection/part3-self-supervised-training.md
-              title: "Part 3: Self-Supervised Training"
-            - file: ai-eng/embedding-anomaly-detection/part4-embedding-quality.md
-              title: "Part 4: Evaluating Embedding Quality"
-            - file: ai-eng/embedding-anomaly-detection/part5-anomaly-detection.md
-              title: "Part 5: Anomaly Detection Methods"
-            - file: ai-eng/embedding-anomaly-detection/part6-production-deployment.md
-              title: "Part 6: Production Deployment"
-            - file: ai-eng/embedding-anomaly-detection/part7-production-monitoring.md
-              title: "Part 7: Production Monitoring"
-            - file: ai-eng/embedding-anomaly-detection/part8-multi-source-correlation.md
-              title: "Part 8: Multi-Source Event Correlation"
+            - file: ai-eng/embedding-anomaly-detection/part3-feature-engineering.md
+              title: "Part 3: Feature Engineering for OCSF Data"
+            - file: ai-eng/embedding-anomaly-detection/part4-self-supervised-training.md
+              title: "Part 4: Self-Supervised Training"
+            - file: ai-eng/embedding-anomaly-detection/part5-embedding-quality.md
+              title: "Part 5: Evaluating Embedding Quality"
+            - file: ai-eng/embedding-anomaly-detection/part6-anomaly-detection.md
+              title: "Part 6: Anomaly Detection Methods"
+            - file: ai-eng/embedding-anomaly-detection/part7-production-deployment.md
+              title: "Part 7: Production Deployment"
+            - file: ai-eng/embedding-anomaly-detection/part8-production-monitoring.md
+              title: "Part 8: Production Monitoring"
+            - file: ai-eng/embedding-anomaly-detection/part9-multi-source-correlation.md
+              title: "Part 9: Multi-Source Event Correlation"
 
         - title: "ML/AI Algorithms"
           children:

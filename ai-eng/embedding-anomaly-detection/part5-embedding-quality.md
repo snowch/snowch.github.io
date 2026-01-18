@@ -11,13 +11,13 @@ bibliography:
   - references.bib
 ---
 
-# Part 4: Evaluating Embedding Quality [DRAFT]
+# Part 5: Evaluating Embedding Quality [DRAFT]
 
 Learn how to evaluate and validate the quality of learned embeddings before deploying to production.
 
 ## Why Evaluate Embeddings?
 
-After training your TabularResNet using self-supervised learning (Part 3), you need to verify that the embeddings are:
+After training your TabularResNet using self-supervised learning (Part 4), you need to verify that the embeddings are:
 
 1. **Meaningful**: Similar records cluster together
 2. **Discriminative**: Different types of records are separated
@@ -504,7 +504,7 @@ Before deploying embeddings to production, verify:
 | **k-NN Accuracy** (if labels available) | > 0.85 | ✓ |
 | **Embedding Stability** | > 0.90 | ✓ |
 | **Visual Inspection** | Clear clusters in t-SNE/UMAP | ✓ |
-| **Anomaly Detection F1** | > 0.80 (Part 5) | Pending |
+| **Anomaly Detection F1** | > 0.80 (Part 6) | Pending |
 
 ### Code: Automated Quality Report
 
@@ -584,7 +584,7 @@ In this part, you learned:
 4. **Downstream task performance** using k-NN classification
 5. **Automated quality reporting** for production readiness
 
-**Next**: In [Part 5](part5-anomaly-detection), we'll use these validated embeddings to detect anomalies using various algorithms (LOF, Isolation Forest, distance-based methods).
+**Next**: In [Part 6](part6-anomaly-detection), we'll use these validated embeddings to detect anomalies using various algorithms (LOF, Isolation Forest, distance-based methods).
 
 ---
 

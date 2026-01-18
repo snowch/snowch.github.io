@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 6: Production Deployment [DRAFT]
+# Part 7: Production Deployment [DRAFT]
 
 Deploy your anomaly detection system to production with REST APIs for embedding model serving and integration with observability platforms.
 
@@ -792,7 +792,7 @@ In this part, you learned:
 - **Batch**: High-throughput, historical analysis
 - **Hybrid**: Real-time alerts + daily batch reports
 
-**Next**: In [Part 7](part7-production-monitoring), we'll monitor the deployed system for embedding drift, alert quality, and model performance degradation.
+**Next**: In [Part 8](part8-production-monitoring), we'll monitor the deployed system for embedding drift, alert quality, and model performance degradation.
 
 ---
 
