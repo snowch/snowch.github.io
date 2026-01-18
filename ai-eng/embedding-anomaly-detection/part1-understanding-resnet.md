@@ -431,11 +431,11 @@ Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduc
 
 ```{mermaid}
 graph TB
-    B1[x<br/>256-dim] --> B2[Layer 1<br/>256→256]
-    B2 --> B3[Layer 2<br/>256→256]
-    B3 --> B4[Add]
+    B1["x<br/>256-dim"] --> B2["Layer 1<br/>256→256"]
+    B2 --> B3["Layer 2<br/>256→256"]
+    B3 --> B4["Add"]
     B1 -.Skip.-> B4
-    B4 --> B5[H&#40;x&#41;<br/>256-dim]
+    B4 --> B5["H(x)<br/>256-dim"]
 
     style B1 fill:#ADD8E6
     style B5 fill:#90EE90
@@ -446,12 +446,12 @@ graph TB
 
 ```{mermaid}
 graph TB
-    BB1[x<br/>256-dim] --> BB2[Reduce<br/>256→64]
-    BB2 --> BB3[Compute<br/>64→64]
-    BB3 --> BB4[Expand<br/>64→256]
-    BB4 --> BB5[Add]
+    BB1["x<br/>256-dim"] --> BB2["Reduce<br/>256→64"]
+    BB2 --> BB3["Compute<br/>64→64"]
+    BB3 --> BB4["Expand<br/>64→256"]
+    BB4 --> BB5["Add"]
     BB1 -.Skip.-> BB5
-    BB5 --> BB6[H&#40;x&#41;<br/>256-dim]
+    BB5 --> BB6["H(x)<br/>256-dim"]
 
     style BB1 fill:#ADD8E6
     style BB6 fill:#90EE90
