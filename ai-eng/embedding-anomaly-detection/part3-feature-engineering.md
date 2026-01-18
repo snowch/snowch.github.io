@@ -307,7 +307,7 @@ Starting with 20-50 core features keeps the model focused and reduces overfittin
 **How to choose**:
 1. **Domain knowledge**: Security experts know which fields matter (user_id, IP addresses, status codes)
 2. **Data exploration**: Check which fields have non-null values >90% of the time
-3. **Tree-based importance** (Part 2): Train Random Forest on sample data and rank features by importance score
+3. **Tree-based importance**: Train Random Forest on sample data and rank features by importance score (see [Tree-Based Feature Importance](/ai-eng/ml-algorithms/tree_based_feature_importance.md) for detailed guide)
 
 **LLM-assisted feature selection**: If you lack security domain expertise, use an LLM to recommend features based on your use case:
 
