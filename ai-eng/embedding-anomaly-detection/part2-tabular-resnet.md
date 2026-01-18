@@ -425,8 +425,10 @@ configs = [
 When applying this to your 300+ field OCSF schema:
 
 1. **Feature Selection**: Not all 300+ fields may be informative
-   - Use domain knowledge to select relevant fields
-   - Or use feature importance from tree-based models
+   - Use domain knowledge to select relevant fields (e.g., for security: user_id, src_ip, status_code)
+   - Or use tree-based feature importance: Train a Random Forest or XGBoost on a sample, rank
+     features by importance score, keep top 50-200 features. This quickly identifies which fields
+     are predictive without manual analysis.
    - Typical embedding models use 50-200 features
 
 2. **Handling High Cardinality**: For fields like `entity_id`, `user_name`
