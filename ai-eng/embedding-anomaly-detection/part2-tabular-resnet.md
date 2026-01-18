@@ -428,23 +428,13 @@ When preparing OCSF data for TabularResNet, you'll need to address several key d
 
 ### Key Challenges
 
-1. **Feature Selection**: Choose 50-200 most informative fields from OCSF's 300+ available fields
-   - Use domain knowledge or tree-based feature importance (Random Forest, XGBoost)
-   - Implementation details in [Part 3](part3-feature-engineering)
+1. **Feature Selection**: Choose 50-200 most informative fields from OCSF's 300+ available fields using domain knowledge or tree-based feature importance (Random Forest, XGBoost)
 
-2. **High Cardinality**: Handle unbounded categorical features (`user_id`, `entity_id`, IP addresses)
-   - Techniques: Hashing trick, IP subnet encoding, embedding sharing for rare values
-   - Consider larger embedding dimensions for high-cardinality features (128-dim vs 32-dim)
-   - Complete examples in [Part 3](part3-feature-engineering)
+2. **High Cardinality**: Handle unbounded categorical features (`user_id`, `entity_id`, IP addresses) using hashing trick, IP subnet encoding, or embedding sharing for rare values. Consider larger embedding dimensions for high-cardinality features (128-dim vs 32-dim)
 
-3. **Missing Values**: OCSF records often have sparse fields
-   - Strategies: Special "missing" category, imputation, binary indicators
-   - Implementation patterns in [Part 3](part3-feature-engineering)
+3. **Missing Values**: OCSF records often have sparse fields - use special "missing" category for categorical features, imputation for numerical features, or binary "is_missing" indicators
 
-4. **Temporal Features**: Extract time-based patterns from timestamp fields
-   - Extract: hour_of_day, day_of_week, time_since_last_event
-   - Use cyclical encoding (sin/cos) to capture periodic patterns
-   - Full examples with aggregation features in [Part 3](part3-feature-engineering)
+4. **Temporal Features**: Extract time-based patterns from timestamp fields (hour_of_day, day_of_week, time_since_last_event) and use cyclical encoding (sin/cos) to capture periodic patterns
 
 ### Adapting to Other Observability Data
 
