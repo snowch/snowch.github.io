@@ -81,6 +81,8 @@ The FastAPI service implements the following pipeline for each incoming OCSF eve
 ### Basic REST API
 
 ```{code-cell}
+:tags: [skip-execution]
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import torch
