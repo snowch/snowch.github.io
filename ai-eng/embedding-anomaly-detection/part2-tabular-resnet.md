@@ -76,147 +76,53 @@ The tabular ResNet follows this flow:
    - **For embeddings**: Extract from last residual block (use for anomaly detection)
    - **For classification**: Add linear head (e.g., predict anomaly class)
 
-```{code-cell}
-:tags: [remove-input]
+```{mermaid}
+graph TB
+    Input["Input: OCSF Features<br/>(300+ fields: categorical + numerical)"]
 
-import logging
-import warnings
+    CatEmbed["Categorical Embeddings<br/><i>e.g., user_id → 64-dim</i>"]
+    NumProj["Numerical Projection<br/><i>e.g., bytes_in → normalized</i>"]
 
-logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+    Concat["Concatenate Features<br/><i>Combined feature vector</i>"]
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+    InitProj["Initial Linear Projection<br/><i>Project to d_model (e.g., 256)</i>"]
 
-fig, ax = plt.subplots(figsize=(14, 11))
-ax.set_xlim(0, 14)
-ax.set_ylim(0, 13)
-ax.axis('off')
-ax.set_title('Tabular ResNet Architecture for OCSF Data', fontsize=16, fontweight='bold', pad=20)
+    Block1["Tabular Residual Block 1<br/><i>Linear-BN1d-ReLU-Dropout-Linear-BN1d + skip</i>"]
+    Block2["Tabular Residual Block 2<br/><i>Linear layers, not Conv2d</i>"]
+    Dots["⋮"]
+    BlockN["Tabular Residual Block N<br/><i>Same tabular architecture</i>"]
 
-# Define layers with positions
-layers = [
-    # (name, y_position, color, width, height, annotation)
-    ("Input: OCSF Features\n(300+ fields: categorical + numerical)", 12, 'lightblue', 5, 0.8, None),
-    ("Categorical Embeddings", 10.5, 'lightyellow', 2.2, 0.6, "e.g., user_id → 64-dim"),
-    ("Numerical Projection", 10.5, 'lightyellow', 2.2, 0.6, "e.g., bytes_in → normalized"),
-    ("Concatenate Features", 9, 'wheat', 5, 0.6, "Combined feature vector"),
-    ("Initial Linear Projection", 7.8, 'lightcoral', 5, 0.6, "Project to d_model (e.g., 256)"),
-    ("Tabular Residual Block 1", 6.5, 'lightgreen', 5, 0.7, "Linear-BN1d-ReLU-Dropout-Linear-BN1d + skip"),
-    ("Tabular Residual Block 2", 5.3, 'lightgreen', 5, 0.7, "Linear layers, not Conv2d"),
-    ("...", 4.3, None, 5, 0.5, None),
-    ("Tabular Residual Block N", 3.3, 'lightgreen', 5, 0.7, "Same tabular architecture"),
-    ("Layer Normalization", 2, 'lightyellow', 5, 0.6, "Final normalization"),
-    ("Embedding Vector (d_model)", 0.8, 'gold', 5, 0.7, "Extract here for anomaly detection ✓"),
-]
+    LayerNorm["Layer Normalization<br/><i>Final normalization</i>"]
 
-# Draw main flow
-x_center = 7
-for i, layer in enumerate(layers):
-    if layer[0] == "...":
-        ax.text(x_center, layer[1], '...', ha='center', va='center',
-                fontsize=24, fontweight='bold')
-        continue
+    Embedding["<b>Embedding Vector (d_model)</b><br/><i>Extract here for anomaly detection ✓</i>"]
 
-    name, y_pos, color, width, height, annotation = layer
+    Input --> CatEmbed
+    Input --> NumProj
+    CatEmbed --> Concat
+    NumProj --> Concat
+    Concat --> InitProj
+    InitProj --> Block1
+    Block1 --> Block2
+    Block2 --> Dots
+    Dots --> BlockN
+    BlockN --> LayerNorm
+    LayerNorm --> Embedding
 
-    # Special positioning for categorical/numerical (side by side)
-    if "Categorical" in name:
-        x_start = x_center - width - 0.3
-        ax.add_patch(mpatches.FancyBboxPatch((x_start, y_pos - height/2), width, height,
-                                              boxstyle="round,pad=0.08",
-                                              edgecolor='black', facecolor=color, linewidth=2))
-        ax.text(x_start + width/2, y_pos, name, ha='center', va='center',
-                fontsize=9, fontweight='bold')
-        if annotation:
-            ax.text(x_start + width/2, y_pos - 0.6, annotation, ha='center', va='top',
-                    fontsize=7, style='italic', color='gray')
-        continue
-
-    if "Numerical" in name:
-        x_start = x_center + 0.3
-        ax.add_patch(mpatches.FancyBboxPatch((x_start, y_pos - height/2), width, height,
-                                              boxstyle="round,pad=0.08",
-                                              edgecolor='black', facecolor=color, linewidth=2))
-        ax.text(x_start + width/2, y_pos, name, ha='center', va='center',
-                fontsize=9, fontweight='bold')
-        if annotation:
-            ax.text(x_start + width/2, y_pos - 0.6, annotation, ha='center', va='top',
-                    fontsize=7, style='italic', color='gray')
-        # Draw arrows from cat+num to concatenate
-        ax.annotate('', xy=(x_center, 9.3), xytext=(x_start + width/2, y_pos - height/2 - 0.05),
-                    arrowprops=dict(arrowstyle='->', lw=1.5, color='black'))
-        ax.annotate('', xy=(x_center, 9.3), xytext=(x_center - width - 0.3 + width/2, y_pos - height/2 - 0.05),
-                    arrowprops=dict(arrowstyle='->', lw=1.5, color='black'))
-        continue
-
-    # Regular centered boxes
-    x_start = x_center - width/2
-    ax.add_patch(mpatches.FancyBboxPatch((x_start, y_pos - height/2), width, height,
-                                          boxstyle="round,pad=0.08",
-                                          edgecolor='black', facecolor=color, linewidth=2))
-    ax.text(x_center, y_pos, name, ha='center', va='center',
-            fontsize=10, fontweight='bold')
-
-    # Add annotations below boxes
-    if annotation:
-        if "anomaly detection" in annotation:
-            # Special highlight for extraction point
-            ax.text(x_center, y_pos - height/2 - 0.25, annotation, ha='center', va='top',
-                    fontsize=9, fontweight='bold', color='darkgreen',
-                    bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgreen',
-                             edgecolor='darkgreen', linewidth=1.5))
-        else:
-            ax.text(x_center, y_pos - height/2 - 0.2, annotation, ha='center', va='top',
-                    fontsize=7, style='italic', color='gray')
-
-# Draw main flow arrows (skip categorical/numerical which have custom arrows)
-arrow_pairs = [
-    (12, 11.2),  # Input to embeddings
-    (9.3, 8.1),  # Concat to projection
-    (7.5, 6.85), # Projection to block 1
-    (6.15, 5.65), # Block 1 to 2
-    (4.95, 4.6), # Block 2 to ...
-    (4.0, 3.65), # ... to block N
-    (2.95, 2.3), # Block N to LayerNorm
-    (1.7, 1.15), # LayerNorm to embedding
-]
-
-for y_start, y_end in arrow_pairs:
-    ax.annotate('', xy=(x_center, y_end), xytext=(x_center, y_start),
-                arrowprops=dict(arrowstyle='->', lw=2, color='black'))
-
-# Add note about internal skip connections in each block
-ax.text(11.5, 5, '*Each residual block\ncontains an internal\nskip connection',
-        ha='left', va='center', fontsize=8, style='italic', color='darkgreen',
-        bbox=dict(boxstyle='round,pad=0.4', facecolor='lightyellow',
-                 edgecolor='darkgreen', linewidth=1, linestyle='--'))
-
-# Add side annotations
-ax.text(0.5, 6.5, 'Feature\nExtraction', ha='left', va='center',
-        fontsize=10, style='italic', color='darkblue', rotation=90)
-ax.text(0.5, 4, 'Tabular\nResNet', ha='left', va='center',
-        fontsize=10, style='italic', color='darkgreen', rotation=90)
-ax.text(0.5, 1.5, 'Output', ha='left', va='center',
-        fontsize=10, style='italic', color='darkred', rotation=90)
-
-# Add legend for block types
-legend_x = 11.5
-legend_y = 11.5
-ax.text(legend_x, legend_y, 'Component Types:', fontsize=9, fontweight='bold')
-legend_items = [
-    ('Input/Output', 'lightblue', legend_y - 0.5),
-    ('Feature Processing', 'lightyellow', legend_y - 1.0),
-    ('Tabular Residual Blocks', 'lightgreen', legend_y - 1.5),
-    ('Embedding Extraction', 'gold', legend_y - 2.0),
-]
-for label, color, y in legend_items:
-    ax.add_patch(mpatches.Rectangle((legend_x, y - 0.15), 0.3, 0.3,
-                                     facecolor=color, edgecolor='black', linewidth=1))
-    ax.text(legend_x + 0.4, y, label, ha='left', va='center', fontsize=7)
-
-plt.tight_layout()
-plt.show()
+    style Input fill:#ADD8E6,stroke:#333,stroke-width:2px
+    style CatEmbed fill:#FFFFE0,stroke:#333,stroke-width:2px
+    style NumProj fill:#FFFFE0,stroke:#333,stroke-width:2px
+    style Concat fill:#F5DEB3,stroke:#333,stroke-width:2px
+    style InitProj fill:#F08080,stroke:#333,stroke-width:2px
+    style Block1 fill:#90EE90,stroke:#333,stroke-width:2px
+    style Block2 fill:#90EE90,stroke:#333,stroke-width:2px
+    style BlockN fill:#90EE90,stroke:#333,stroke-width:2px
+    style LayerNorm fill:#FFFFE0,stroke:#333,stroke-width:2px
+    style Embedding fill:#FFD700,stroke:#006400,stroke-width:3px
+    style Dots fill:none,stroke:none
 ```
+
+**Note**: Each residual block contains an internal skip connection (not shown in this high-level diagram for clarity).
+
 
 ## Tabular Residual Block
 
