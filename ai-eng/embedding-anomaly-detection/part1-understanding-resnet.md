@@ -384,47 +384,118 @@ print("enabling effective training of deep networks.")
 
 ---
 
-## ResNet Architecture Overview
+## Building Blocks: Basic vs Bottleneck
 
-A full ResNet consists of:
-1. **Initial feature extraction**: Transform raw input into initial feature representation
-2. **Residual stages**: Groups of residual blocks, typically 4 stages with increasing feature dimensions
-3. **Aggregation**: Pool/reduce features to fixed size
-4. **Output head**: Final layer(s) for the task (classification, embedding, etc.)
+Before understanding the full architecture, let's clarify the two types of residual blocks used in ResNets.
 
-**Standard architectures**:
-- **ResNet-18/34**: Use basic blocks (2 layers per block)
-- **ResNet-50/101/152**: Use bottleneck blocks (3 layers per block with dimension reduction/expansion)
+### Basic Block (2 Layers)
 
-**Key pattern**: Each stage typically:
-- Increases feature dimensions (e.g., 64 → 128 → 256 → 512)
-- Maintains or reduces spatial/record dimensions
-- Contains multiple residual blocks (e.g., ResNet-18 has [2, 2, 2, 2] blocks across 4 stages)
+Used in ResNet-18 and ResNet-34. Simple structure with 2 layers:
 
-**Why this works**: The deep stack of residual stages allows the network to learn increasingly abstract representations, while skip connections ensure gradient flow to all layers.
+**Architecture**: Input → Layer 1 → Layer 2 → Add skip connection → Output
 
-### Bottleneck Blocks (ResNet-50+)
+**Skip connection**: $H(x) = F(x) + x$ where $F(x)$ is computed through 2 layers
 
-#### When to Use Bottleneck Blocks
+**When to use**: Shallower networks (18-34 layers) where parameter count isn't a concern
 
-- **ResNet-18/34**: Use **basic blocks** (2 layers per block) — shallower networks don't need the optimization
-- **ResNet-50/101/152**: Use **bottleneck blocks** (3 layers per block) — deeper networks benefit from parameter reduction
+### Bottleneck Block (3 Layers)
 
-#### Why Bottleneck Blocks?
+Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduce-compute-expand**:
 
-As networks get deeper (50+ layers), the number of parameters explodes. Bottleneck blocks solve this by using a **reduce-compute-expand** pattern:
+**Architecture**: Input → Reduce → Compute → Expand → Add skip connection → Output
 
-1. **Reduce** dimensions (e.g., $256 \rightarrow 64$ features) using a cheap transformation
-2. **Compute** on the reduced dimensions (expensive operations, but on fewer features)
-3. **Expand** back to original size (e.g., $64 \rightarrow 256$ features)
+**The pattern**:
+1. **Reduce** dimensions (e.g., $256 \rightarrow 64$ features) - cheap, small transformation
+2. **Compute** on reduced dimensions - expensive operations, but on fewer features
+3. **Expand** back to original size (e.g., $64 \rightarrow 256$ features) - cheap, small transformation
 
 **Parameter savings**: For 256-dimensional features:
 - **Basic block** (2 layers): ~589,824 parameters
 - **Bottleneck block** (3 layers): ~69,632 parameters (**88% reduction!**)
 
-This parameter reduction enables training networks with 50-152 layers without exploding compute costs.
+**When to use**: Deeper networks (50+ layers) where parameter efficiency is critical
 
-**The key insight**: Most of the representational power comes from feature transformations, not the dimensionality itself. The bottleneck temporarily reduces dimensions for computation, then expands back.
+**The key insight**: Most representational power comes from the transformations, not the dimensionality itself. The bottleneck temporarily reduces dimensions for computation, then expands back.
+
+### Visual Comparison
+
+```{mermaid}
+graph TB
+    subgraph "Basic Block (2 layers)"
+        B1[Input<br/>256-dim] --> B2[Layer 1<br/>256→256]
+        B2 --> B3[Layer 2<br/>256→256]
+        B3 --> B4[Add]
+        B1 -.Skip.-> B4
+        B4 --> B5[Output<br/>256-dim]
+    end
+
+    subgraph "Bottleneck Block (3 layers)"
+        BB1[Input<br/>256-dim] --> BB2[Reduce<br/>256→64]
+        BB2 --> BB3[Compute<br/>64→64]
+        BB3 --> BB4[Expand<br/>64→256]
+        BB4 --> BB5[Add]
+        BB1 -.Skip.-> BB5
+        BB5 --> BB6[Output<br/>256-dim]
+    end
+
+    style B1 fill:#ADD8E6
+    style B5 fill:#90EE90
+    style BB1 fill:#ADD8E6
+    style BB6 fill:#90EE90
+    style B4 fill:#FFFF00
+    style BB5 fill:#FFFF00
+```
+
+**Diagram explanation**:
+- Both blocks use skip connections (dotted arrows) - the core ResNet innovation
+- **Basic block**: Direct 256→256 transformations (more parameters)
+- **Bottleneck block**: 256→64→64→256 (fewer parameters - processes in narrow 64-dim space)
+
+---
+
+## ResNet Architecture Overview
+
+A full ResNet stacks these blocks into a multi-stage architecture:
+
+```{mermaid}
+graph TB
+    Input[Input Data] --> Initial[Initial Feature Extraction]
+    Initial --> Stage1[Stage 1: N blocks<br/>64-dim features]
+    Stage1 --> Stage2[Stage 2: N blocks<br/>128-dim features]
+    Stage2 --> Stage3[Stage 3: N blocks<br/>256-dim features]
+    Stage3 --> Stage4[Stage 4: N blocks<br/>512-dim features]
+    Stage4 --> Pool[Aggregation<br/>Pooling/Reduction]
+    Pool --> Output[Output Head<br/>Task-specific]
+
+    style Input fill:#ADD8E6
+    style Initial fill:#FFFFE0
+    style Stage1 fill:#90EE90
+    style Stage2 fill:#90EE90
+    style Stage3 fill:#90EE90
+    style Stage4 fill:#90EE90
+    style Pool fill:#FFFFE0
+    style Output fill:#FFD700
+```
+
+**Architecture components**:
+1. **Initial feature extraction**: Transform raw input into initial feature representation
+2. **Residual stages**: Groups of residual blocks, typically 4 stages with increasing feature dimensions (64→128→256→512)
+3. **Aggregation**: Pool/reduce features to fixed size
+4. **Output head**: Final layer(s) for the task (classification, embedding, etc.)
+
+**Standard architectures**:
+- **ResNet-18**: [2, 2, 2, 2] basic blocks per stage = 18 layers total
+- **ResNet-34**: [3, 4, 6, 3] basic blocks per stage = 34 layers total
+- **ResNet-50**: [3, 4, 6, 3] bottleneck blocks per stage = 50 layers total
+- **ResNet-101**: [3, 4, 23, 3] bottleneck blocks per stage = 101 layers total
+- **ResNet-152**: [3, 8, 36, 3] bottleneck blocks per stage = 152 layers total
+
+**Key pattern**: Each stage typically:
+- Increases feature dimensions (64 → 128 → 256 → 512)
+- Maintains or reduces spatial/record dimensions
+- Contains multiple residual blocks stacked together
+
+**Why this works**: The deep stack of residual stages allows the network to learn increasingly abstract representations (from simple patterns to complex concepts), while skip connections ensure gradient flow to all layers.
 
 ---
 
