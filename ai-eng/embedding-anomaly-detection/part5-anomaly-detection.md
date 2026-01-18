@@ -15,7 +15,9 @@ bibliography:
 
 Apply various anomaly detection algorithms to your validated embeddings for OCSF observability data.
 
-**What you'll learn**: How to combine embeddings from Part 3 with anomaly detection algorithms. The vector database stores embeddings and finds similar records, while different scoring methods (distance-based, density-based, etc.) determine which records are anomalous.
+**What you'll learn**: How to detect anomalies using **vector DB only** - no separate detection model required. The vector database stores embeddings and finds similar records, while different scoring algorithms (distance-based, density-based, etc.) compute anomaly scores from those similarities. All methods work directly on TabularResNet embeddings without training additional models.
+
+**Optional extension**: Section 6 covers LSTM-based sequence detection for advanced use cases like multi-step attacks - this requires training a separate model and is outside the core vector DB architecture.
 
 ## Key Terminology
 
@@ -38,14 +40,17 @@ Before diving into detection methods, let's define the key concepts:
 
 ## Overview of Anomaly Detection Methods
 
-Once you have high-quality embeddings, you can detect anomalies using a **vector database** as the central retrieval layer plus multiple scoring methods:
+Once you have high-quality embeddings, you can detect anomalies using a **vector database** as the central retrieval layer plus multiple scoring algorithms:
 
+**Core methods (no additional model training):**
 1. **Vector DB retrieval**: k-NN similarity search for every event
 2. **Density-based**: Local Outlier Factor (LOF) on neighbor sets
 3. **Tree-based**: Isolation Forest (optional baseline)
 4. **Distance-based**: k-NN distance (cosine, Euclidean, negative inner product)
 5. **Clustering-based**: Distance from cluster centroids
-6. **Sequence-based**: Multi-record anomalies (LSTM, Transformer)
+
+**Optional advanced method (requires separate model):**
+6. **Sequence-based**: Multi-record anomalies using LSTM (for multi-step attacks)
 
 Each method has different strengths. We'll implement all of them and compare.
 
@@ -359,7 +364,37 @@ print(f"  F1-Score:  {f1_cluster:.3f}")
 
 ---
 
-## 6. Multi-Record Sequence Anomaly Detection
+## 6. Multi-Record Sequence Anomaly Detection (Optional - Advanced)
+
+**Note**: This section covers an **optional advanced technique** that goes beyond the core "vector DB only" architecture described in this series.
+
+### When to Use This Approach
+
+The methods above (LOF, Isolation Forest, k-NN, clustering) detect anomalies in **individual events** using vector DB similarity search. However, some anomalies only appear when looking at **sequences of events**:
+
+**Use cases for sequence-based detection:**
+- **Multi-step attacks**: Each step looks normal individually, but the sequence is suspicious (e.g., login → privilege escalation → data access → exfiltration)
+- **Process violations**: Events that violate expected workflows (e.g., checkout without adding items to cart)
+- **Time-ordered patterns**: Anomalies that depend on temporal order, not just individual event features
+
+### Trade-offs
+
+**Advantages:**
+- Captures temporal dependencies that vector DB methods miss
+- Can detect sophisticated attacks that evade single-event detection
+- Learns normal sequence patterns from data
+
+**Disadvantages:**
+- **Requires training a separate ML model** (LSTM) - adds complexity beyond the vector DB only approach
+- Needs labeled sequence data for training (normal vs anomalous sequences)
+- Higher latency (must buffer events into sequences before scoring)
+- More infrastructure to maintain (model training, versioning, monitoring)
+
+**Recommendation**: Start with vector DB methods (Sections 1-5). Only add sequence detection if you have clear evidence of multi-step attacks or workflow violations that single-event methods miss.
+
+---
+
+### Implementation
 
 For detecting anomalies across sequences of events (e.g., multi-step attacks).
 
@@ -604,17 +639,19 @@ print("  predictions, scores = pipeline.predict(new_ocsf_records)")
 
 In this part, you learned:
 
-1. **Five anomaly detection methods**: LOF, Isolation Forest, k-NN, Mahalanobis, Clustering
-2. **Sequence anomaly detection** using LSTMs for multi-record patterns
-3. **Method comparison** framework for selecting the best approach
-4. **Threshold tuning** using precision-recall curves
-5. **Production pipeline** for real-time anomaly detection
+1. **Core vector DB approach**: Five scoring algorithms (LOF, Isolation Forest, k-NN, clustering) that work directly on TabularResNet embeddings—no additional model training required
+2. **Method comparison** framework for selecting the best approach
+3. **Threshold tuning** using precision-recall curves
+4. **Production pipeline** for real-time anomaly detection
+5. **Optional advanced extension**: LSTM-based sequence anomaly detection for multi-step attacks (requires training a separate model)
 
 **Key Takeaways:**
+- **Vector DB only**: The core architecture uses TabularResNet embeddings + scoring algorithms—no separate detection model
 - **Isolation Forest** works well for high-dimensional embeddings
 - **LOF** is good for detecting local density deviations
 - **Ensemble methods** combining multiple detectors often perform best
 - **Tune thresholds** based on your precision/recall requirements
+- **Sequence detection**: Only add if you need multi-step attack detection (adds model training complexity)
 
 **Next**: In [Part 6](part6-production-deployment), we'll deploy this system to production with REST APIs for embedding model serving and integration with observability platforms.
 
