@@ -194,9 +194,9 @@ By the end of this series, you'll have:
 This diagram shows the complete end-to-end system you'll build. OCSF events stream in near real-time through the following pipeline:
 
 1. **Preprocessing**: Extract and normalize features from each OCSF event
-2. **Embedding generation**: TabularResNet (deployed embedding model) generates a vector for each event
+2. **Embedding generation**: TabularResNet (the only ML model) generates a vector for each event
 3. **Vector DB storage**: Embeddings are indexed for fast k-NN similarity search
-4. **Anomaly detection**: Compute anomaly scores using vector DB distance calculations (k-NN, density)—no separate detection model
+4. **Anomaly scoring**: Simple code logic computes scores using vector DB distances—NOT a separate ML model, just threshold-based calculations
 5. **Alerting**: Trigger alerts for high-scoring anomalies
 
 The monitoring components (shown in red/purple) continuously track embedding drift and system health, triggering automatic retraining of the embedding model when needed.
@@ -209,7 +209,7 @@ The monitoring components (shown in red/purple) continuously track embedding dri
 **Diagram legend**:
 - **Solid arrows** (→): Near real-time data flow for each OCSF event
 - **Dotted arrows** (⇢): Monitoring and feedback loops (periodic checks)
-- **Colors**: Blue=Data input, Green=Embedding model, Yellow=Vector storage, Orange=Vector-based detection, Red/Purple=Monitoring
+- **Colors**: Blue=Data input, Green=Embedding model (only ML model), Yellow=Vector storage, Orange=Scoring logic (not a model), Red/Purple=Monitoring
 
 ```{mermaid}
 graph TB
@@ -225,9 +225,9 @@ graph TB
         VectorDB[Vector DB<br/>Index + Similarity Search]
     end
 
-    subgraph "Model Serving"
-        Embedding[TabularResNet<br/>Embedding Generation]
-        Detector[Anomaly Detector<br/>k-NN/Distance/Thresholds]
+    subgraph "Inference Pipeline"
+        Embedding[TabularResNet<br/>Embedding Model]
+        Detector[Anomaly Scoring Logic<br/>k-NN Distance/Thresholds]
     end
 
     subgraph "Monitoring & Alerting"
@@ -255,8 +255,6 @@ graph TB
 
     Retraining -.Update.-> Registry
     Registry -.Deploy.-> Embedding
-    Registry -.Deploy.-> Detector
-    Registry -.Deploy.-> VectorDB
 
     style OCSF fill:#ADD8E6
     style Embedding fill:#90EE90
