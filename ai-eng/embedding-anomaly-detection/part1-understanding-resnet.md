@@ -419,30 +419,34 @@ Used in ResNet-50, ResNet-101, and ResNet-152. Optimized structure using **reduc
 
 ### Visual Comparison
 
+**Basic Block (2 layers)**:
+
 ```{mermaid}
 graph TB
-    subgraph "Basic Block (2 layers)"
-        B1[Input<br/>256-dim] --> B2[Layer 1<br/>256→256]
-        B2 --> B3[Layer 2<br/>256→256]
-        B3 --> B4[Add]
-        B1 -.Skip.-> B4
-        B4 --> B5[Output<br/>256-dim]
-    end
-
-    subgraph "Bottleneck Block (3 layers)"
-        BB1[Input<br/>256-dim] --> BB2[Reduce<br/>256→64]
-        BB2 --> BB3[Compute<br/>64→64]
-        BB3 --> BB4[Expand<br/>64→256]
-        BB4 --> BB5[Add]
-        BB1 -.Skip.-> BB5
-        BB5 --> BB6[Output<br/>256-dim]
-    end
+    B1[Input<br/>256-dim] --> B2[Layer 1<br/>256→256]
+    B2 --> B3[Layer 2<br/>256→256]
+    B3 --> B4[Add]
+    B1 -.Skip.-> B4
+    B4 --> B5[Output<br/>256-dim]
 
     style B1 fill:#ADD8E6
     style B5 fill:#90EE90
+    style B4 fill:#FFFF00
+```
+
+**Bottleneck Block (3 layers)**:
+
+```{mermaid}
+graph TB
+    BB1[Input<br/>256-dim] --> BB2[Reduce<br/>256→64]
+    BB2 --> BB3[Compute<br/>64→64]
+    BB3 --> BB4[Expand<br/>64→256]
+    BB4 --> BB5[Add]
+    BB1 -.Skip.-> BB5
+    BB5 --> BB6[Output<br/>256-dim]
+
     style BB1 fill:#ADD8E6
     style BB6 fill:#90EE90
-    style B4 fill:#FFFF00
     style BB5 fill:#FFFF00
 ```
 
