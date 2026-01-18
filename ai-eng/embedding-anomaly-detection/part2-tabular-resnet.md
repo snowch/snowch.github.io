@@ -422,36 +422,29 @@ configs = [
 
 ## Design Considerations for OCSF Data
 
-**Note**: This section provides high-level guidance on preparing OCSF data for TabularResNet. For comprehensive, step-by-step examples of transforming raw OCSF JSON into model-ready features (including parsing nested structures, temporal encoding, aggregations, and handling high cardinality), see [Part 3: Feature Engineering for OCSF Data](part3-feature-engineering).
+When preparing OCSF data for TabularResNet, you'll need to address several key data engineering challenges. This section provides a high-level overview of what to consider when designing your feature pipeline.
 
-When applying this to your 300+ field OCSF schema:
+**→ For complete implementation examples with working code, see [Part 3: Feature Engineering for OCSF Data](part3-feature-engineering).**
 
-1. **Feature Selection**: Not all 300+ fields may be informative
-   - Use domain knowledge to select relevant fields (e.g., for security: user_id, src_ip, status_code)
-   - Or use tree-based feature importance: Train a Random Forest or XGBoost on a sample, rank
-     features by importance score, keep top 50-200 features. This quickly identifies which fields
-     are predictive without manual analysis.
-   - Typical embedding models use 50-200 features
+### Key Challenges
 
-2. **Handling High Cardinality**: For fields like `entity_id`, `user_name`
-   - Use **hashing trick**: Apply a hash function to map unbounded values to fixed indices:
-     `hash(entity_id) % embedding_size`. For example, `hash("user_abc123") % 1000 = 456`
-     maps to embedding index 456. This allows handling millions of unique values with a
-     fixed embedding table size, though different values may collide (share the same embedding).
-   - Or learn a shared "unknown" embedding for rare values (values seen < N times in training)
-   - Consider using larger embedding dimensions for high-cardinality features
-     (e.g., 128-dim for `user_id` vs 32-dim for `status_code`)
-   - See [Part 3](part3-feature-engineering) for detailed examples of hashing and IP subnet encoding
+1. **Feature Selection**: Choose 50-200 most informative fields from OCSF's 300+ available fields
+   - Use domain knowledge or tree-based feature importance (Random Forest, XGBoost)
+   - Implementation details in [Part 3](part3-feature-engineering)
 
-3. **Missing Values**: OCSF records may have sparse fields
-   - Add a special "missing" category for categorical features
-   - Use zero or mean imputation for numerical features
-   - Or add a binary "is_missing" indicator feature
+2. **High Cardinality**: Handle unbounded categorical features (`user_id`, `entity_id`, IP addresses)
+   - Techniques: Hashing trick, IP subnet encoding, embedding sharing for rare values
+   - Consider larger embedding dimensions for high-cardinality features (128-dim vs 32-dim)
+   - Complete examples in [Part 3](part3-feature-engineering)
 
-4. **Temporal Features**: For `timestamp` fields
+3. **Missing Values**: OCSF records often have sparse fields
+   - Strategies: Special "missing" category, imputation, binary indicators
+   - Implementation patterns in [Part 3](part3-feature-engineering)
+
+4. **Temporal Features**: Extract time-based patterns from timestamp fields
    - Extract: hour_of_day, day_of_week, time_since_last_event
-   - Treat as numerical or cyclical (sin/cos encoding) features
-   - See [Part 3](part3-feature-engineering) for complete examples of cyclical encoding and aggregation features
+   - Use cyclical encoding (sin/cos) to capture periodic patterns
+   - Full examples with aggregation features in [Part 3](part3-feature-engineering)
 
 ### Adapting to Other Observability Data
 
