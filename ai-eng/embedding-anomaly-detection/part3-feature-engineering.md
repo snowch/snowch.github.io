@@ -309,6 +309,47 @@ Starting with 20-50 core features keeps the model focused and reduces overfittin
 2. **Data exploration**: Check which fields have non-null values >90% of the time
 3. **Tree-based importance** (Part 2): Train Random Forest on sample data and rank features by importance score
 
+**LLM-assisted feature selection**: If you lack security domain expertise, use an LLM to recommend features based on your use case:
+
+<details>
+<summary><strong>Click to see LLM prompt template</strong></summary>
+
+```
+I'm building an anomaly detection system for OCSF (Open Cybersecurity Schema Framework) security logs.
+I need to select 20-50 most informative features from the 300+ available OCSF fields.
+
+My specific use case:
+- [Describe your use case: e.g., "Detect compromised user accounts", "Identify data exfiltration",
+  "Monitor API access patterns", "Detect brute force attacks"]
+
+My data sources:
+- [List your log sources: e.g., "AWS CloudTrail logs", "Okta authentication events",
+  "Kubernetes audit logs", "Web application access logs"]
+
+Based on this use case, please recommend:
+1. The top 20-30 OCSF fields I should extract as features
+2. For each field, explain why it's important for detecting my target anomalies
+3. Categorize them as categorical vs numerical features
+4. Highlight any derived features I should engineer (e.g., ratios, aggregations)
+5. Suggest appropriate time windows for aggregation features (e.g., 1 hour, 24 hours)
+
+Example OCSF schema reference: https://schema.ocsf.io/
+```
+
+**Example response** (for detecting compromised accounts):
+```
+Recommended features:
+1. actor.user.uid (categorical) - Track which user account
+2. status_id (categorical) - Success/failure patterns
+3. src_endpoint.ip (categorical, hashed) - Login locations
+4. time (numerical) - Extract hour_of_day, day_of_week
+5. Failed_login_count_1h (derived, numerical) - Brute force indicator
+6. unique_ip_count_24h (derived, numerical) - Account sharing indicator
+7. geo_distance_from_prev (derived, numerical) - Impossible travel detection
+...
+```
+</details>
+
 ```{code-cell}
 def extract_core_features(event):
     """
