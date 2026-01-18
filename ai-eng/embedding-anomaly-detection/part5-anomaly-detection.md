@@ -66,6 +66,8 @@ The vector database is the **system of record** for embeddings. For each incomin
 4. Persist the new embedding for future comparisons (if it's not an outlier).
 
 ```{code-cell}
+:tags: [skip-execution]
+
 # Pseudocode interface for a vector DB client
 def retrieve_neighbors(vector_db, embedding, k=20):
     """

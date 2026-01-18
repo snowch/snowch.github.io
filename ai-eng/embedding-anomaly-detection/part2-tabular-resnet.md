@@ -42,6 +42,8 @@ Before diving into the architecture, let's define some terms specific to tabular
 
 ## Key Differences from Image ResNet
 
+**Note**: If you're familiar with Image ResNets (originally designed for computer vision), you'll notice several key adaptations for tabular data. If you're new to ResNet, don't worry - the core concept (skip connections enabling deep networks) is the same, as explained in Part 1.
+
 For tabular data, we need to modify:
 
 1. **Replace 2D convolutions** with fully connected layers (Linear layers that connect all features)
@@ -126,8 +128,8 @@ graph TB
 
 ## Tabular Residual Block
 
-Now let's implement the core building block. This code demonstrates how we adapt the residual connection concept from Part 1 to work with tabular data. The key changes from image ResNet are:
-1. **Linear layers** replace Conv2d (no spatial structure to exploit)
+Now let's implement the core building block. This code demonstrates how we adapt the residual connection concept from Part 1 to work with tabular data. If you're familiar with image ResNets, the key changes are:
+1. **Linear layers** instead of Conv2d (tabular data has no spatial structure)
 2. **BatchNorm1d** instead of BatchNorm2d (1D feature vectors, not 2D images)
 3. **Dropout** added for regularization (critical for preventing overfitting on tabular data)
 
@@ -142,9 +144,9 @@ class TabularResidualBlock(nn.Module):
     """
     Residual block for tabular data using fully connected layers.
 
-    Key differences from image ResNet:
-    - Uses Linear layers instead of Conv2d (no spatial structure in tabular data)
-    - Uses BatchNorm1d instead of BatchNorm2d (1D features, not 2D images)
+    Implements the core ResNet skip connection (H(x) = F(x) + x) adapted for tabular data:
+    - Uses Linear layers (tabular data has no spatial structure like images)
+    - Uses BatchNorm1d for 1D feature vectors
     - Adds dropout for regularization (common in tabular deep learning)
 
     Architecture: x -> [Linear -> BN1d -> ReLU -> Dropout -> Linear -> BN1d] -> + x -> ReLU -> Dropout

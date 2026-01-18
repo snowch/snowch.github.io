@@ -127,6 +127,8 @@ project:
               title: "Part 6: Production Deployment"
             - file: ai-eng/embedding-anomaly-detection/part7-production-monitoring.md
               title: "Part 7: Production Monitoring"
+            - file: ai-eng/embedding-anomaly-detection/part8-multi-source-correlation.md
+              title: "Part 8: Multi-Source Event Correlation"
 
         - title: "ML/AI Algorithms"
           children:
