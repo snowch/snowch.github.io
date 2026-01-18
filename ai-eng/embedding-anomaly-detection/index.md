@@ -363,7 +363,7 @@ Ready to build your anomaly detection system? Start with [Part 1: Understanding 
 
 For deeper understanding of embedding concepts and vector databases used in this series:
 
-- **[Embeddings at Scale](https://snowch.github.io/embeddings-at-scale-book/)** - Comprehensive guide to building production embedding systems, covering vector databases, similarity search, and scaling considerations
+- **[Embeddings at Scale](https://snowch.github.io/embeddings-at-scale-book/)** - Comprehensive guide to building production embedding systems. **Parts 1 & 2** are most relevant, covering embedding fundamentals, vector databases, similarity search, and scaling considerations
 
 ---
 
