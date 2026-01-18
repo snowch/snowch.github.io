@@ -394,7 +394,12 @@ print("enabling effective training of deep networks.")
 
 ## Building Blocks: Basic vs Bottleneck
 
-Before understanding the full architecture, let's clarify the two types of residual blocks used in ResNets.
+ResNet comes in several standard variants with different depths: **ResNet-18, ResNet-34, ResNet-50, ResNet-101, and ResNet-152**. The number indicates the total layer count (e.g., ResNet-50 has 50 layers total). These variants use two different types of residual blocks:
+
+- **Shallower networks** (ResNet-18, ResNet-34) use **basic blocks** with 2 layers each
+- **Deeper networks** (ResNet-50, ResNet-101, ResNet-152) use **bottleneck blocks** with 3 layers each for parameter efficiency
+
+Let's understand the difference between these two block types.
 
 ### Basic Block (2 Layers)
 
