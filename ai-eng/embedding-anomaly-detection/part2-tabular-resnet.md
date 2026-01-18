@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 2: Adapting ResNet for Tabular Data [DRAFT]
+# Part 2: Adapting ResNet for Tabular Data
 
 Building on the ResNet fundamentals from Part 1, we now adapt the architecture for tabular observability data.
 
@@ -301,7 +301,10 @@ class TabularResNet(nn.Module):
         for i, embedding_layer in enumerate(self.embeddings):
             cat_embeddings.append(embedding_layer(categorical_features[:, i]))
 
-        cat_embed = torch.cat(cat_embeddings, dim=1) if cat_embeddings else torch.empty(batch_size, 0)
+        if cat_embeddings:
+            cat_embed = torch.cat(cat_embeddings, dim=1)
+        else:
+            cat_embed = torch.empty(batch_size, 0)
 
         # Process numerical features
         num_embed = self.numerical_projection(numerical_features)
@@ -328,8 +331,10 @@ class TabularResNet(nn.Module):
             return self.classifier(embedding)
 
 # Example usage
-num_numerical = 50  # e.g., network_bytes_in, duration, etc.
-categorical_cardinalities = [100, 50, 200, 1000]  # e.g., user_id, status_id, entity_id, etc.
+# Numerical: network_bytes_in, duration, etc.
+num_numerical = 50
+# Categorical: user_id, status_id, entity_id, etc.
+categorical_cardinalities = [100, 50, 200, 1000]
 
 model = TabularResNet(
     num_numerical_features=num_numerical,
@@ -363,9 +368,13 @@ When applying this to your 300+ field OCSF schema:
    - Typical embedding models use 50-200 features
 
 2. **Handling High Cardinality**: For fields like `entity_id`, `user_name`
-   - Use **hashing trick**: Apply a hash function to map unbounded values to fixed indices: `hash(entity_id) % embedding_size`. For example, `hash("user_abc123") % 1000 = 456` maps to embedding index 456. This allows handling millions of unique values with a fixed embedding table size, though different values may collide (share the same embedding).
+   - Use **hashing trick**: Apply a hash function to map unbounded values to fixed indices:
+     `hash(entity_id) % embedding_size`. For example, `hash("user_abc123") % 1000 = 456`
+     maps to embedding index 456. This allows handling millions of unique values with a
+     fixed embedding table size, though different values may collide (share the same embedding).
    - Or learn a shared "unknown" embedding for rare values (values seen < N times in training)
-   - Consider using larger embedding dimensions for high-cardinality features (e.g., 128-dim for `user_id` vs 32-dim for `status_code`)
+   - Consider using larger embedding dimensions for high-cardinality features
+     (e.g., 128-dim for `user_id` vs 32-dim for `status_code`)
 
 3. **Missing Values**: OCSF records may have sparse fields
    - Add a special "missing" category for categorical features
@@ -378,37 +387,46 @@ When applying this to your 300+ field OCSF schema:
 
 ### Adapting to Other Observability Data
 
-While this series uses OCSF security logs, the same architecture works for any structured observability data. Here's how to adapt the feature selection for different data types:
+While this series uses OCSF security logs, the same architecture works for any structured
+observability data. Here's how to adapt the feature selection for different data types:
 
 **Telemetry/Metrics Data:**
 ```python
 # Example: Prometheus-style metrics with labels
-categorical_features = ['host', 'service', 'metric_name', 'environment', 'region']
-numerical_features = ['value', 'hour_of_day', 'day_of_week', 'moving_avg_1h', 'std_dev_1h']
+categorical_features = ['host', 'service', 'metric_name',
+                       'environment', 'region']
+numerical_features = ['value', 'hour_of_day', 'day_of_week',
+                     'moving_avg_1h', 'std_dev_1h']
 # High-cardinality: 'host' (thousands), 'service' (hundreds)
 ```
 
 **Distributed Traces:**
 ```python
 # Example: OpenTelemetry span data
-categorical_features = ['service_name', 'operation', 'status_code', 'error_type', 'parent_span_id']
-numerical_features = ['duration_ms', 'span_count', 'error_count', 'queue_time_ms']
+categorical_features = ['service_name', 'operation', 'status_code',
+                       'error_type', 'parent_span_id']
+numerical_features = ['duration_ms', 'span_count', 'error_count',
+                     'queue_time_ms']
 # High-cardinality: 'parent_span_id', 'trace_id' (millions)
 ```
 
 **Configuration Data:**
 ```python
 # Example: Kubernetes configs, deployment manifests
-categorical_features = ['resource_type', 'namespace', 'deployment_strategy', 'image_tag']
-numerical_features = ['replica_count', 'cpu_limit', 'memory_limit', 'version_number']
+categorical_features = ['resource_type', 'namespace',
+                       'deployment_strategy', 'image_tag']
+numerical_features = ['replica_count', 'cpu_limit', 'memory_limit',
+                     'version_number']
 # High-cardinality: 'image_tag', 'config_hash'
 ```
 
 **Application Logs (JSON/Structured):**
 ```python
 # Example: Application event logs
-categorical_features = ['log_level', 'component', 'user_id', 'transaction_type', 'error_code']
-numerical_features = ['response_time_ms', 'bytes_processed', 'retry_count', 'cache_hit_rate']
+categorical_features = ['log_level', 'component', 'user_id',
+                       'transaction_type', 'error_code']
+numerical_features = ['response_time_ms', 'bytes_processed',
+                     'retry_count', 'cache_hit_rate']
 # High-cardinality: 'user_id', 'session_id', 'transaction_id'
 ```
 
