@@ -232,13 +232,15 @@ graph TB
 - Skip connection provides a "gradient highway" directly to earlier layers
 - Even if $F(\mathbf{x})$ has vanishing gradients, $\mathbf{x}$ passes through unchanged
 
-### Mathematical Analysis: Gradient Flow (Optional - Skip if Math-Heavy)
+```{note}
+**Mathematical Analysis: Gradient Flow (Optional - Skip if Math-Heavy)**
 
 **Intuition**: The skip connection acts like a "gradient highway" - even if the main path's gradients shrink to zero during backpropagation, the skip connection ensures gradients can still flow unchanged back to earlier layers. This is why deep ResNets train successfully while plain deep networks fail.
 
 **Analogy**: Think of gradients like water flowing backwards through the network during training. In plain networks, the water must flow through all the layers, getting weaker at each step (like water flowing through many filters). In ResNet, the skip connection is like a direct pipe that bypasses the filters - water always flows through both paths, so even if one path gets blocked, learning still happens.
 
-```{dropdown} **Click to expand mathematical proof (optional)**
+**Mathematical proof**:
+
 During backpropagation, the gradient of the loss $\mathcal{L}$ with respect to $\mathbf{x}$ is:
 
 $$
@@ -260,11 +262,13 @@ $$
 **Key insight**: The gradient always has an identity component ($I$) that propagates unchanged. Even if $\frac{\partial F(\mathbf{x})}{\partial \mathbf{x}}$ vanishes, gradients still flow through the $+I$ term.
 ```
 
-### Visualizing Gradient Flow (Optional - Empirical Evidence)
+```{note}
+**Visualizing Gradient Flow (Optional - Empirical Evidence)**
 
 The gradient flow explanation above is theoretical. Let's **see it in action** by comparing gradient magnitudes in a plain network vs a residual network during backpropagation.
 
 **What this demonstrates**: In deep plain networks, gradients shrink exponentially as they flow backward through layers (vanishing gradient problem). In ResNets, the skip connections maintain strong gradient flow even to the earliest layers.
+```
 
 ```{code-cell}
 :tags: [hide-input]
