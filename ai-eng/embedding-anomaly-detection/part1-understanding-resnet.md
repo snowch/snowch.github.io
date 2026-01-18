@@ -384,8 +384,6 @@ print("enabling effective training of deep networks.")
 
 **Why this matters for training**: Without strong gradients in early layers, those layers barely update during training, making deep plain networks fail to learn effectively. ResNets solve this.
 
-**Next steps**: Now that you understand the **core concept** (skip connections enable gradient flow), you're ready to see how this applies to tabular data in [Part 2: TabularResNet](part2-tabular-resnet), where we'll implement residual blocks using Linear layers instead of convolutions.
-
 ---
 
 ## Building Blocks: Basic vs Bottleneck
