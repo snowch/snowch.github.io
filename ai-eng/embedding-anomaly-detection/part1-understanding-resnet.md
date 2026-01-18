@@ -238,9 +238,7 @@ graph TB
 
 **Analogy**: Think of gradients like water flowing backwards through the network during training. In plain networks, the water must flow through all the layers, getting weaker at each step (like water flowing through many filters). In ResNet, the skip connection is like a direct pipe that bypasses the filters - water always flows through both paths, so even if one path gets blocked, learning still happens.
 
-<details>
-<summary><b>Click to expand mathematical proof (optional)</b></summary>
-
+```{dropdown} **Click to expand mathematical proof (optional)**
 During backpropagation, the gradient of the loss $\mathcal{L}$ with respect to $\mathbf{x}$ is:
 
 $$
@@ -260,8 +258,7 @@ $$
 $$
 
 **Key insight**: The gradient always has an identity component ($I$) that propagates unchanged. Even if $\frac{\partial F(\mathbf{x})}{\partial \mathbf{x}}$ vanishes, gradients still flow through the $+I$ term.
-
-</details>
+```
 
 ### Brief CNN Primer
 
