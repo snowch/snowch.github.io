@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 4: Self-Supervised Training [DRAFT]
+# Part 4: Self-Supervised Training
 
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
 
@@ -411,7 +411,7 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 
 ---
 
-### 2. Masked Feature Prediction (MFP)
+### 2. Masked Feature Prediction (MFP) [DRAFT]
 
 **The idea**: Hide some features in your data and train the model to predict what's missing.
 
