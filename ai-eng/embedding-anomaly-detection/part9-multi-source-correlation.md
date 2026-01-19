@@ -950,6 +950,306 @@ def causal_inference_rca(historical_incidents_df, current_anomalies):
 - Known root causes for past failures
 - Sufficient engineering resources for ML pipeline
 
+### Alternative: Agentic Iterative Investigation
+
+**The Challenge with Static Heuristics**: The heuristic-based causal graphs shown earlier (e.g., "Config changes cause everything") work well for clear-cut cases but can generate false positives in complex microservices environments. For example, a CPU spike might temporally correlate with a deployment, but the actual root cause could be an unrelated database query regression.
+
+**The Solution**: Use an **AI Agent with a ReAct (Reason + Act) loop** to iteratively investigate anomaly correlations, validating hypotheses against multiple data sources before declaring causation.
+
+#### Agentic Workflow Pattern
+
+Instead of immediately accepting temporal correlations, the agent follows an investigative workflow:
+
+```{code-cell} ipython3
+class AgenticRCAInvestigator:
+    """
+    AI agent that iteratively investigates root causes using ReAct loop.
+
+    The agent cycles through: Observe → Hypothesize → Query → Validate → Revise
+    """
+    def __init__(self, vector_db, llm_client):
+        self.vector_db = vector_db
+        self.llm = llm_client
+        self.investigation_history = []
+
+    def investigate(self, correlated_anomalies):
+        """
+        Iteratively investigate a group of correlated anomalies.
+
+        Args:
+            correlated_anomalies: List of temporally correlated anomalies
+
+        Returns:
+            Root cause hypothesis with confidence score and evidence
+        """
+        # Phase 1: Initial Observation
+        hypothesis = self._generate_initial_hypothesis(correlated_anomalies)
+        self.investigation_history.append({
+            'phase': 'initial_observation',
+            'hypothesis': hypothesis,
+            'evidence': self._summarize_anomalies(correlated_anomalies)
+        })
+
+        # Phase 2: Iterative Validation (up to 5 turns)
+        for turn in range(5):
+            # Agent reasons about what to check next
+            next_action = self._decide_next_action(hypothesis, correlated_anomalies)
+
+            if next_action['type'] == 'semantic_search':
+                # Search for similar historical incidents
+                evidence = self._semantic_search_history(
+                    next_action['query_embedding'],
+                    next_action['source_type']
+                )
+
+            elif next_action['type'] == 'metric_correlation':
+                # Check if metrics support the hypothesis
+                evidence = self._check_metric_correlation(
+                    next_action['metric_name'],
+                    next_action['time_window']
+                )
+
+            elif next_action['type'] == 'service_dependency':
+                # Validate via service dependency graph
+                evidence = self._check_service_dependencies(
+                    next_action['source_service'],
+                    next_action['target_service']
+                )
+
+            # Update hypothesis based on evidence
+            hypothesis = self._update_hypothesis(hypothesis, evidence)
+            self.investigation_history.append({
+                'phase': f'turn_{turn+1}',
+                'action': next_action,
+                'evidence': evidence,
+                'hypothesis': hypothesis
+            })
+
+            # Check if we have high confidence
+            if hypothesis['confidence'] > 0.85:
+                break
+
+        return hypothesis
+
+    def _generate_initial_hypothesis(self, anomalies):
+        """Generate initial hypothesis from temporal correlation."""
+        # Sort by timestamp to find earliest anomaly
+        sorted_anomalies = sorted(anomalies, key=lambda x: x['timestamp'])
+        earliest = sorted_anomalies[0]
+
+        # Heuristic: Earliest anomaly is often the root cause
+        # But we'll validate this in subsequent turns
+        return {
+            'root_cause_id': earliest['id'],
+            'root_cause_type': earliest['source_type'],
+            'reasoning': f"Earliest anomaly in temporal cluster ({earliest['source_type']})",
+            'confidence': 0.4,  # Low initial confidence
+            'supporting_evidence': [],
+            'contradicting_evidence': []
+        }
+
+    def _decide_next_action(self, hypothesis, anomalies):
+        """
+        Agent reasons about what to investigate next.
+
+        This uses an LLM to decide the next action based on:
+        - Current hypothesis and confidence
+        - Available anomaly data
+        - Investigation history
+        """
+        # Simplified decision logic (in practice, use LLM reasoning)
+
+        if hypothesis['confidence'] < 0.5:
+            # Low confidence - search for similar historical incidents
+            return {
+                'type': 'semantic_search',
+                'query_embedding': anomalies[0]['embedding'],
+                'source_type': anomalies[0]['source_type'],
+                'reasoning': "Need historical context to validate initial hypothesis"
+            }
+
+        elif hypothesis['confidence'] < 0.7:
+            # Medium confidence - check metric correlations
+            return {
+                'type': 'metric_correlation',
+                'metric_name': 'resource_usage',
+                'time_window': 300,  # 5 minutes
+                'reasoning': "Check if resource metrics support the hypothesis"
+            }
+
+        else:
+            # High confidence - validate via service dependencies
+            return {
+                'type': 'service_dependency',
+                'source_service': hypothesis.get('service'),
+                'target_service': 'downstream_services',
+                'reasoning': "Validate causal chain through service topology"
+            }
+
+    def _semantic_search_history(self, query_embedding, source_type):
+        """
+        Search for semantically similar historical incidents.
+
+        This helps disambiguate confusing error messages and validate
+        that the current pattern matches known root cause patterns.
+        """
+        # Query vector DB for similar embeddings from past incidents
+        results = self.vector_db.query(
+            vector=query_embedding,
+            filter={'source_type': source_type, 'is_historical': True},
+            top_k=5
+        )
+
+        # Extract root cause labels from historical matches
+        historical_root_causes = []
+        for match in results['matches']:
+            if 'root_cause_label' in match['metadata']:
+                historical_root_causes.append({
+                    'similarity': match['score'],
+                    'root_cause': match['metadata']['root_cause_label'],
+                    'resolution': match['metadata'].get('resolution_note', '')
+                })
+
+        return {
+            'type': 'historical_similarity',
+            'matches': historical_root_causes,
+            'confidence_boost': 0.2 if len(historical_root_causes) > 0 else 0
+        }
+
+    def _check_metric_correlation(self, metric_name, time_window):
+        """Check if metrics support the hypothesis."""
+        # Query metrics from analytic store
+        # (Simplified - actual implementation would query VAST or similar)
+        return {
+            'type': 'metric_correlation',
+            'correlation_strength': 0.78,
+            'confidence_boost': 0.15
+        }
+
+    def _update_hypothesis(self, hypothesis, evidence):
+        """Update hypothesis based on new evidence."""
+        # Adjust confidence based on evidence
+        if evidence.get('confidence_boost'):
+            hypothesis['confidence'] += evidence['confidence_boost']
+            hypothesis['supporting_evidence'].append(evidence)
+
+        # Cap confidence at 0.95
+        hypothesis['confidence'] = min(hypothesis['confidence'], 0.95)
+
+        return hypothesis
+
+# Example usage
+print("AgenticRCAInvestigator class defined")
+print("This agent uses a ReAct loop to validate root cause hypotheses")
+```
+
+#### Example: Agent Investigating a Security Incident
+
+Let's see how the agent handles a complex incident where temporal correlation alone would give false positives:
+
+**Scenario**: Failed authentication spike at 14:30, followed by CPU spike at 14:32, database errors at 14:35.
+
+**Static Heuristic Approach** would conclude:
+- Root cause: Failed auth (earliest anomaly)
+- Caused: CPU spike → Database errors
+- **Problem**: This might be wrong! The auth failures could be a symptom, not the cause.
+
+**Agentic Approach**:
+
+```{code-cell} ipython3
+# Simulated investigation workflow
+def simulate_agentic_investigation():
+    """
+    Demonstrate how the agent iteratively investigates the incident.
+    """
+    print("="*70)
+    print("AGENTIC ROOT CAUSE INVESTIGATION")
+    print("="*70)
+
+    # Anomalies detected
+    anomalies = [
+        {'id': 'log_001', 'source_type': 'logs', 'timestamp': '14:30:00',
+         'message': 'Failed authentication', 'service': 'api-gateway'},
+        {'id': 'metric_001', 'source_type': 'metrics', 'timestamp': '14:32:00',
+         'metric': 'cpu_usage', 'value': 95, 'service': 'auth-service'},
+        {'id': 'log_002', 'source_type': 'logs', 'timestamp': '14:35:00',
+         'message': 'Database connection timeout', 'service': 'user-db'}
+    ]
+
+    print("\n📊 INITIAL OBSERVATION:")
+    print("Detected 3 correlated anomalies:")
+    for a in anomalies:
+        print(f"  - {a['timestamp']}: {a['source_type']} - {a.get('message', a.get('metric'))}")
+
+    print("\n🤔 TURN 1: Initial Hypothesis")
+    print("Hypothesis: Failed auth (earliest event) is root cause")
+    print("Confidence: 40% (temporal heuristic only)")
+    print("Action: Search for similar historical auth failures")
+
+    print("\n🔍 TURN 1: Semantic Search Results")
+    print("Found 3 similar historical incidents:")
+    print("  ✓ 2/3 had root cause = 'Config change to LDAP timeout'")
+    print("  ✓ 1/3 had root cause = 'Database overload causing slow auth'")
+    print("Updated Confidence: 55% (+15% from historical match)")
+
+    print("\n🤔 TURN 2: Revised Hypothesis")
+    print("Hypothesis: Config change might be involved")
+    print("Action: Check for recent config changes")
+
+    print("\n📋 TURN 2: Config Change Query")
+    print("Found: LDAP connection timeout reduced from 5s → 2s at 14:25")
+    print("This explains why auth started failing at 14:30!")
+    print("Updated Confidence: 75% (+20% from config correlation)")
+
+    print("\n🤔 TURN 3: Validation")
+    print("Hypothesis: LDAP timeout config change is root cause")
+    print("Action: Validate that CPU spike is a consequence, not cause")
+
+    print("\n📊 TURN 3: Metric Correlation Check")
+    print("CPU spike on 'auth-service' correlates with failed auth retry storm")
+    print("  → Auth failures caused retry logic → CPU spike")
+    print("  → NOT the other way around")
+    print("Updated Confidence: 90% (+15% from causality validation)")
+
+    print("\n" + "="*70)
+    print("✅ FINAL ROOT CAUSE DETERMINATION")
+    print("="*70)
+    print("Root Cause: Configuration change (LDAP timeout: 5s → 2s)")
+    print("Confidence: 90%")
+    print("Causal Chain:")
+    print("  1. Config change reduces LDAP timeout")
+    print("  2. Auth requests fail due to tight timeout")
+    print("  3. Failed auth triggers retry storm")
+    print("  4. Retry storm causes CPU spike")
+    print("  5. CPU exhaustion causes DB connection timeouts")
+    print("\n💡 Recommendation: Rollback LDAP timeout to 5s")
+    print("="*70)
+
+simulate_agentic_investigation()
+```
+
+**Key Advantages over Static Heuristics**:
+
+1. **Validates hypotheses**: Doesn't accept temporal correlation at face value
+2. **Historical context**: Uses semantic search to find similar past incidents
+3. **Disambiguates symptoms vs. causes**: CPU spike was a symptom, not root cause
+4. **Iterative refinement**: Confidence increases as evidence accumulates
+5. **Fewer false positives**: Won't declare causation without supporting evidence
+
+**When to use Agentic RCA**:
+- ✅ Complex microservices with many temporal correlations
+- ✅ When you have historical incident data with labeled root causes
+- ✅ Teams that need high-confidence root cause identification (low false positive tolerance)
+- ✅ When you can afford slightly higher latency (30-60 seconds for multi-turn investigation)
+
+**When to use Static Heuristics**:
+- ✅ Simple architectures with clear causal patterns
+- ✅ When you need sub-second latency
+- ✅ As a first-pass filter before expensive agentic investigation
+- ✅ When you don't have labeled historical data yet
+
+**Hybrid Approach** (Recommended): Use static heuristics for initial triage, then invoke the agentic investigator for high-severity incidents or when heuristic confidence is low.
+
 ---
 
 ## Step 6: End-to-End Example Workflow
