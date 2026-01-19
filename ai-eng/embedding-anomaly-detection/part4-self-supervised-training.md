@@ -48,6 +48,12 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 ```{code-cell}
 :tags: [hide-input]
 
+import os
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
