@@ -35,6 +35,8 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 
 **Recommendation**: Start with [Contrastive Learning](#1-contrastive-learning) unless you have millions of records and want to invest time in hyperparameter tuning for MFP.
 
+---
+
 ### 1. Contrastive Learning
 
 **The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
@@ -321,6 +323,8 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 - [SimCLR paper](https://arxiv.org/abs/2002.05709) - Original contrastive learning framework
 - [PyTorch contrastive learning tutorial](https://pytorch.org/tutorials/beginner/introyt/trainingyt.html) - General training patterns
 - [Temperature in contrastive learning](https://arxiv.org/abs/2005.04966) - Deep dive on temperature parameter
+
+---
 
 ### 2. Masked Feature Prediction (MFP)
 
