@@ -29,11 +29,13 @@ For tabular data, we use two main self-supervised approaches:
 
 Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper {cite}`huang2020tabtransformer`:
 
-1. **Contrastive Learning** (Section 1) - **Recommended starting point**: Train the model so similar records have similar embeddings. Simpler to implement, works with base TabularResNet (no model modifications needed)
+1. **[Contrastive Learning](#1-contrastive-learning)** - **Recommended starting point**: Train the model so similar records have similar embeddings. Simpler to implement, works with base TabularResNet (no model modifications needed)
 
-2. **Masked Feature Prediction (MFP)** (Section 2) - **Advanced technique**: Hide features and train model to reconstruct them. Requires extending TabularResNet with prediction heads, more complex loss functions
+2. **[Masked Feature Prediction (MFP)](#2-masked-feature-prediction-mfp)** - **Advanced technique**: Hide features and train model to reconstruct them. Requires extending TabularResNet with prediction heads, more complex loss functions
 
-**Recommendation**: Start with Contrastive Learning unless you have millions of records and want to invest time in hyperparameter tuning for MFP.
+**Recommendation**: Start with [Contrastive Learning](#1-contrastive-learning) unless you have millions of records and want to invest time in hyperparameter tuning for MFP.
+
+---
 
 ### 1. Contrastive Learning
 
@@ -322,6 +324,8 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 - [PyTorch contrastive learning tutorial](https://pytorch.org/tutorials/beginner/introyt/trainingyt.html) - General training patterns
 - [Temperature in contrastive learning](https://arxiv.org/abs/2005.04966) - Deep dive on temperature parameter
 
+---
+
 ### 2. Masked Feature Prediction (MFP)
 
 **The idea**: Hide some features in your data and train the model to predict what's missing.
@@ -504,7 +508,7 @@ for epoch in range(num_epochs):
 3. **Masking strategy**: Need to decide how to mask (0, mean, learned token)
 4. **Computational overhead**: Forward pass through prediction heads for every batch
 
-**Recommendation**: For most users, **start with contrastive learning** (Section 1) which:
+**Recommendation**: For most users, **start with [Contrastive Learning](#1-contrastive-learning)** which:
 - Works with base TabularResNet (no modifications needed)
 - Single loss function (contrastive loss)
 - Proven to work well for tabular data
