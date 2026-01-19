@@ -401,7 +401,54 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 **Pitfalls**:
 - **Batch size matters**: Contrastive learning needs large batches (256-1024) to provide enough negative samples. Small batches (32) don't work well - model has too few negatives to learn from
 - **GPU memory**: Large batches require lots of memory. If OOM, use gradient accumulation or reduce model size
-- **Augmentation quality**: Bad augmentations break contrastive learning. For OCSF data, avoid changing security-critical fields (e.g., don't swap `status: success` ↔ `status: failure` randomly)
+- **Augmentation quality**: Bad augmentations break contrastive learning by creating false positive pairs. For OCSF security data, this is critical:
+
+  **Why this matters**: The model learns that "these two augmented views are the same event." If augmentation changes the semantic meaning, you're teaching the model that fundamentally different events are similar.
+
+  **What NOT to augment**:
+  - ❌ **Security outcomes**: Don't swap `status: success` ↔ `status: failure` (completely different event types)
+  - ❌ **Event types**: Don't change `activity_id` or `class_uid` (these define what happened)
+  - ❌ **Critical identifiers**: Be careful with `user_id`, `src_endpoint.ip`, `dst_endpoint.ip` (swapping creates wrong associations)
+  - ❌ **Severity levels**: Don't change `severity` or `risk_level` (changes event importance)
+
+  **What to augment safely**:
+  - ✅ **Numerical metrics**: Add small noise to `bytes`, `duration`, `count` (±5-15%)
+  - ✅ **Timestamps**: Slight time jitter (±few seconds) for `time`, `end_time`
+  - ✅ **Non-critical categorical**: Randomly mask `http_request.user_agent`, `file.name` (with domain-appropriate values)
+  - ✅ **Metadata**: Change `observables.type_id`, `unmapped` fields that don't affect security meaning
+
+  **Example of good vs bad augmentation**:
+  ```python
+  # Original OCSF login event
+  original = {
+      'activity_id': 1,  # Logon
+      'status': 'success',
+      'user_id': 12345,
+      'bytes': 1024,
+      'duration': 5.2
+  }
+
+  # ✅ GOOD: Preserves semantic meaning
+  good_augment = {
+      'activity_id': 1,  # Same - logon
+      'status': 'success',  # Same - successful
+      'user_id': 12345,  # Same user
+      'bytes': 1075,  # +5% noise
+      'duration': 5.4   # +4% noise
+  }
+
+  # ❌ BAD: Changes semantic meaning
+  bad_augment = {
+      'activity_id': 2,  # WRONG - changed to Logoff!
+      'status': 'failure',  # WRONG - now a failed event!
+      'user_id': 67890,  # WRONG - different user!
+      'bytes': 1075,
+      'duration': 5.4
+  }
+  ```
+
+  **How to detect bad augmentation**: If your model learns that successful logins and failed logins have similar embeddings, or that different users appear similar, your augmentation is too aggressive. Check embedding clusters (Part 5) to verify meaningful events separate properly.
+
 - **Computational cost**: Computing similarity matrix is O(batch_size²). With batch_size=1024, that's 1M similarity computations per step
 
 **Further reading**:
@@ -622,6 +669,7 @@ Now let's put it all together. The code below shows a complete training pipeline
 **Why this code matters**: This is the actual training loop you'll use in production. Understanding the data flow (Dataset → DataLoader → Model → Loss → Optimizer) is crucial for customizing the training process to your specific OCSF schema.
 
 ```{code-cell}
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 class OCSFDataset(Dataset):
