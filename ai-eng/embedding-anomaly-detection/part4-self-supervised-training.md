@@ -29,6 +29,12 @@ For tabular data, we use two main self-supervised approaches:
 
 Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper {cite}`huang2020tabtransformer`:
 
+1. **Contrastive Learning** (Section 1) - **Recommended starting point**: Train the model so similar records have similar embeddings. Simpler to implement, works with base TabularResNet (no model modifications needed)
+
+2. **Masked Feature Prediction (MFP)** (Section 2) - **Advanced technique**: Hide features and train model to reconstruct them. Requires extending TabularResNet with prediction heads, more complex loss functions
+
+**Recommendation**: Start with Contrastive Learning unless you have millions of records and want to invest time in hyperparameter tuning for MFP.
+
 ### 1. Contrastive Learning
 
 **The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
