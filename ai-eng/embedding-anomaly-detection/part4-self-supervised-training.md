@@ -620,6 +620,9 @@ plt.show()
 
 **Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
 
+**Key term**:
+- **Prediction heads**: Additional linear layers added on top of the encoder that project embeddings back to the original feature space. For MFP, you need one head per categorical feature (outputs logits over possible values) and one head for all numerical features (outputs continuous predictions).
+
 **What MFP requires**:
 1. **Model extension**: Add prediction heads to TabularResNet (linear layers that project embeddings → original feature space)
 2. **Masking logic**: Randomly hide 15% of features (both categorical and numerical)
