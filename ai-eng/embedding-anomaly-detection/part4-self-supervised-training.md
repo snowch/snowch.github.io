@@ -42,10 +42,12 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 **The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
 
 **How it works**:
-1. Take an OCSF record (e.g., a login event)
-2. Create two slightly different versions by adding noise (e.g., add ±5% to `bytes`, randomly change some categorical values)
-3. Train the model so these two versions have **similar embeddings** (they're "positive pairs")
-4. Meanwhile, ensure embeddings from different records stay **far apart** (they're "negative pairs")
+1. **For every record** in your training data, create two augmented versions
+2. Apply random noise: add ±5% to numerical features, randomly swap 10-20% of categorical values
+3. Train the model so the two augmented versions have **similar embeddings** (they're "positive pairs")
+4. Meanwhile, ensure embeddings from different original records stay **far apart** (they're "negative pairs")
+
+**Key point**: We augment **every single record** in the batch, creating exactly **2 augmented copies per record**. With a batch size of 256, we get 512 augmented samples (256 pairs).
 
 ```{code-cell}
 :tags: [remove-input]
@@ -61,78 +63,81 @@ import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import numpy as np
 
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.set_xlim(0, 10)
+fig, ax = plt.subplots(figsize=(13, 7))
+ax.set_xlim(0, 11)
 ax.set_ylim(0, 8)
 ax.axis('off')
 
 # Augmented version 1
 aug1_y = 5.5
-ax.add_patch(FancyBboxPatch((0.5, aug1_y), 3, 1,
-                            boxstyle="round,pad=0.1",
-                            edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2))
-ax.text(2, aug1_y + 0.5, 'Augmented A₁\nuser: 12345, bytes: 1075 (+5%)\nstatus: success',
-        ha='center', va='center', fontsize=9, style='italic')
+box1 = FancyBboxPatch((0.5, aug1_y), 3.5, 1.2,
+                      boxstyle="round,pad=0.1",
+                      edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2.5)
+ax.add_patch(box1)
+ax.text(2.25, aug1_y + 0.6, 'Augmented A₁\nuser: 12345, bytes: 1075 (+5%)\nstatus: success',
+        ha='center', va='center', fontsize=11, style='italic')
 
 # Augmented version 2
 aug2_y = 3.5
-ax.add_patch(FancyBboxPatch((0.5, aug2_y), 3, 1,
-                            boxstyle="round,pad=0.1",
-                            edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2))
-ax.text(2, aug2_y + 0.5, 'Augmented A₂\nuser: 12345, bytes: 973 (-5%)\nstatus: success',
-        ha='center', va='center', fontsize=9, style='italic')
+box2 = FancyBboxPatch((0.5, aug2_y), 3.5, 1.2,
+                      boxstyle="round,pad=0.1",
+                      edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2.5)
+ax.add_patch(box2)
+ax.text(2.25, aug2_y + 0.6, 'Augmented A₂\nuser: 12345, bytes: 973 (-5%)\nstatus: success',
+        ha='center', va='center', fontsize=11, style='italic')
 
 # Different record (Record B)
 record_b_y = 1
-ax.add_patch(FancyBboxPatch((0.5, record_b_y), 3, 1,
-                            boxstyle="round,pad=0.1",
-                            edgecolor='#2E86AB', facecolor='#E8F4F8', linewidth=2))
-ax.text(2, record_b_y + 0.5, 'Record B (Different Event)\nuser: 67890, bytes: 5120\nstatus: failure',
-        ha='center', va='center', fontsize=9, weight='bold')
+box3 = FancyBboxPatch((0.5, record_b_y), 3.5, 1.2,
+                      boxstyle="round,pad=0.1",
+                      edgecolor='#2E86AB', facecolor='#E8F4F8', linewidth=2.5)
+ax.add_patch(box3)
+ax.text(2.25, record_b_y + 0.6, 'Record B (Different Event)\nuser: 67890, bytes: 5120\nstatus: failure',
+        ha='center', va='center', fontsize=11, weight='bold')
 
-# Arrows to embeddings
-arrow_props = dict(arrowstyle='->', lw=2, color='#555555')
-ax.annotate('', xy=(5.5, 5.5), xytext=(3.5, aug1_y + 0.5), arrowprops=arrow_props)
-ax.annotate('', xy=(5.5, 4.5), xytext=(3.5, aug2_y + 0.5), arrowprops=arrow_props)
-ax.annotate('', xy=(8.5, 1.5), xytext=(3.5, record_b_y + 0.5), arrowprops=arrow_props)
+# Arrows from box edges to embeddings
+arrow_props = dict(arrowstyle='->', lw=2.5, color='#555555')
+ax.annotate('', xy=(5.8, 5.8), xytext=(4.0, aug1_y + 0.6), arrowprops=arrow_props)
+ax.annotate('', xy=(5.8, 4.8), xytext=(4.0, aug2_y + 0.6), arrowprops=arrow_props)
+ax.annotate('', xy=(8.7, 1.6), xytext=(4.0, record_b_y + 0.6), arrowprops=arrow_props)
 
 # Embedding space label
-ax.text(7, 7.5, 'Embedding Space', ha='center', fontsize=11, weight='bold')
+ax.text(7.5, 7.3, 'Embedding Space', ha='center', fontsize=13, weight='bold')
 
 # Embeddings as points
 # Positive pair (close together)
-embed_a1 = ax.scatter([5.5], [5.5], s=400, c='#A23B72', marker='o',
-                      edgecolors='black', linewidths=2, zorder=3)
-ax.text(5.5, 5.5, 'A₁', ha='center', va='center', fontsize=10,
+embed_a1 = ax.scatter([6], [5.8], s=500, c='#A23B72', marker='o',
+                      edgecolors='black', linewidths=2.5, zorder=3)
+ax.text(6, 5.8, 'A₁', ha='center', va='center', fontsize=12,
         weight='bold', color='white')
 
-embed_a2 = ax.scatter([5.5], [4.5], s=400, c='#A23B72', marker='o',
-                      edgecolors='black', linewidths=2, zorder=3)
-ax.text(5.5, 4.5, 'A₂', ha='center', va='center', fontsize=10,
+embed_a2 = ax.scatter([6], [4.8], s=500, c='#A23B72', marker='o',
+                      edgecolors='black', linewidths=2.5, zorder=3)
+ax.text(6, 4.8, 'A₂', ha='center', va='center', fontsize=12,
         weight='bold', color='white')
 
 # Negative (far away)
-embed_b = ax.scatter([8.5], [1.5], s=400, c='#F18F01', marker='o',
-                     edgecolors='black', linewidths=2, zorder=3)
-ax.text(8.5, 1.5, 'B', ha='center', va='center', fontsize=10,
+embed_b = ax.scatter([9], [1.6], s=500, c='#F18F01', marker='o',
+                     edgecolors='black', linewidths=2.5, zorder=3)
+ax.text(9, 1.6, 'B', ha='center', va='center', fontsize=12,
         weight='bold', color='white')
 
-# Visual indicators
-# Positive pair - close together (green bracket)
-ax.plot([4.8, 4.8], [4.3, 5.7], 'g-', linewidth=3, alpha=0.7)
-ax.text(4.3, 5, '✓ Close\n(Positive\nPair)', ha='center', va='center',
-        fontsize=9, color='green', weight='bold')
+# Visual indicators - both same style (solid lines)
+# Positive pair - close together (green line)
+ax.plot([5.3, 5.3], [4.6, 6.0], 'g-', linewidth=4, alpha=0.7)
+ax.text(4.6, 5.3, '✓ Close\n(Positive\nPair)', ha='center', va='center',
+        fontsize=11, color='green', weight='bold')
 
 # Negative pair - far apart (red line)
-ax.plot([5.5, 8.5], [4.5, 1.5], 'r--', linewidth=2, alpha=0.5)
-ax.text(7, 2.8, '✗ Far Apart\n(Negative Pair)', ha='center', va='center',
-        fontsize=9, color='red', weight='bold',
-        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+ax.plot([6, 9], [4.8, 1.6], 'r-', linewidth=4, alpha=0.7)
+ax.text(7.7, 3, '✗ Far Apart\n(Negative Pair)', ha='center', va='center',
+        fontsize=11, color='red', weight='bold',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, pad=0.4))
 
 # Training objective
-ax.text(5, 0.3, 'Training Goal: Pull positive pairs together, push negatives apart',
-        ha='center', fontsize=10, style='italic',
-        bbox=dict(boxstyle='round', facecolor='#FFF3CD', alpha=0.8, pad=0.5))
+ax.text(5.5, 0.3, 'Training Goal: Pull positive pairs together, push negatives apart',
+        ha='center', fontsize=12, style='italic',
+        bbox=dict(boxstyle='round', facecolor='#FFF3CD', alpha=0.9, pad=0.6))
 
 plt.tight_layout()
 plt.show()
