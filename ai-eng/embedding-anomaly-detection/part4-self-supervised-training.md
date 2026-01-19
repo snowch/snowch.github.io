@@ -63,16 +63,16 @@ import matplotlib.patches as patches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 import numpy as np
 
-# Color palette
+# Color palette - light theme
 C = {
-    'bg': '#0D1117',
-    'card': '#161B22',
-    'pos': '#58A6FF',      # Blue - positive
-    'neg': '#F85149',      # Red - negative
-    'enc': '#3FB950',      # Green - encoder
-    'text': '#E6EDF3',
-    'muted': '#8B949E',
-    'grid': '#21262D',
+    'bg': '#FFFFFF',
+    'card': '#F6F8FA',
+    'pos': '#0969DA',      # Blue - positive
+    'neg': '#CF222E',      # Red - negative
+    'enc': '#1A7F37',      # Green - encoder
+    'text': '#1F2328',
+    'muted': '#656D76',
+    'grid': '#D0D7DE',
 }
 
 # Compact figure
@@ -144,8 +144,8 @@ ax.add_patch(FancyArrowPatch((4.8, 3.9), (z1[0]-0.3, z1[1]), connectionstyle="ar
 ax.add_patch(FancyArrowPatch((4.8, 2.7), (z2[0]-0.3, z2[1]), connectionstyle="arc3,rad=0", **arrow_kw))
 ax.add_patch(FancyArrowPatch((4.8, 1.0), (zn[0]-0.3, zn[1]), connectionstyle="arc3,rad=0.08", **arrow_kw))
 
-# Glow effects
-for r, a in [(0.4, 0.08), (0.28, 0.15)]:
+# Glow effects (lighter for white bg)
+for r, a in [(0.4, 0.12), (0.28, 0.2)]:
     ax.add_patch(Circle(z1, r, facecolor=C['pos'], alpha=a, zorder=5))
     ax.add_patch(Circle(z2, r, facecolor=C['pos'], alpha=a, zorder=5))
     ax.add_patch(Circle(zn, r, facecolor=C['neg'], alpha=a, zorder=5))
@@ -172,7 +172,7 @@ ax.plot(sx + offset*px, sy + offset*py, color=C['enc'], linewidth=2.5, zorder=6)
 
 # Attract label
 ax.text(6.15, 3.05, "PULL", ha='center', fontsize=10, fontweight='bold', color=C['enc'],
-        bbox=dict(boxstyle='round,pad=0.2', facecolor=C['card'], edgecolor=C['enc'], linewidth=1.5))
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor=C['enc'], linewidth=1.5))
 
 # Repulsion
 cluster = ((z1[0]+z2[0])/2, (z1[1]+z2[1])/2)
@@ -185,7 +185,7 @@ ax.annotate('', xy=(zn[0]+0.12, zn[1]-0.08), xytext=mid,
             arrowprops=dict(arrowstyle='-|>', color=C['neg'], lw=2))
 
 ax.text(mid[0]+0.5, mid[1]+0.2, "PUSH", ha='center', fontsize=10, fontweight='bold', color=C['neg'],
-        bbox=dict(boxstyle='round,pad=0.2', facecolor=C['card'], edgecolor=C['neg'], linewidth=1.5))
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor=C['neg'], linewidth=1.5))
 
 # === Legend ===
 ax.scatter(8.6, 4.0, s=100, c=C['pos'], edgecolors='white', linewidths=1.5)
