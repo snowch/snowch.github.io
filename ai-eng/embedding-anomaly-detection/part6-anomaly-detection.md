@@ -567,15 +567,15 @@ print(f"  F1-Score:  {f1_cluster:.3f}")
 The methods above (LOF, Isolation Forest, k-NN, clustering) detect anomalies in **individual events** using vector DB similarity search. However, some anomalies only appear when looking at **sequences of events**:
 
 **Use cases for sequence-based detection:**
-- **Multi-step attacks**: Each step looks normal individually, but the sequence is suspicious (e.g., login → privilege escalation → data access → exfiltration)
-- **Process violations**: Events that violate expected workflows (e.g., checkout without adding items to cart)
+- **Cascading failures**: Each step looks normal individually, but the sequence indicates a problem (e.g., deployment → memory spike → GC pressure → connection pool exhaustion)
+- **Performance degradation patterns**: Gradual deterioration over time (e.g., slow memory leak, thread pool exhaustion)
 - **Time-ordered patterns**: Anomalies that depend on temporal order, not just individual event features
 
 ### Trade-offs
 
 **Advantages:**
 - Captures temporal dependencies that vector DB methods miss
-- Can detect sophisticated attacks that evade single-event detection
+- Can detect subtle cascading failures that evade single-event detection
 - Learns normal sequence patterns from data
 
 **Disadvantages:**
@@ -584,13 +584,13 @@ The methods above (LOF, Isolation Forest, k-NN, clustering) detect anomalies in 
 - Higher latency (must buffer events into sequences before scoring)
 - More infrastructure to maintain (model training, versioning, monitoring)
 
-**Recommendation**: Start with vector DB methods (Sections 1-5). For multi-step attack detection:
+**Recommendation**: Start with vector DB methods (Sections 1-5). For cascading failure detection:
 - **Prefer the agentic approach** ([Part 9: Agentic RCA](part9-multi-source-correlation#alternative-agentic-iterative-investigation)) - uses semantic search and reasoning to detect multi-step patterns without training an LSTM
 - **Use LSTM (shown below)** only when you need sub-second latency or purely statistical pattern detection
 
 ### Alternative: Agentic Multi-Step Detection
 
-For most teams, the **agentic approach in Part 9** is preferable to LSTM for multi-step attack detection:
+For most teams, the **agentic approach in Part 9** is preferable to LSTM for detecting cascading failures:
 
 **Why agentic approach is better:**
 - ✅ No separate model to train/maintain (uses existing vector DB)
@@ -612,7 +612,7 @@ See [Part 9: Agentic Sequence Investigation](part9-multi-source-correlation#alte
 
 For teams that need ultra-low latency or have specific requirements for neural sequence modeling:
 
-For detecting anomalies across sequences of events (e.g., multi-step attacks).
+For detecting anomalies across sequences of events (e.g., cascading operational failures).
 
 ```{code-cell}
 import torch
@@ -664,7 +664,7 @@ print(f"\nSequence Anomaly Detection:")
 print(f"  Sequence shape: {sequence.shape}")
 print(f"  Normality score: {normality_score.item():.3f}")
 print(f"  Interpretation: Lower score = more likely anomaly sequence")
-print(f"\nUse case: Detect multi-step attacks or unusual event patterns")
+print(f"\nUse case: Detect cascading failures or performance degradation patterns")
 ```
 
 ---
