@@ -279,7 +279,6 @@ Labels are only needed for evaluation/comparison (Part 6, Section 7), not traini
 ## License
 
 MIT - Free to use for commercial and non-commercial purposes
-```
 
 ---
 
