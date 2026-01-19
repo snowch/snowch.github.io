@@ -43,9 +43,10 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 
 **How it works**:
 1. **For every record** in your training data, create two augmented versions
-2. Apply random noise: add ±5% to numerical features, randomly swap 10-20% of categorical values
-3. Train the model so the two augmented versions have **similar embeddings** (they're "positive pairs")
-4. Meanwhile, ensure embeddings from different original records stay **far apart** (they're "negative pairs")
+2. **Apply random noise**: add ±5% to numerical features, randomly swap 10-20% of categorical values
+3. **Pass through encoder**: Feed the augmented versions through the model (encoder `f(·)`) to get embeddings
+4. **Train the model** so the two augmented versions have **similar embeddings** (they're "positive pairs")
+5. **Meanwhile**, ensure embeddings from different original records stay **far apart** (they're "negative pairs")
 
 **Key point**: We augment **every single record** in the batch, creating exactly **2 augmented copies per record**. With a batch size of 256, we get 512 augmented samples (256 pairs).
 
@@ -213,7 +214,10 @@ plt.show()
 
 - **Q: What's a typical batch size?**
   **A: 256-512 original records per batch**, which gives you 512-1024 augmented samples.
-  - With 256 original records → 512 augmented samples (256 positive pairs + 255 × 256 = 65,280 negative pairs)
+  - With 256 original records → 512 augmented samples total
+  - This creates **256 positive pairs** (one pair per original record)
+  - Each augmented sample contrasts against **510 negatives** (all 512 samples except itself and its positive pair)
+  - Total: each sample learns from 1 positive and 510 negatives
 
 - **Q: Why create 2 copies and not 3 or 5?**
   **A: 2 copies is the standard** because:
