@@ -1052,18 +1052,37 @@ compare_embedding_dimensions()
 
 ## 7. Production Checklist
 
-Before deploying embeddings to production, verify:
+Before deploying embeddings to production, verify all criteria across quantitative and qualitative evaluation:
 
-### Quality Checklist
+### Quantitative Metrics
 
-| Criterion | Threshold | Status |
-|-----------|-----------|--------|
-| **Silhouette Score** | > 0.5 | ✓ |
-| **Davies-Bouldin Index** | < 1.0 | ✓ |
-| **k-NN Accuracy** (if labels available) | > 0.85 | ✓ |
-| **Embedding Stability** | > 0.90 | ✓ |
-| **Visual Inspection** | Clear clusters in t-SNE/UMAP | ✓ |
-| **Anomaly Detection F1** | > 0.80 (Part 6) | Pending |
+| Criterion | Threshold | Why It Matters | Action if Failed |
+|-----------|-----------|----------------|------------------|
+| **Silhouette Score** | > 0.5 | Measures cluster separation | Retrain with more epochs or different augmentation |
+| **Davies-Bouldin Index** | < 1.0 | Measures cluster overlap | Check feature engineering, increase model capacity |
+| **Embedding Stability** | > 0.92 | Ensures robustness to noise | Add dropout, use more aggressive augmentation |
+| **k-NN Accuracy** (if labels) | > 0.85 | Proxy for downstream task performance | Review feature engineering, try different architecture |
+| **Inference Latency** | < 50ms | Real-time detection capability | Reduce d_model, optimize with ONNX, use GPU |
+| **Memory Footprint** | Fits budget | Cost control | Use float16, reduce d_model, compress old embeddings |
+
+### Qualitative Checks
+
+| Check | What to Look For | Red Flags |
+|-------|------------------|-----------|
+| **t-SNE/UMAP Visualization** | Clear, separated clusters | All points in one blob, no structure |
+| **Nearest Neighbor Inspection** | Neighbors are semantically similar | Random unrelated events, success/failure mixed |
+| **Semantic Failure Testing** | Model distinguishes critical security events | Brute force looks like normal login |
+| **Cluster Interpretation** | Clusters map to known event types | Arbitrary splits, no domain meaning |
+
+### Pre-Deployment Workflow
+
+1. **Run quantitative metrics** → All thresholds passed?
+2. **Visual inspection** → Clusters make sense?
+3. **Nearest neighbor spot checks** → Pick 10 random samples, verify neighbors
+4. **Semantic failure tests** → Test edge cases (brute force, privilege escalation)
+5. **Operational validation** → Latency < target, memory fits budget
+6. **Generate report** → Document all metrics for reproducibility
+7. **Test on Part 6** → Run anomaly detection algorithms, measure F1 score
 
 ### Code: Automated Quality Report
 
@@ -1135,13 +1154,51 @@ report = generate_embedding_quality_report(all_embeddings[:600], labels_subset)
 
 ## Summary
 
-In this part, you learned:
+In this part, you learned a comprehensive two-pronged approach to evaluating embedding quality before production deployment:
 
-1. **Visualization techniques** (t-SNE, UMAP) for exploring embedding space
-2. **Cluster quality metrics** (Silhouette, Davies-Bouldin, Calinski-Harabasz)
-3. **Robustness evaluation** through perturbation stability
-4. **Downstream task performance** using k-NN classification
-5. **Automated quality reporting** for production readiness
+### Quantitative Evaluation (Automated Metrics)
+
+1. **Cluster Quality Metrics**:
+   - Silhouette Score (target: > 0.5) - measures separation between clusters
+   - Davies-Bouldin Index (target: < 1.0) - measures cluster overlap
+   - Calinski-Harabasz Score - ratio of between/within cluster variance
+   - How to choose optimal number of clusters (k) using multiple metrics
+
+2. **Robustness Testing**:
+   - Perturbation stability (target: > 0.92) - ensures embeddings handle noise
+   - How to interpret stability scores and fix fragile embeddings
+
+3. **Downstream Task Performance**:
+   - k-NN classification as proxy metric (target: > 0.85 accuracy)
+   - Model comparison framework for hyperparameter tuning
+
+4. **Operational Metrics** (NEW):
+   - Inference latency measurement and optimization (target: < 50ms)
+   - Memory footprint analysis and cost implications
+   - Embedding dimensions vs performance trade-offs
+
+### Qualitative Evaluation (Manual Inspection)
+
+1. **Visualization**:
+   - t-SNE for local structure and cluster identification
+   - UMAP for global structure and faster processing
+   - How to interpret plots and spot problems (blobs, random scatter, mixed classes)
+
+2. **Nearest Neighbor Inspection** (NEW):
+   - Manually verify k nearest neighbors are semantically similar
+   - Catch semantic failures metrics miss (e.g., model confusing success/failure)
+   - Common failure patterns in security data
+
+3. **Semantic Failure Detection**:
+   - Test edge cases critical for security (brute force vs normal login)
+   - Verify model preserves important distinctions (status, severity, user behavior)
+
+### Key Takeaways
+
+- **Use both approaches**: Numbers don't tell the whole story - you must look at the data
+- **Security-specific concerns**: Check that critical security distinctions (success/failure, privilege levels) are preserved
+- **Production readiness**: Balance quality, latency, and cost before deploying
+- **Iterative process**: If embeddings fail evaluation, go back to Parts 3-4 (feature engineering, training)
 
 **Next**: In [Part 6](part6-anomaly-detection), we'll use these validated embeddings to detect anomalies using various algorithms (LOF, Isolation Forest, distance-based methods).
 
