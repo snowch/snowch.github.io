@@ -27,7 +27,7 @@ For tabular data, we use two main self-supervised approaches:
 
 ## The Training Strategy
 
-Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper:
+Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper {cite}`huang2020tabtransformer`:
 
 ### 1. Masked Feature Prediction (MFP)
 
@@ -39,6 +39,14 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 - Train the model to predict the masked values: `user_id = 12345`, `duration = 5.2`
 
 **Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
+
+**What we're implementing**: A masked feature prediction loss function that:
+1. Randomly masks 15% of features (both categorical and numerical)
+2. Feeds masked input through TabularResNet to get embeddings
+3. Uses prediction heads to reconstruct the masked values
+4. Computes loss only on masked positions (not on visible features)
+
+**Note**: This is a simplified example. Full implementation requires adding `categorical_predictors` and `numerical_predictors` to your TabularResNet model (linear layers that project embeddings back to feature space).
 
 **Practical code example**:
 
@@ -68,6 +76,16 @@ def masked_feature_prediction_loss(model, numerical, categorical):
     return loss
 ```
 
+**Pitfalls**:
+- **Undefined prediction heads**: The code above assumes `model.categorical_predictors()` exists. You need to add these as linear layers to TabularResNet
+- **Masking strategy**: Masking 15% works well for BERT-style models, but may need tuning for tabular data. Too low (5%) → easy task, model doesn't learn much. Too high (40%) → impossible task, model can't learn
+- **Numerical feature masking**: The example only masks categoricals. For numerical features, replace with mean/zero or use a separate [MASK] token
+
+**Further implementation needed**: To use MFP in production:
+1. Add prediction heads to TabularResNet (see complete model in next section)
+2. Implement numerical feature masking
+3. Combine MFP loss with contrastive loss for better representations
+
 ### 2. Contrastive Learning
 
 **The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
@@ -88,6 +106,21 @@ def masked_feature_prediction_loss(model, numerical, categorical):
 - **Negative pairs**: Augmented versions from different records (should have different embeddings)
 - **Temperature**: A parameter controlling how strictly the model enforces similarity (lower = stricter)
 - **SimCLR**: A popular contrastive learning framework we adapt for tabular data
+
+**What we're implementing**: A complete SimCLR-style contrastive learning pipeline:
+
+1. **Augmentation class** (`TabularAugmentation`):
+   - Adds Gaussian noise to numerical features (e.g., `bytes: 1024` → `bytes: 1038`)
+   - Randomly swaps categorical values (e.g., `status: success` → `status: failure` with 20% probability)
+   - Creates two independent augmented views of each record
+
+2. **Contrastive loss function** (`contrastive_loss`):
+   - Generates two augmented views per sample
+   - Computes embeddings for all views
+   - Normalizes embeddings (critical for cosine similarity)
+   - Computes similarity matrix between all pairs
+   - Applies softmax with temperature scaling
+   - Uses cross-entropy loss to pull positive pairs together, push negatives apart
 
 **Implementation**:
 
@@ -186,6 +219,62 @@ def contrastive_loss(model, numerical, categorical, cardinalities,
 print("Contrastive learning setup complete")
 print("Use contrastive_loss() with your TabularResNet model for self-supervised training")
 ```
+
+**How the contrastive loss works step-by-step**:
+
+1. **Augmentation** (lines 149-156):
+   - Original batch of 64 records → augment twice → 2 views of 64 records each
+   - Each view sees slightly different data (noise + dropout)
+
+2. **Embedding** (lines 151, 156):
+   - Pass both views through TabularResNet → get embeddings
+   - Each embedding is a dense vector (e.g., 256-dimensional)
+
+3. **Normalization** (line 162):
+   - Normalize embeddings to unit vectors: `embedding / ||embedding||`
+   - Critical for using cosine similarity ([PyTorch F.normalize docs](https://pytorch.org/docs/stable/generated/torch.nn.functional.normalize.html))
+
+4. **Similarity matrix** (line 165):
+   - Compute dot product between all pairs: `embeddings @ embeddings.T`
+   - Results in (128, 128) matrix where entry (i,j) = similarity between sample i and j
+   - Divide by temperature (0.07) to scale similarities ([SimCLR paper](https://arxiv.org/abs/2002.05709) for temperature explanation)
+
+5. **Positive pair labels** (lines 169-172):
+   - For sample i in first view, its positive pair is sample i in second view (index i + batch_size)
+   - For sample i in second view, its positive pair is sample i in first view (index i - batch_size)
+
+6. **Cross-entropy loss** (line 180):
+   - Treat as classification: for each sample, predict which of the 127 other samples is its positive pair
+   - Loss pulls positive pairs together, pushes negatives apart
+   - Uses [PyTorch cross_entropy](https://pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy.html)
+
+**Hyperparameter tuning**:
+- **noise_level** (default 0.1): Controls augmentation strength for numerical features
+  - Too low (0.01) → views too similar, model learns shortcuts (e.g., memorizes noise patterns)
+  - Too high (0.5) → views too different, positive pairs appear as negatives
+  - Start with 0.1 and adjust based on validation performance
+
+- **dropout_prob** (default 0.2): Probability of swapping categorical values
+  - Higher values create more diverse augmentations but risk semantic changes
+  - For security logs, keep low (0.1-0.2) to avoid changing event meaning
+
+- **temperature** (default 0.07): Controls similarity scaling
+  - Lower (0.01) → sharper gradients, model focuses on hardest negatives
+  - Higher (0.5) → softer gradients, model considers all negatives equally
+  - SimCLR paper found 0.07 works best empirically
+
+**Pitfalls**:
+- **Batch size matters**: Contrastive learning needs large batches (256-1024) to provide enough negative samples. Small batches (32) don't work well - model has too few negatives to learn from
+- **GPU memory**: Large batches require lots of memory. If OOM, use gradient accumulation or reduce model size
+- **Augmentation quality**: Bad augmentations break contrastive learning. For OCSF data, avoid changing security-critical fields (e.g., don't swap `status: success` ↔ `status: failure` randomly)
+- **Computational cost**: Computing similarity matrix is O(batch_size²). With batch_size=1024, that's 1M similarity computations per step
+
+**Further reading**:
+- [SimCLR paper](https://arxiv.org/abs/2002.05709) - Original contrastive learning framework
+- [PyTorch contrastive learning tutorial](https://pytorch.org/tutorials/beginner/introyt/trainingyt.html) - General training patterns
+- [Temperature in contrastive learning](https://arxiv.org/abs/2005.04966) - Deep dive on temperature parameter
+
+---
 
 ## Complete Training Loop
 
@@ -291,6 +380,81 @@ print(f"Numerical features: {num_numerical}")
 print(f"Categorical features: {num_categorical}")
 print(f"Ready for self-supervised training")
 ```
+
+**What this training loop does**:
+
+1. **OCSFDataset class** (lines 291-308):
+   - Wraps numerical and categorical arrays as a PyTorch Dataset
+   - Converts numpy arrays to tensors (FloatTensor for numerical, LongTensor for categorical)
+   - Enables batch loading with [DataLoader](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader)
+
+2. **train_self_supervised function** (lines 310-358):
+   - Main training loop that runs for `num_epochs` iterations
+   - Each epoch: iterate through all batches, compute loss, backpropagate, update weights
+   - Uses [optimizer.zero_grad()](https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html) to clear gradients before each step
+   - Uses [loss.backward()](https://pytorch.org/docs/stable/generated/torch.Tensor.backward.html) to compute gradients
+   - Uses [optimizer.step()](https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.step.html) to update model weights
+
+3. **Example usage** (lines 360-382):
+   - Creates dummy data matching OCSF structure (50 numerical features, 4 categorical)
+   - Wraps in Dataset and DataLoader with batch_size=256
+   - Ready to call `train_self_supervised(model, dataloader, optimizer, ...)`
+
+**What to monitor during training**:
+
+- **Loss curve**: Should decrease steadily. If it plateaus after 10 epochs, try:
+  - Increase learning rate (from 1e-4 to 1e-3)
+  - Increase batch size (from 256 to 512)
+  - Add more augmentation (increase noise_level from 0.1 to 0.15)
+
+- **GPU utilization**: Should be >80% during training. Low utilization means:
+  - Batch size too small → increase batch size
+  - Data loading bottleneck → increase `num_workers` in DataLoader
+  - CPU preprocessing slow → preprocess data once before training
+
+- **Memory usage**: If you hit OOM (out of memory):
+  - Reduce batch_size (from 512 to 256)
+  - Reduce d_model (from 512 to 256)
+  - Reduce num_blocks (from 8 to 6)
+  - Use mixed precision training ([torch.cuda.amp](https://pytorch.org/docs/stable/amp.html))
+
+**Typical training time**:
+- **10K OCSF events**: ~5 minutes on CPU, ~1 minute on GPU
+- **1M events**: ~2 hours on GPU (batch_size=512, num_epochs=50)
+- **10M events**: ~20 hours on GPU or use distributed training
+
+**Pitfalls**:
+- **No validation set**: The example trains on all data without a validation split. For production, split 80/20 train/val and monitor validation loss to detect overfitting
+- **Fixed epochs**: Training for exactly 50 epochs may under/overfit. Use early stopping: stop when validation loss stops decreasing for 5 epochs
+- **No checkpointing**: If training crashes at epoch 45, you lose everything. Save model checkpoint every 10 epochs using [torch.save()](https://pytorch.org/docs/stable/generated/torch.save.html)
+- **Hardcoded device**: Code assumes CPU. For GPU training, change `device='cuda'` and ensure data is on same device
+
+**Production training script** (recommended additions):
+```python
+# Early stopping
+best_val_loss = float('inf')
+patience = 5
+patience_counter = 0
+
+for epoch in range(num_epochs):
+    # ... training code ...
+
+    # Validate
+    val_loss = validate(model, val_dataloader)
+
+    # Early stopping
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        patience_counter = 0
+        torch.save(model.state_dict(), 'best_model.pth')
+    else:
+        patience_counter += 1
+        if patience_counter >= patience:
+            print(f"Early stopping at epoch {epoch}")
+            break
+```
+
+---
 
 ## Training Best Practices
 
