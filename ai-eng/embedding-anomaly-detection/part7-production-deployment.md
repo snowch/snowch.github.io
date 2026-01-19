@@ -27,6 +27,8 @@ We'll use industry-standard tools for production ML deployment:
 - **Prometheus/Grafana**: Monitoring stack for tracking system metrics and performance.
 - **Kafka**: Distributed streaming platform for handling OCSF event streams at scale.
 
+---
+
 ## Deployment Architecture
 
 ### System Components

@@ -38,6 +38,8 @@ Before diving into detection methods, let's define the key concepts:
 
 - **Contamination**: The expected proportion of anomalies in your data (e.g., 0.1 = 10% anomalies). Used to set detection thresholds.
 
+---
+
 ## Overview of Anomaly Detection Methods
 
 Once you have high-quality embeddings, you can detect anomalies using a **vector database** as the central retrieval layer plus multiple scoring algorithms:

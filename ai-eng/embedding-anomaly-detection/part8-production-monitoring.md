@@ -33,6 +33,8 @@ Understanding these terms is essential for production ML operations:
 
 - **Embedding drift**: When embedding distributions shift, indicating the embedding model's internal representations have changed due to input changes. Requires retraining the embedding model.
 
+---
+
 ## Monitoring Overview
 
 Production ML systems degrade over time due to:
