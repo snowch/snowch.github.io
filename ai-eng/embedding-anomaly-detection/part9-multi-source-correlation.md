@@ -1252,6 +1252,203 @@ simulate_agentic_investigation()
 
 ---
 
+### Agentic Multi-Step Operational Issue Detection
+
+The agentic approach also handles **multi-step operational failure sequences** without needing an LSTM model (as described in Part 6). Here's how it detects cascading system failures where individual events look normal:
+
+#### Scenario: Memory Leak Leading to Service Degradation
+
+**Failure sequence** (each step appears normal individually):
+1. **14:00** - New deployment completes successfully (normal)
+2. **14:15** - Memory usage slightly elevated (within normal range, but unusual trend)
+3. **14:30** - Garbage collection frequency increases (borderline concerning)
+4. **14:45** - Database query latency spikes (highly suspicious)
+5. **15:00** - Connection pool exhaustion, service failure (critical)
+
+**How the agent detects this without LSTM:**
+
+```{code-cell} ipython3
+def detect_multi_step_operational_failure(event_sequence):
+    """
+    Demonstrate agentic detection of cascading operational failures.
+
+    Unlike LSTM (which needs training on labeled sequences),
+    the agent uses semantic search and reasoning.
+    """
+    print("="*70)
+    print("AGENTIC MULTI-STEP OPERATIONAL FAILURE DETECTION")
+    print("="*70)
+
+    # Events in the sequence
+    events = [
+        {'time': '14:00', 'event': 'deployment_completed', 'service': 'payment-api',
+         'version': 'v2.5.0', 'anomaly_score': 0.1},  # Normal
+        {'time': '14:15', 'event': 'memory_usage_elevated', 'service': 'payment-api',
+         'heap_used_gb': 3.2, 'heap_limit_gb': 4.0, 'anomaly_score': 0.3},  # Borderline
+        {'time': '14:30', 'event': 'gc_pressure_increasing', 'service': 'payment-api',
+         'gc_frequency_per_min': 45, 'anomaly_score': 0.5},  # Suspicious
+        {'time': '14:45', 'event': 'query_latency_spike', 'service': 'payment-db',
+         'p95_latency_ms': 2500, 'anomaly_score': 0.7},  # Very suspicious
+        {'time': '15:00', 'event': 'connection_pool_exhaustion', 'service': 'payment-api',
+         'active_connections': 100, 'pool_limit': 100, 'anomaly_score': 0.9}  # Critical
+    ]
+
+    print("\n📊 SEQUENCE OBSERVATION:")
+    print("Detected 5 events for 'payment-api' service over 1 hour:")
+    for e in events:
+        print(f"  {e['time']}: {e['event']} (anomaly score: {e['anomaly_score']})")
+
+    print("\n🤔 AGENT REASONING (Turn 1):")
+    print("Observation: Individual events have low-to-medium anomaly scores")
+    print("Question: Are these independent issues or a cascading failure?")
+    print("Action: Search for similar event sequences in historical incidents")
+
+    print("\n🔍 SEMANTIC SEARCH (Turn 1 Results):")
+    print("Query: 'deployment → memory increase → GC pressure → query latency'")
+    print("\nFound 2 similar historical sequences:")
+    print("  ✓ Match 1 (similarity: 0.89): Memory leak in v2.4.1")
+    print("    - Service: payment-api")
+    print("    - Pattern: deploy → gradual memory growth → GC thrashing → DB timeout")
+    print("    - Root cause: Unbounded cache in new feature")
+    print("    - Resolution: Rollback to v2.4.0, fixed cache eviction")
+    print("\n  ✓ Match 2 (similarity: 0.84): Connection leak in v2.3.5")
+    print("    - Service: checkout-api")
+    print("    - Pattern: deploy → memory growth → connection pool exhaustion")
+    print("    - Root cause: Missing connection.close() in error path")
+    print("    - Resolution: Hotfix deployed, added connection monitoring")
+
+    print("\n🧠 AGENT REASONING (Turn 2):")
+    print("Hypothesis: This matches known memory leak patterns after deployment")
+    print("Confidence: 75% (strong historical similarity)")
+    print("Action: Check code changes in v2.5.0 deployment")
+
+    print("\n📋 CODE CHANGE ANALYSIS (Turn 2):")
+    print("Deployment v2.5.0 for payment-api:")
+    print("  - Feature: New customer analytics caching layer")
+    print("  - Files changed: CacheManager.java, AnalyticsService.java")
+    print("  - Cache configuration: No TTL set (PROBLEM!)")
+    print("  - Cache eviction policy: None (PROBLEM!)")
+    print("  - Expected memory impact: +500MB (but no limit enforced)")
+
+    print("\n❌ ROOT CAUSE INDICATORS:")
+    print("  1. Unbounded cache introduced in v2.5.0")
+    print("  2. Memory growth matches cache write pattern (1.2GB over 1 hour)")
+    print("  3. GC pressure correlates with heap approaching limit")
+    print("  4. DB latency spike due to GC pauses blocking queries")
+    print("  5. Connection pool exhaustion from slow query accumulation")
+
+    print("\n🤔 AGENT REASONING (Turn 3):")
+    print("Hypothesis: CONFIRMED memory leak from unbounded cache in v2.5.0")
+    print("Confidence: 95% (historical match + code analysis + metrics correlation)")
+    print("Action: Validate causal chain through metric correlation")
+
+    print("\n📊 METRIC CORRELATION VALIDATION (Turn 3):")
+    print("  - Memory growth rate: +20MB/min (started at 14:00 deployment)")
+    print("  - Cache entries: 450K items (growing linearly, no eviction)")
+    print("  - GC time: 15% → 45% of CPU time (thrashing)")
+    print("  - Query latency: Correlates with GC pause events (r=0.92)")
+    print("  - Connection pool: Exhausted due to slow query pile-up")
+
+    print("\n" + "="*70)
+    print("🚨 FINAL DETERMINATION: CASCADING FAILURE FROM MEMORY LEAK")
+    print("="*70)
+    print("\nRoot Cause: Unbounded cache in v2.5.0 deployment")
+    print("Confidence: 95%")
+    print("\nCausal Chain:")
+    print("  1. v2.5.0 deployment introduces unbounded cache")
+    print("  2. Cache grows without eviction → memory pressure")
+    print("  3. Heap nears limit → excessive GC activity")
+    print("  4. GC pauses block database query threads → latency spike")
+    print("  5. Slow queries accumulate → connection pool exhaustion")
+    print("  6. Service becomes unresponsive (all connections blocked)")
+    print("\n🚦 RECOMMENDED ACTIONS:")
+    print("  1. IMMEDIATE: Rollback payment-api to v2.4.0")
+    print("  2. IMMEDIATE: Restart payment-api instances to clear heap")
+    print("  3. HIGH PRIORITY: Add cache size limit and TTL to v2.5.1")
+    print("  4. HIGH PRIORITY: Add heap usage alerts (>80% = warning)")
+    print("  5. MEDIUM PRIORITY: Review all caching code for similar issues")
+    print("  6. MEDIUM PRIORITY: Add load testing for memory growth scenarios")
+    print("="*70)
+
+detect_multi_step_operational_failure([])
+```
+
+#### Key Advantages Over LSTM for Multi-Step Detection
+
+**1. No Training Required**
+```python
+# LSTM approach:
+# - Need 1000s of labeled attack sequences
+# - Retrain when attack patterns evolve
+# - Separate model to maintain
+
+# Agentic approach:
+# - Uses existing vector DB with historical incidents
+# - Learns from postmortems (natural language)
+# - No separate model to train/deploy
+```
+
+**2. Robust to Timing Variations**
+```python
+# LSTM trained on: deployment → (15 min) → memory spike → (30 min) → GC pressure
+# Actual leak: deployment → (2 hours) → memory spike → (10 min) → GC pressure
+# → LSTM may miss (timing signature different - slow leak vs. fast leak)
+
+# Agent approach:
+# → Semantic search finds "deployment + memory_growth + gc_pressure + query_latency"
+#    regardless of exact timing intervals
+# → Focuses on event sequence and causal relationships, not precise timing
+```
+
+**3. Explainable Reasoning**
+```python
+# LSTM output:
+# - anomaly_score = 0.87  (why? ¯\_(ツ)_/¯)
+
+# Agent output:
+# - "This sequence matches historical memory leak incident #127 (89% similar)"
+# - "Unbounded cache introduced in v2.5.0 deployment"
+# - "Memory growth rate +20MB/min exceeds normal baseline"
+# → Operations team can validate and take informed action (rollback)
+```
+
+**4. Incorporates System Knowledge**
+```python
+# LSTM: Purely statistical
+# - Can't know that "Unbounded cache causes memory leaks"
+
+# Agent: Reasons about system behavior
+# - Checks deployment changes, resource limits, normal patterns
+# - Validates against operational best practices (e.g., all caches need eviction)
+```
+
+**5. One-Shot Learning**
+```python
+# LSTM: Needs many examples
+# - "Give me 500 examples of memory leak sequences"
+
+# Agent: Works with few examples
+# - "Found 2 similar incidents, both were unbounded cache issues"
+# - Enough to raise confidence and trigger investigation
+```
+
+#### When LSTM Still Makes Sense for Sequences
+
+Despite these advantages, LSTM has niche use cases:
+
+| Aspect | LSTM | Agentic |
+|--------|------|---------|
+| **Latency** | 1-10ms | 30-60s |
+| **Training Data** | Needs 1000s of sequences | Works with 10s of incidents |
+| **Interpretability** | Black box | Full reasoning trace |
+| **System Knowledge** | Can't incorporate | Native support |
+| **Pattern Type** | Statistical regularities | Semantic + contextual |
+| **Best For** | High-frequency protocol anomalies, network packet patterns | Cascading failures, resource leaks, configuration errors |
+
+**Recommendation**: For observability use cases (cascading failures, memory/connection leaks, performance degradation), prefer the agentic approach. Reserve LSTM for ultra-low-latency applications or purely statistical pattern detection.
+
+---
+
 ## Step 6: End-to-End Example Workflow
 
 Let's walk through a complete example: A production incident triggered by a deployment.
