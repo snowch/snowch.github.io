@@ -1156,6 +1156,24 @@ report = generate_embedding_quality_report(all_embeddings[:600], labels_subset)
 
 In this part, you learned a comprehensive two-pronged approach to evaluating embedding quality before production deployment:
 
+### Qualitative Evaluation (Manual Inspection)
+
+1. **Visualization**:
+   - t-SNE for local structure and cluster identification
+   - UMAP for global structure and faster processing
+   - How to interpret plots and spot problems (blobs, random scatter, mixed classes)
+   - Hyperparameter tuning (perplexity for t-SNE, n_neighbors for UMAP)
+
+2. **Nearest Neighbor Inspection** (NEW):
+   - Manually verify k nearest neighbors are semantically similar
+   - Catch semantic failures metrics miss (e.g., model confusing success/failure)
+   - Common failure patterns in security data
+   - Action items when neighbors look wrong
+
+3. **Semantic Failure Detection**:
+   - Test edge cases critical for security (brute force vs normal login)
+   - Verify model preserves important distinctions (status, severity, user behavior)
+
 ### Quantitative Evaluation (Automated Metrics)
 
 1. **Cluster Quality Metrics**:
@@ -1167,6 +1185,7 @@ In this part, you learned a comprehensive two-pronged approach to evaluating emb
 2. **Robustness Testing**:
    - Perturbation stability (target: > 0.92) - ensures embeddings handle noise
    - How to interpret stability scores and fix fragile embeddings
+   - What to do when stability is too high or too low
 
 3. **Downstream Task Performance**:
    - k-NN classification as proxy metric (target: > 0.85 accuracy)
@@ -1176,22 +1195,6 @@ In this part, you learned a comprehensive two-pronged approach to evaluating emb
    - Inference latency measurement and optimization (target: < 50ms)
    - Memory footprint analysis and cost implications
    - Embedding dimensions vs performance trade-offs
-
-### Qualitative Evaluation (Manual Inspection)
-
-1. **Visualization**:
-   - t-SNE for local structure and cluster identification
-   - UMAP for global structure and faster processing
-   - How to interpret plots and spot problems (blobs, random scatter, mixed classes)
-
-2. **Nearest Neighbor Inspection** (NEW):
-   - Manually verify k nearest neighbors are semantically similar
-   - Catch semantic failures metrics miss (e.g., model confusing success/failure)
-   - Common failure patterns in security data
-
-3. **Semantic Failure Detection**:
-   - Test edge cases critical for security (brute force vs normal login)
-   - Verify model preserves important distinctions (status, severity, user behavior)
 
 ### Key Takeaways
 
