@@ -255,7 +255,7 @@ plt.show()
 
 **Implementation**:
 
-```{code-cell}
+```{code-block} python
 :linenos:
 :emphasize-lines: 56-63, 69, 72, 76-79, 87
 
