@@ -15,6 +15,8 @@ bibliography:
 
 Learn how to transform raw OCSF security logs into the feature arrays that TabularResNet expects.
 
+**Note**: If you don't have OCSF observability data to work with, see [Appendix: Generating Training Data](appendix-generating-training-data) to learn how to spin up a Docker Compose stack that generates realistic logs, metrics, and traces with labeled anomalies.
+
 **The challenge**: You have raw OCSF JSON events with nested fields, optional values, and 300+ possible attributes. TabularResNet needs clean numerical and categorical arrays. This part bridges that gap.
 
 **What you'll learn**:
