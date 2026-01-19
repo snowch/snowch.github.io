@@ -43,9 +43,10 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 
 **How it works**:
 1. **For every record** in your training data, create two augmented versions
-2. Apply random noise: add ±5% to numerical features, randomly swap 10-20% of categorical values
-3. Train the model so the two augmented versions have **similar embeddings** (they're "positive pairs")
-4. Meanwhile, ensure embeddings from different original records stay **far apart** (they're "negative pairs")
+2. **Apply random noise**: add ±5% to numerical features, randomly swap 10-20% of categorical values
+3. **Pass through encoder**: Feed the augmented versions through the model (encoder `f(·)`) to get embeddings
+4. **Train the model** so the two augmented versions have **similar embeddings** (they're "positive pairs")
+5. **Meanwhile**, ensure embeddings from different original records stay **far apart** (they're "negative pairs")
 
 **Key point**: We augment **every single record** in the batch, creating exactly **2 augmented copies per record**. With a batch size of 256, we get 512 augmented samples (256 pairs).
 
