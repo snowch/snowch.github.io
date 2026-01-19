@@ -66,6 +66,15 @@ jobs:
           BASE_URL: ${{ steps.pages.outputs.base_path == '/' && '' || steps.pages.outputs.base_path }}
         run: myst build --html --execute
 
+      - name: Generate downloadable code archives
+        run: |
+          # Create zip for embedding appendix code
+          cd ai-eng/embedding-anomaly-detection
+          zip -r appendix-code.zip appendix-code/
+          mkdir -p ../../_build/html/ai-eng/embedding-anomaly-detection
+          mv appendix-code.zip ../../_build/html/ai-eng/embedding-anomaly-detection/
+          cd ../..
+
       - name: Generate sitemap and robots.txt
         run: python generate_sitemap.py
 

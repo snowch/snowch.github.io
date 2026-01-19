@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # Application Services
+  web-api:
+    build: ./services/web-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/appdb
+      - REDIS_URL=redis://redis:6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - postgres
+      - redis
+      - auth-service
+    labels:
+      - "monitoring=enabled"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: web-api
+
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - LDAP_URL=ldap://openldap:389
+    labels:
+      - "monitoring=enabled"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: auth-service
+
+  payment-worker:
+    build: ./services/payment-worker
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/appdb
+    depends_on:
+      - redis
+      - postgres
+    labels:
+      - "monitoring=enabled"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: payment-worker
+
+  # Data Stores
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=appdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    labels:
+      - "monitoring=enabled"
+
+  redis:
+    image: redis:7-alpine
+    labels:
+      - "monitoring=enabled"
+
+  # Observability Stack
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    volumes:
+      - ./config/otel-collector-config.yml:/etc/otel/config.yml
+    ports:
+      - "4317:4317"  # OTLP gRPC
+      - "4318:4318"  # OTLP HTTP
+    command: ["--config=/etc/otel/config.yml"]
+
+  fluentd:
+    image: fluent/fluentd:latest
+    volumes:
+      - ./config/fluentd.conf:/fluentd/etc/fluent.conf
+      - ./logs:/var/log/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  # Load Generator (creates traffic patterns)
+  load-generator:
+    build: ./services/load-generator
+    depends_on:
+      - web-api
+    environment:
+      - TARGET_URL=http://web-api:8000
+      - NORMAL_RPS=10
+      - ANOMALY_PROBABILITY=0.05
+
+volumes:
+  postgres_data:
+  prometheus_data:
