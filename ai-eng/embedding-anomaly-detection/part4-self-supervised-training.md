@@ -27,7 +27,7 @@ For tabular data, we use two main self-supervised approaches:
 
 ## The Training Strategy
 
-Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper:
+Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper {cite}`huang2020tabtransformer`:
 
 ### 1. Masked Feature Prediction (MFP)
 
