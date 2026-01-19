@@ -59,87 +59,141 @@ import warnings
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import matplotlib.patches as patches
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 import numpy as np
 
-fig, ax = plt.subplots(figsize=(13, 7))
-ax.set_xlim(0, 11)
-ax.set_ylim(0, 8)
+# Color palette - light theme
+C = {
+    'bg': '#FFFFFF',
+    'card': '#F6F8FA',
+    'pos': '#0969DA',      # Blue - positive
+    'neg': '#CF222E',      # Red - negative
+    'enc': '#1A7F37',      # Green - encoder
+    'text': '#1F2328',
+    'muted': '#656D76',
+    'grid': '#D0D7DE',
+}
+
+# Compact figure
+fig, ax = plt.subplots(figsize=(10, 5), facecolor=C['bg'])
+ax.set_facecolor(C['bg'])
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 5)
 ax.axis('off')
 
-# Augmented version 1
-aug1_y = 5.5
-box1 = FancyBboxPatch((0.5, aug1_y), 3.5, 1.2,
-                      boxstyle="round,pad=0.1",
-                      edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2.5)
-ax.add_patch(box1)
-ax.text(2.25, aug1_y + 0.6, 'Augmented A₁\nuser: 12345, bytes: 1075 (+5%)\nstatus: success',
-        ha='center', va='center', fontsize=11, style='italic')
+# === LEFT: Input samples with detailed data ===
+def record_card(x, y, title, line1, line2, color):
+    box = FancyBboxPatch((x, y), 2.4, 1.0, boxstyle="round,pad=0.03,rounding_size=0.1",
+                         facecolor=C['card'], edgecolor=color, linewidth=2, zorder=2)
+    ax.add_patch(box)
+    ax.text(x+1.2, y+0.75, title, ha='center', va='center', fontsize=11,
+            fontweight='bold', color=color)
+    ax.text(x+1.2, y+0.45, line1, ha='center', va='center', fontsize=9,
+            color=C['muted'], family='monospace')
+    ax.text(x+1.2, y+0.2, line2, ha='center', va='center', fontsize=9,
+            color=C['muted'], family='monospace')
+    return (x+2.4, y+0.5)
 
-# Augmented version 2
-aug2_y = 3.5
-box2 = FancyBboxPatch((0.5, aug2_y), 3.5, 1.2,
-                      boxstyle="round,pad=0.1",
-                      edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2.5)
-ax.add_patch(box2)
-ax.text(2.25, aug2_y + 0.6, 'Augmented A₂\nuser: 12345, bytes: 973 (-5%)\nstatus: success',
-        ha='center', va='center', fontsize=11, style='italic')
+# Positive pair box
+pair_box = FancyBboxPatch((0.1, 2.0), 2.8, 2.65, boxstyle="round,pad=0.05,rounding_size=0.15",
+                          facecolor='none', edgecolor=C['pos'], linewidth=1.5,
+                          linestyle='--', alpha=0.5, zorder=1)
+ax.add_patch(pair_box)
+ax.text(1.5, 4.48, "Same Record", ha='center', va='bottom', fontsize=10, color=C['pos'], alpha=0.9)
 
-# Different record (Record B)
-record_b_y = 1
-box3 = FancyBboxPatch((0.5, record_b_y), 3.5, 1.2,
-                      boxstyle="round,pad=0.1",
-                      edgecolor='#2E86AB', facecolor='#E8F4F8', linewidth=2.5)
-ax.add_patch(box3)
-ax.text(2.25, record_b_y + 0.6, 'Record B (Different Event)\nuser: 67890, bytes: 5120\nstatus: failure',
-        ha='center', va='center', fontsize=11, weight='bold')
+# Cards with detailed data
+out1 = record_card(0.3, 3.4, "Augmented A₁", "user: 12345, bytes: 1075 (+5%)", "status: success", C['pos'])
+out2 = record_card(0.3, 2.2, "Augmented A₂", "user: 12345, bytes: 973 (-5%)", "status: success", C['pos'])
+out3 = record_card(0.3, 0.5, "Record B (Different Event)", "user: 67890, bytes: 5120", "status: failure", C['neg'])
 
-# Arrows from box edges to embeddings
-arrow_props = dict(arrowstyle='->', lw=2.5, color='#555555')
-ax.annotate('', xy=(5.8, 5.8), xytext=(4.0, aug1_y + 0.6), arrowprops=arrow_props)
-ax.annotate('', xy=(5.8, 4.8), xytext=(4.0, aug2_y + 0.6), arrowprops=arrow_props)
-ax.annotate('', xy=(8.7, 1.6), xytext=(4.0, record_b_y + 0.6), arrowprops=arrow_props)
+# === CENTER: Encoder ===
+enc_box = FancyBboxPatch((3.4, 0.3), 1.4, 4.2, boxstyle="round,pad=0.05,rounding_size=0.15",
+                         facecolor=C['card'], edgecolor=C['enc'], linewidth=2.5, zorder=2)
+ax.add_patch(enc_box)
 
-# Embedding space label
-ax.text(7.5, 7.3, 'Embedding Space', ha='center', fontsize=13, weight='bold')
+ax.text(4.1, 2.6, "f(·)", ha='center', va='center', fontsize=16,
+        fontweight='bold', color=C['enc'], zorder=4)
+ax.text(4.1, 2.1, "Encoder", ha='center', va='center', fontsize=10, color=C['muted'])
 
-# Embeddings as points
-# Positive pair (close together)
-embed_a1 = ax.scatter([6], [5.8], s=500, c='#A23B72', marker='o',
-                      edgecolors='black', linewidths=2.5, zorder=3)
-ax.text(6, 5.8, 'A₁', ha='center', va='center', fontsize=12,
-        weight='bold', color='white')
+# Arrows to encoder
+arrow_kw = dict(arrowstyle='-|>', mutation_scale=12, color=C['muted'], linewidth=1.5)
+ax.add_patch(FancyArrowPatch(out1, (3.4, 3.9), connectionstyle="arc3,rad=-0.08", **arrow_kw))
+ax.add_patch(FancyArrowPatch(out2, (3.4, 2.7), connectionstyle="arc3,rad=0", **arrow_kw))
+ax.add_patch(FancyArrowPatch(out3, (3.4, 1.0), connectionstyle="arc3,rad=0.08", **arrow_kw))
 
-embed_a2 = ax.scatter([6], [4.8], s=500, c='#A23B72', marker='o',
-                      edgecolors='black', linewidths=2.5, zorder=3)
-ax.text(6, 4.8, 'A₂', ha='center', va='center', fontsize=12,
-        weight='bold', color='white')
+# === RIGHT: Embedding space ===
+emb_box = FancyBboxPatch((5.2, 0.2), 4.6, 4.6, boxstyle="round,pad=0.05,rounding_size=0.15",
+                         facecolor=C['card'], edgecolor=C['grid'], linewidth=1.5, zorder=1)
+ax.add_patch(emb_box)
+ax.text(9.6, 4.65, "Embedding Space", ha='right', fontsize=11, fontweight='bold', color=C['muted'])
 
-# Negative (far away)
-embed_b = ax.scatter([9], [1.6], s=500, c='#F18F01', marker='o',
-                     edgecolors='black', linewidths=2.5, zorder=3)
-ax.text(9, 1.6, 'B', ha='center', va='center', fontsize=12,
-        weight='bold', color='white')
+# Grid
+for gx in np.arange(5.5, 9.6, 0.5):
+    ax.plot([gx, gx], [0.4, 4.6], color=C['grid'], linewidth=0.4, alpha=0.4)
+for gy in np.arange(0.5, 4.7, 0.5):
+    ax.plot([5.4, 9.6], [gy, gy], color=C['grid'], linewidth=0.4, alpha=0.4)
 
-# Visual indicators - both same style (solid lines)
-# Positive pair - close together (green line)
-ax.plot([5.3, 5.3], [4.6, 6.0], 'g-', linewidth=4, alpha=0.7)
-ax.text(4.6, 5.3, '✓ Close\n(Positive\nPair)', ha='center', va='center',
-        fontsize=11, color='green', weight='bold')
+# Embedding positions
+z1 = (6.5, 3.6)
+z2 = (7.0, 2.8)
+zn = (8.8, 1.2)
 
-# Negative pair - far apart (red line)
-ax.plot([6, 9], [4.8, 1.6], 'r-', linewidth=4, alpha=0.7)
-ax.text(7.7, 3, '✗ Far Apart\n(Negative Pair)', ha='center', va='center',
-        fontsize=11, color='red', weight='bold',
-        bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, pad=0.4))
+# Arrows from encoder
+ax.add_patch(FancyArrowPatch((4.8, 3.9), (z1[0]-0.3, z1[1]), connectionstyle="arc3,rad=-0.05", **arrow_kw))
+ax.add_patch(FancyArrowPatch((4.8, 2.7), (z2[0]-0.3, z2[1]), connectionstyle="arc3,rad=0", **arrow_kw))
+ax.add_patch(FancyArrowPatch((4.8, 1.0), (zn[0]-0.3, zn[1]), connectionstyle="arc3,rad=0.08", **arrow_kw))
 
-# Training objective
-ax.text(5.5, 0.3, 'Training Goal: Pull positive pairs together, push negatives apart',
-        ha='center', fontsize=12, style='italic',
-        bbox=dict(boxstyle='round', facecolor='#FFF3CD', alpha=0.9, pad=0.6))
+# Glow effects (lighter for white bg)
+for r, a in [(0.4, 0.12), (0.28, 0.2)]:
+    ax.add_patch(Circle(z1, r, facecolor=C['pos'], alpha=a, zorder=5))
+    ax.add_patch(Circle(z2, r, facecolor=C['pos'], alpha=a, zorder=5))
+    ax.add_patch(Circle(zn, r, facecolor=C['neg'], alpha=a, zorder=5))
 
-plt.tight_layout()
+# Points
+ax.scatter(*z1, s=500, c=C['pos'], edgecolors='white', linewidths=2, zorder=10)
+ax.scatter(*z2, s=500, c=C['pos'], edgecolors='white', linewidths=2, zorder=10)
+ax.scatter(*zn, s=500, c=C['neg'], edgecolors='white', linewidths=2, zorder=10)
+
+ax.text(*z1, "z₁", ha='center', va='center', fontsize=12, fontweight='bold', color='white', zorder=11)
+ax.text(*z2, "z₂", ha='center', va='center', fontsize=12, fontweight='bold', color='white', zorder=11)
+ax.text(*zn, "z⁻", ha='center', va='center', fontsize=12, fontweight='bold', color='white', zorder=11)
+
+# === FORCES ===
+# Attraction spring
+t = np.linspace(0, 1, 60)
+sx = z1[0] + (z2[0]-z1[0])*t
+sy = z1[1] + (z2[1]-z1[1])*t
+dx, dy = z2[0]-z1[0], z2[1]-z1[1]
+length = np.sqrt(dx**2 + dy**2)
+px, py = -dy/length, dx/length
+offset = 0.1 * np.sin(8 * 2 * np.pi * t)
+ax.plot(sx + offset*px, sy + offset*py, color=C['enc'], linewidth=2.5, zorder=6)
+
+# Attract label
+ax.text(6.15, 3.05, "PULL", ha='center', fontsize=10, fontweight='bold', color=C['enc'],
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor=C['enc'], linewidth=1.5))
+
+# Repulsion
+cluster = ((z1[0]+z2[0])/2, (z1[1]+z2[1])/2)
+ax.plot([cluster[0], zn[0]], [cluster[1], zn[1]], color=C['neg'], linestyle=':', linewidth=2, alpha=0.5)
+
+mid = ((cluster[0]+zn[0])/2, (cluster[1]+zn[1])/2)
+ax.annotate('', xy=(cluster[0]-0.12, cluster[1]+0.08), xytext=mid,
+            arrowprops=dict(arrowstyle='-|>', color=C['neg'], lw=2))
+ax.annotate('', xy=(zn[0]+0.12, zn[1]-0.08), xytext=mid,
+            arrowprops=dict(arrowstyle='-|>', color=C['neg'], lw=2))
+
+ax.text(mid[0]+0.5, mid[1]+0.2, "PUSH", ha='center', fontsize=10, fontweight='bold', color=C['neg'],
+        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor=C['neg'], linewidth=1.5))
+
+# === Legend ===
+ax.scatter(8.6, 4.0, s=100, c=C['pos'], edgecolors='white', linewidths=1.5)
+ax.text(8.9, 4.0, "Positive pair", fontsize=10, color=C['text'], va='center')
+ax.scatter(8.6, 3.5, s=100, c=C['neg'], edgecolors='white', linewidths=1.5)
+ax.text(8.9, 3.5, "Negative", fontsize=10, color=C['text'], va='center')
+
+plt.tight_layout(pad=0.3)
 plt.show()
 ```
 
