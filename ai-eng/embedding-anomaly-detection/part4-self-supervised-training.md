@@ -147,6 +147,32 @@ plt.show()
 
 **Why this works**: The model learns which variations in features are superficial (noise) vs meaningful (different events). Records with similar embeddings represent similar system behaviors, making it easy to detect anomalies as records with unusual embeddings.
 
+**Detailed augmentation process**:
+
+- **Q: Do we augment every data row?**
+  **A: Yes, every single record in the batch is augmented.** There's no selection process - we augment all samples.
+
+- **Q: How many augmented copies per record?**
+  **A: Exactly 2 copies per record** (called views). These are created independently with different random noise.
+  - Example: One OCSF login record → Augmented copy 1 (bytes +5%, user_id unchanged) + Augmented copy 2 (bytes -3%, user_id unchanged)
+
+- **Q: What's a typical batch size?**
+  **A: 256-512 original records per batch**, which gives you 512-1024 augmented samples.
+  - With 256 original records → 512 augmented samples (256 positive pairs + 255 × 256 = 65,280 negative pairs)
+
+- **Q: Why create 2 copies and not 3 or 5?**
+  **A: 2 copies is the standard** because:
+  - Creates one clear positive pair per original record
+  - Computationally efficient (similarity matrix is 2N × 2N)
+  - More copies would increase training time without proportional benefit
+
+- **Q: How much augmentation noise should we apply?**
+  **A: Light noise** - enough to create variation but not so much that positive pairs appear unrelated:
+  - Numerical features: ±5-15% Gaussian noise
+  - Categorical features: 10-20% random swaps
+  - Too little noise → model learns shortcuts (memorizes exact values)
+  - Too much noise → positive pairs appear as negatives (model can't learn)
+
 **Key terms**:
 - **Augmentation**: Creating slightly modified versions of data (e.g., adding noise to numerical features)
 - **Positive pairs**: Two augmented versions of the same record (should have similar embeddings)
