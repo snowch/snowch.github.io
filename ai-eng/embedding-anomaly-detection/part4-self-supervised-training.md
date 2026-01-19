@@ -631,7 +631,10 @@ plt.show()
 
 **Adding prediction heads to TabularResNet**:
 
-```python
+```{code-block} python
+:linenos:
+:emphasize-lines: 17-20, 24, 34-35, 38
+
 import torch.nn as nn
 
 class TabularResNetWithMFP(nn.Module):
@@ -696,17 +699,20 @@ print("Extended model ready for MFP training")
 
 **Understanding the prediction heads**:
 
-- **`categorical_predictors`** (lines 71-74): A `ModuleList` containing one linear layer per categorical feature
+- **`categorical_predictors`** (lines 17-20): A `ModuleList` containing one linear layer per categorical feature
   - If you have 4 categorical features with cardinalities [100, 50, 200, 1000], you get 4 linear layers:
     - Layer 0: `Linear(d_model=256, output=100)` - predicts values for categorical feature 0 (100 possible values)
     - Layer 1: `Linear(d_model=256, output=50)` - predicts values for categorical feature 1 (50 possible values)
     - Layer 2: `Linear(d_model=256, output=200)` - predicts values for categorical feature 2
     - Layer 3: `Linear(d_model=256, output=1000)` - predicts values for categorical feature 3
   - Each layer takes the embedding (256-dim) and outputs logits for that feature's vocabulary
+  - Line 34: Uses list comprehension to apply each predictor to the embedding
+  - Line 35: Stacks predictions into a single tensor of shape `(batch, num_categorical, vocab_size)`
 
-- **`numerical_predictor`** (line 78): A single linear layer for all numerical features
+- **`numerical_predictor`** (line 24): A single linear layer for all numerical features
   - If you have 50 numerical features: `Linear(d_model=256, output=50)`
   - Takes embedding (256-dim) and outputs predictions for all 50 numerical values at once
+  - Line 38: Single forward pass predicts all numerical features simultaneously
   - Uses MSE loss (continuous values), not cross-entropy
 
 **Complete MFP loss with both categorical and numerical masking**:
