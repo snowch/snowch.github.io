@@ -26,6 +26,8 @@ The Gorishniy et al. (2021) paper "Revisiting Deep Learning Models for Tabular D
 3. **Better computational efficiency**: $O(n \cdot d)$ vs. $O(d^2)$ for Transformers with $d$ features
 4. **Strong baseline**: Should be tried before more complex models
 
+---
+
 ## Key Terminology
 
 Before diving into the architecture, let's define some terms specific to tabular deep learning:
@@ -40,6 +42,8 @@ Before diving into the architecture, let's define some terms specific to tabular
 
 - **Dropout**: Randomly sets a percentage of features to zero during training to prevent overfitting. It's like forcing the network to learn multiple ways to make predictions rather than relying on specific feature combinations.
 
+---
+
 ## Key Differences from Image ResNet
 
 **Note**: If you're familiar with Image ResNets (originally designed for computer vision), you'll notice several key adaptations for tabular data. If you're new to ResNet, don't worry - the core concept (skip connections enabling deep networks) is the same, as explained in Part 1.
@@ -52,6 +56,8 @@ For tabular data, we need to modify:
 4. **Adjust normalization**: BatchNorm1d or LayerNorm for 1D tabular features (not 2D images)
 5. **Add dropout** for regularization (more important for tabular data than images)
 6. **Extract embeddings** for downstream tasks (anomaly detection, clustering)
+
+---
 
 ## Architecture for Tabular Data
 
@@ -125,6 +131,8 @@ graph TB
 
 **Note**: Each residual block contains an internal skip connection (not shown in this high-level diagram for clarity).
 
+
+---
 
 ## Tabular Residual Block
 
@@ -202,6 +210,8 @@ print(f"Input shape: {x.shape}")
 print(f"Output shape: {output.shape}")
 print("Tabular residual block works! ✓")
 ```
+
+---
 
 ## Complete Tabular ResNet with Embeddings
 
@@ -419,6 +429,8 @@ configs = [
 - **Too slow to train**? → Decrease `num_blocks` or `d_model`
 
 **What NOT to tune:** `num_numerical_features` and `categorical_cardinalities` are determined by your data schema, and `num_classes` is determined by your task (None for anomaly detection).
+
+---
 
 ## Design Considerations for OCSF Data
 
