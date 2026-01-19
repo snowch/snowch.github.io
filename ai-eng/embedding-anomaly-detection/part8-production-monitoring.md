@@ -708,6 +708,9 @@ Across this 8-part series, you've learned:
 - Compare with Transformer-based approaches
 - Contribute improvements back to the community
 
+**Advanced Topics:**
+For teams that need to correlate anomalies across multiple observability data sources (logs, metrics, traces, configuration changes) for automated root cause analysis, see [Part 9: Multi-Source Correlation for Root Cause Analysis](part9-multi-source-correlation). This optional advanced topic extends the embedding-based approach to build causal graphs and identify root causes across your entire observability stack.
+
 ---
 
 ## References

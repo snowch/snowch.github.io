@@ -11,18 +11,22 @@ bibliography:
   - references.bib
 ---
 
-# Part 9: Multi-Source Correlation for Root Cause Analysis [DRAFT]
+# Part 9: Multi-Source Correlation for Root Cause Analysis
 
 **Advanced Topic** · 50 min read
 
-In the previous parts, we built an anomaly detection system for a single data source (OCSF security logs). However, production observability requires correlating anomalies across **multiple data sources** to identify root causes:
+**Note**: This is an optional advanced extension to the core series ([Parts 1-8](part1-resnet-foundations)). The core series provides a complete, production-ready anomaly detection system for a single data source. This part extends that foundation for teams that need cross-source root cause analysis.
+
+---
+
+In Parts 1-8, we built an anomaly detection system for a single data source (OCSF security logs). However, advanced production observability often requires correlating anomalies across **multiple data sources** to identify root causes:
 
 - **Logs**: Application errors, security events, audit trails
 - **Metrics**: CPU usage, memory, latency, error rates
 - **Traces**: Distributed transaction spans, service dependencies
 - **Configuration**: Deployment events, config changes, feature flags
 
-This part shows how to extend our embedding-based approach to correlate anomalies across these sources and identify fault root causes.
+This part shows how to extend our embedding-based approach to correlate anomalies across these sources and automatically identify fault root causes through causal graph analysis.
 
 ---
 
@@ -1474,14 +1478,18 @@ Before deploying multi-source RCA:
 
 ## What's Next?
 
-This completes the tutorial series on embedding-based anomaly detection. You now have a complete system that:
+This advanced topic extends the core series ([Parts 1-8](part1-resnet-foundations)) with multi-source root cause analysis capabilities. You now have a complete system that:
 
+**Core System (Parts 1-8)**:
 1. Trains custom embedding models on observability data (Parts 1-3)
-2. Validates embedding quality (Part 5)
-3. Detects anomalies using vector database operations (Part 6)
-4. Deploys to production (Part 7)
-5. Monitors and maintains the system (Part 8)
-6. Correlates across multiple sources for root cause analysis (Part 9)
+2. Uses self-supervised learning on unlabeled data (Part 4)
+3. Validates embedding quality (Part 5)
+4. Detects anomalies using vector database operations (Part 6)
+5. Deploys to production (Part 7)
+6. Monitors and maintains the system (Part 8)
+
+**Advanced Extension (Part 9)**:
+7. Correlates across multiple sources for root cause analysis
 
 ### Further Reading
 
