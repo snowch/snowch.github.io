@@ -213,7 +213,10 @@ plt.show()
 
 - **Q: What's a typical batch size?**
   **A: 256-512 original records per batch**, which gives you 512-1024 augmented samples.
-  - With 256 original records → 512 augmented samples (256 positive pairs + 255 × 256 = 65,280 negative pairs)
+  - With 256 original records → 512 augmented samples total
+  - This creates **256 positive pairs** (one pair per original record)
+  - Each augmented sample contrasts against **510 negatives** (all 512 samples except itself and its positive pair)
+  - Total: each sample learns from 1 positive and 510 negatives
 
 - **Q: Why create 2 copies and not 3 or 5?**
   **A: 2 copies is the standard** because:
