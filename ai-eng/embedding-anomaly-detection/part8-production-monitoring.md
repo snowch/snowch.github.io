@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 8: Production Monitoring [DRAFT]
+# Part 8: Production Monitoring
 
 Monitor your production anomaly detection system for drift, performance degradation, and operational health.
 
