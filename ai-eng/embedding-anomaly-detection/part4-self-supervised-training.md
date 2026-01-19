@@ -15,6 +15,8 @@ bibliography:
 
 Learn how to train TabularResNet on unlabelled OCSF data using self-supervised learning techniques.
 
+**Note**: Need OCSF data for training? See [Appendix: Generating Training Data](appendix-generating-training-data) for a Docker Compose setup that generates ~72,000 realistic observability events with labeled anomalies.
+
 ## What is Self-Supervised Learning?
 
 **The challenge**: You have millions of OCSF security logs but no labels telling you which are "normal" vs "anomalous". Traditional supervised learning requires labeled data (e.g., "this event is malicious"), which is expensive and often unavailable for new anomaly types.
