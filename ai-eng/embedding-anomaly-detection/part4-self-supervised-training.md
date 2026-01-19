@@ -29,206 +29,7 @@ For tabular data, we use two main self-supervised approaches:
 
 Since your observability data is **unlabelled**, you need self-supervised learning. Two effective approaches from the TabTransformer paper {cite}`huang2020tabtransformer`:
 
-### 1. Masked Feature Prediction (MFP)
-
-**The idea**: Hide some features in your data and train the model to predict what's missing.
-
-**How it works**:
-- Take an OCSF record: `{user_id: 12345, status: success, bytes: 1024, duration: 5.2}`
-- Randomly mask 15% of features: `{user_id: [MASK], status: success, bytes: 1024, duration: [MASK]}`
-- Train the model to predict the masked values: `user_id = 12345`, `duration = 5.2`
-
-**Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
-
-**What MFP requires**:
-1. **Model extension**: Add prediction heads to TabularResNet (linear layers that project embeddings → original feature space)
-2. **Masking logic**: Randomly hide 15% of features (both categorical and numerical)
-3. **Loss computation**: Cross-entropy for categoricals, MSE for numericals, computed only on masked positions
-
-**Note**: The base TabularResNet from Part 2 doesn't include prediction heads. The complete implementation below shows how to extend it with `categorical_predictors` (ModuleList of linear layers, one per categorical feature) and `numerical_predictor` (single linear layer for all numerical features).
-
-### Complete MFP Implementation
-
-**Adding prediction heads to TabularResNet**:
-
-```python
-import torch.nn as nn
-
-class TabularResNetWithMFP(nn.Module):
-    """
-    TabularResNet extended with Masked Feature Prediction heads.
-
-    Adds linear layers to project embeddings back to feature space
-    for reconstructing masked values.
-    """
-    def __init__(self, base_model, categorical_cardinalities, num_numerical):
-        super().__init__()
-        self.base_model = base_model  # Original TabularResNet
-        self.d_model = base_model.d_model
-
-        # Prediction heads for categorical features
-        # One linear layer per categorical feature
-        self.categorical_predictors = nn.ModuleList([
-            nn.Linear(self.d_model, cardinality)
-            for cardinality in categorical_cardinalities
-        ])
-
-        # Prediction head for numerical features
-        # Single linear layer outputting all numerical features
-        self.numerical_predictor = nn.Linear(self.d_model, num_numerical)
-
-    def forward(self, numerical, categorical, return_embedding=False):
-        # Get embedding from base model
-        embedding = self.base_model(numerical, categorical, return_embedding=True)
-
-        if return_embedding:
-            return embedding
-
-        # Predict categorical features (for MFP training)
-        cat_predictions = [pred(embedding) for pred in self.categorical_predictors]
-        cat_predictions = torch.stack(cat_predictions, dim=1)  # (batch, num_cat, vocab_size)
-
-        # Predict numerical features (for MFP training)
-        num_predictions = self.numerical_predictor(embedding)  # (batch, num_numerical)
-
-        return cat_predictions, num_predictions
-
-# Usage example
-from part2 import TabularResNet  # Import from Part 2
-
-# Create base model
-base_model = TabularResNet(
-    num_numerical_features=50,
-    categorical_cardinalities=[100, 50, 200, 1000],
-    d_model=256,
-    num_blocks=6
-)
-
-# Extend with MFP heads
-model_with_mfp = TabularResNetWithMFP(
-    base_model=base_model,
-    categorical_cardinalities=[100, 50, 200, 1000],
-    num_numerical=50
-)
-
-print("Extended model ready for MFP training")
-```
-
-**Understanding the prediction heads**:
-
-- **`categorical_predictors`** (lines 71-74): A `ModuleList` containing one linear layer per categorical feature
-  - If you have 4 categorical features with cardinalities [100, 50, 200, 1000], you get 4 linear layers:
-    - Layer 0: `Linear(d_model=256, output=100)` - predicts values for categorical feature 0 (100 possible values)
-    - Layer 1: `Linear(d_model=256, output=50)` - predicts values for categorical feature 1 (50 possible values)
-    - Layer 2: `Linear(d_model=256, output=200)` - predicts values for categorical feature 2
-    - Layer 3: `Linear(d_model=256, output=1000)` - predicts values for categorical feature 3
-  - Each layer takes the embedding (256-dim) and outputs logits for that feature's vocabulary
-
-- **`numerical_predictor`** (line 78): A single linear layer for all numerical features
-  - If you have 50 numerical features: `Linear(d_model=256, output=50)`
-  - Takes embedding (256-dim) and outputs predictions for all 50 numerical values at once
-  - Uses MSE loss (continuous values), not cross-entropy
-
-**Complete MFP loss with both categorical and numerical masking**:
-
-```python
-def complete_masked_feature_prediction_loss(model, numerical, categorical,
-                                           mask_prob=0.15):
-    """
-    Complete MFP loss masking both categorical and numerical features.
-
-    Args:
-        model: TabularResNetWithMFP instance
-        numerical: (batch_size, num_numerical) tensor
-        categorical: (batch_size, num_categorical) tensor
-        mask_prob: Probability of masking each feature
-
-    Returns:
-        Combined loss for categorical and numerical predictions
-    """
-    batch_size = numerical.size(0)
-
-    # --- Mask categorical features ---
-    masked_categorical = categorical.clone()
-    cat_mask = torch.rand_like(categorical.float()) < mask_prob
-    masked_categorical[cat_mask] = 0  # 0 = [MASK] token
-
-    # --- Mask numerical features ---
-    masked_numerical = numerical.clone()
-    num_mask = torch.rand_like(numerical) < mask_prob
-    masked_numerical[num_mask] = 0  # Replace with 0 (could also use mean)
-
-    # --- Get predictions ---
-    cat_predictions, num_predictions = model(masked_numerical, masked_categorical)
-
-    # --- Categorical loss (cross-entropy) ---
-    # cat_predictions: (batch, num_categorical, vocab_size)
-    # Need to reshape for cross_entropy
-    cat_loss = 0
-    num_cat_masked = 0
-
-    for i in range(categorical.size(1)):  # For each categorical feature
-        mask_i = cat_mask[:, i]
-        if mask_i.sum() > 0:  # If any values masked
-            pred_i = cat_predictions[:, i, :]  # (batch, vocab_size)
-            target_i = categorical[:, i]  # (batch,)
-            # Compute loss only on masked positions
-            loss_i = F.cross_entropy(pred_i[mask_i], target_i[mask_i])
-            cat_loss += loss_i
-            num_cat_masked += 1
-
-    cat_loss = cat_loss / max(num_cat_masked, 1)  # Average over features
-
-    # --- Numerical loss (MSE) ---
-    num_loss = F.mse_loss(
-        num_predictions[num_mask],
-        numerical[num_mask]
-    )
-
-    # --- Combined loss ---
-    total_loss = cat_loss + num_loss
-
-    return total_loss
-
-# Usage in training loop
-optimizer = torch.optim.Adam(model_with_mfp.parameters(), lr=1e-4)
-
-for epoch in range(num_epochs):
-    for numerical, categorical in dataloader:
-        loss = complete_masked_feature_prediction_loss(
-            model_with_mfp, numerical, categorical
-        )
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-```
-
-**Why MFP is more complex than contrastive learning**:
-
-1. **Requires model modification**: Must add prediction heads (additional parameters to train)
-2. **Feature-specific losses**: Different loss functions for categorical (cross-entropy) vs numerical (MSE)
-3. **Masking strategy**: Need to decide how to mask (0, mean, learned token)
-4. **Computational overhead**: Forward pass through prediction heads for every batch
-
-**Recommendation**: For most users, **start with contrastive learning** (Section 2) which:
-- Works with base TabularResNet (no modifications needed)
-- Single loss function (contrastive loss)
-- Proven to work well for tabular data
-- Simpler implementation and debugging
-
-Only add MFP if:
-- You have very large datasets (millions of records) where MFP's explicit feature learning helps
-- You want to combine both approaches (MFP + contrastive) for maximum performance
-- You're willing to invest time in hyperparameter tuning (mask probability, loss weighting)
-
-**Additional MFP pitfalls**:
-- **Masking strategy tuning**: 15% mask probability works for BERT but may need adjustment for tabular data. Try 10-20% range
-- **Loss balancing**: When combining categorical + numerical losses, you may need to weight them (e.g., `total_loss = cat_loss + 0.5 * num_loss`)
-- **Prediction head capacity**: If prediction heads are too small, they bottleneck learning. Use `d_model` large enough to capture feature complexity
-- **Cold start**: Model performs poorly in early epochs as it learns to reconstruct. Be patient or initialize with contrastive pre-training
-
-### 2. Contrastive Learning
+### 1. Contrastive Learning
 
 **The idea**: Train the model so that similar records have similar embeddings, while different records have different embeddings.
 
@@ -415,6 +216,205 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 - [SimCLR paper](https://arxiv.org/abs/2002.05709) - Original contrastive learning framework
 - [PyTorch contrastive learning tutorial](https://pytorch.org/tutorials/beginner/introyt/trainingyt.html) - General training patterns
 - [Temperature in contrastive learning](https://arxiv.org/abs/2005.04966) - Deep dive on temperature parameter
+
+### 2. Masked Feature Prediction (MFP)
+
+**The idea**: Hide some features in your data and train the model to predict what's missing.
+
+**How it works**:
+- Take an OCSF record: `{user_id: 12345, status: success, bytes: 1024, duration: 5.2}`
+- Randomly mask 15% of features: `{user_id: [MASK], status: success, bytes: 1024, duration: [MASK]}`
+- Train the model to predict the masked values: `user_id = 12345`, `duration = 5.2`
+
+**Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
+
+**What MFP requires**:
+1. **Model extension**: Add prediction heads to TabularResNet (linear layers that project embeddings → original feature space)
+2. **Masking logic**: Randomly hide 15% of features (both categorical and numerical)
+3. **Loss computation**: Cross-entropy for categoricals, MSE for numericals, computed only on masked positions
+
+**Note**: The base TabularResNet from Part 2 doesn't include prediction heads. The complete implementation below shows how to extend it with `categorical_predictors` (ModuleList of linear layers, one per categorical feature) and `numerical_predictor` (single linear layer for all numerical features).
+
+### Complete MFP Implementation
+
+**Adding prediction heads to TabularResNet**:
+
+```python
+import torch.nn as nn
+
+class TabularResNetWithMFP(nn.Module):
+    """
+    TabularResNet extended with Masked Feature Prediction heads.
+
+    Adds linear layers to project embeddings back to feature space
+    for reconstructing masked values.
+    """
+    def __init__(self, base_model, categorical_cardinalities, num_numerical):
+        super().__init__()
+        self.base_model = base_model  # Original TabularResNet
+        self.d_model = base_model.d_model
+
+        # Prediction heads for categorical features
+        # One linear layer per categorical feature
+        self.categorical_predictors = nn.ModuleList([
+            nn.Linear(self.d_model, cardinality)
+            for cardinality in categorical_cardinalities
+        ])
+
+        # Prediction head for numerical features
+        # Single linear layer outputting all numerical features
+        self.numerical_predictor = nn.Linear(self.d_model, num_numerical)
+
+    def forward(self, numerical, categorical, return_embedding=False):
+        # Get embedding from base model
+        embedding = self.base_model(numerical, categorical, return_embedding=True)
+
+        if return_embedding:
+            return embedding
+
+        # Predict categorical features (for MFP training)
+        cat_predictions = [pred(embedding) for pred in self.categorical_predictors]
+        cat_predictions = torch.stack(cat_predictions, dim=1)  # (batch, num_cat, vocab_size)
+
+        # Predict numerical features (for MFP training)
+        num_predictions = self.numerical_predictor(embedding)  # (batch, num_numerical)
+
+        return cat_predictions, num_predictions
+
+# Usage example
+from part2 import TabularResNet  # Import from Part 2
+
+# Create base model
+base_model = TabularResNet(
+    num_numerical_features=50,
+    categorical_cardinalities=[100, 50, 200, 1000],
+    d_model=256,
+    num_blocks=6
+)
+
+# Extend with MFP heads
+model_with_mfp = TabularResNetWithMFP(
+    base_model=base_model,
+    categorical_cardinalities=[100, 50, 200, 1000],
+    num_numerical=50
+)
+
+print("Extended model ready for MFP training")
+```
+
+**Understanding the prediction heads**:
+
+- **`categorical_predictors`** (lines 71-74): A `ModuleList` containing one linear layer per categorical feature
+  - If you have 4 categorical features with cardinalities [100, 50, 200, 1000], you get 4 linear layers:
+    - Layer 0: `Linear(d_model=256, output=100)` - predicts values for categorical feature 0 (100 possible values)
+    - Layer 1: `Linear(d_model=256, output=50)` - predicts values for categorical feature 1 (50 possible values)
+    - Layer 2: `Linear(d_model=256, output=200)` - predicts values for categorical feature 2
+    - Layer 3: `Linear(d_model=256, output=1000)` - predicts values for categorical feature 3
+  - Each layer takes the embedding (256-dim) and outputs logits for that feature's vocabulary
+
+- **`numerical_predictor`** (line 78): A single linear layer for all numerical features
+  - If you have 50 numerical features: `Linear(d_model=256, output=50)`
+  - Takes embedding (256-dim) and outputs predictions for all 50 numerical values at once
+  - Uses MSE loss (continuous values), not cross-entropy
+
+**Complete MFP loss with both categorical and numerical masking**:
+
+```python
+def complete_masked_feature_prediction_loss(model, numerical, categorical,
+                                           mask_prob=0.15):
+    """
+    Complete MFP loss masking both categorical and numerical features.
+
+    Args:
+        model: TabularResNetWithMFP instance
+        numerical: (batch_size, num_numerical) tensor
+        categorical: (batch_size, num_categorical) tensor
+        mask_prob: Probability of masking each feature
+
+    Returns:
+        Combined loss for categorical and numerical predictions
+    """
+    batch_size = numerical.size(0)
+
+    # --- Mask categorical features ---
+    masked_categorical = categorical.clone()
+    cat_mask = torch.rand_like(categorical.float()) < mask_prob
+    masked_categorical[cat_mask] = 0  # 0 = [MASK] token
+
+    # --- Mask numerical features ---
+    masked_numerical = numerical.clone()
+    num_mask = torch.rand_like(numerical) < mask_prob
+    masked_numerical[num_mask] = 0  # Replace with 0 (could also use mean)
+
+    # --- Get predictions ---
+    cat_predictions, num_predictions = model(masked_numerical, masked_categorical)
+
+    # --- Categorical loss (cross-entropy) ---
+    # cat_predictions: (batch, num_categorical, vocab_size)
+    # Need to reshape for cross_entropy
+    cat_loss = 0
+    num_cat_masked = 0
+
+    for i in range(categorical.size(1)):  # For each categorical feature
+        mask_i = cat_mask[:, i]
+        if mask_i.sum() > 0:  # If any values masked
+            pred_i = cat_predictions[:, i, :]  # (batch, vocab_size)
+            target_i = categorical[:, i]  # (batch,)
+            # Compute loss only on masked positions
+            loss_i = F.cross_entropy(pred_i[mask_i], target_i[mask_i])
+            cat_loss += loss_i
+            num_cat_masked += 1
+
+    cat_loss = cat_loss / max(num_cat_masked, 1)  # Average over features
+
+    # --- Numerical loss (MSE) ---
+    num_loss = F.mse_loss(
+        num_predictions[num_mask],
+        numerical[num_mask]
+    )
+
+    # --- Combined loss ---
+    total_loss = cat_loss + num_loss
+
+    return total_loss
+
+# Usage in training loop
+optimizer = torch.optim.Adam(model_with_mfp.parameters(), lr=1e-4)
+
+for epoch in range(num_epochs):
+    for numerical, categorical in dataloader:
+        loss = complete_masked_feature_prediction_loss(
+            model_with_mfp, numerical, categorical
+        )
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+```
+
+**Why MFP is more complex than contrastive learning**:
+
+1. **Requires model modification**: Must add prediction heads (additional parameters to train)
+2. **Feature-specific losses**: Different loss functions for categorical (cross-entropy) vs numerical (MSE)
+3. **Masking strategy**: Need to decide how to mask (0, mean, learned token)
+4. **Computational overhead**: Forward pass through prediction heads for every batch
+
+**Recommendation**: For most users, **start with contrastive learning** (Section 1) which:
+- Works with base TabularResNet (no modifications needed)
+- Single loss function (contrastive loss)
+- Proven to work well for tabular data
+- Simpler implementation and debugging
+
+Only add MFP if:
+- You have very large datasets (millions of records) where MFP's explicit feature learning helps
+- You want to combine both approaches (MFP + contrastive) for maximum performance
+- You're willing to invest time in hyperparameter tuning (mask probability, loss weighting)
+
+**Additional MFP pitfalls**:
+- **Masking strategy tuning**: 15% mask probability works for BERT but may need adjustment for tabular data. Try 10-20% range
+- **Loss balancing**: When combining categorical + numerical losses, you may need to weight them (e.g., `total_loss = cat_loss + 0.5 * num_loss`)
+- **Prediction head capacity**: If prediction heads are too small, they bottleneck learning. Use `d_model` large enough to capture feature complexity
+- **Cold start**: Model performs poorly in early epochs as it learns to reconstruct. Be patient or initialize with contrastive pre-training
 
 ---
 
@@ -823,7 +823,7 @@ def train_ocsf_anomaly_detector(
 
 In this part, you learned:
 
-1. **Two self-supervised approaches**: Masked Feature Prediction and Contrastive Learning
+1. **Two self-supervised approaches**: Contrastive Learning (recommended starting point) and Masked Feature Prediction
 2. **Contrastive learning implementation** with TabularAugmentation
 3. **Complete training loop** with best practices
 4. **Hyperparameter tuning** strategies
