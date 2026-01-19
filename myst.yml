@@ -131,6 +131,8 @@ project:
               title: "Part 8: Production Monitoring"
             - file: ai-eng/embedding-anomaly-detection/part9-multi-source-correlation.md
               title: "Part 9: Multi-Source Event Correlation"
+            - file: ai-eng/embedding-anomaly-detection/appendix-generating-training-data.md
+              title: "Appendix: Generating Training Data"
 
         - title: "ML/AI Algorithms"
           children:
