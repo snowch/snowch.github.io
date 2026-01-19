@@ -59,21 +59,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Generate downloadable code archives
+        run: |
+          # Create zip for embedding appendix code (must be before build so {download} directive works)
+          cd ai-eng/embedding-anomaly-detection
+          zip -r appendix-code.zip appendix-code/
+          cd ../..
+
       - name: Build the site
         env:
           # base_path is "/" for a user site, and "/repo" for a project site.
           # MyST often expects empty string for root.
           BASE_URL: ${{ steps.pages.outputs.base_path == '/' && '' || steps.pages.outputs.base_path }}
         run: myst build --html --execute
-
-      - name: Generate downloadable code archives
-        run: |
-          # Create zip for embedding appendix code
-          cd ai-eng/embedding-anomaly-detection
-          zip -r appendix-code.zip appendix-code/
-          mkdir -p ../../_build/html/ai-eng/embedding-anomaly-detection
-          mv appendix-code.zip ../../_build/html/ai-eng/embedding-anomaly-detection/
-          cd ../..
 
       - name: Generate sitemap and robots.txt
         run: python generate_sitemap.py
