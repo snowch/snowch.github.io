@@ -17,7 +17,7 @@ Learn how to evaluate and validate the quality of learned embeddings before depl
 
 ## Why Evaluate Embeddings?
 
-After training your TabularResNet using self-supervised learning (Part 4), you need to verify that the embeddings are:
+After training your TabularResNet using self-supervised learning ([Part 4](part4-self-supervised-training)), you need to verify that the embeddings are:
 
 1. **Meaningful**: Similar records cluster together
 2. **Discriminative**: Different types of records are separated
