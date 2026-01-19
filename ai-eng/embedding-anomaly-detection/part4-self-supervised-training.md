@@ -668,6 +668,7 @@ Now let's put it all together. The code below shows a complete training pipeline
 **Why this code matters**: This is the actual training loop you'll use in production. Understanding the data flow (Dataset → DataLoader → Model → Loss → Optimizer) is crucial for customizing the training process to your specific OCSF schema.
 
 ```{code-cell}
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 class OCSFDataset(Dataset):
