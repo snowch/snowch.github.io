@@ -256,6 +256,9 @@ plt.show()
 **Implementation**:
 
 ```{code-cell}
+:linenos:
+:emphasize-lines: 56-63, 69, 72, 76-79, 87
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -353,28 +356,28 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 
 **How the contrastive loss works step-by-step**:
 
-1. **Augmentation** (lines 149-156):
+1. **Augmentation** (lines 56-63):
    - Original batch of 64 records → augment twice → 2 views of 64 records each
    - Each view sees slightly different data (noise + dropout)
 
-2. **Embedding** (lines 151, 156):
+2. **Embedding** (lines 58, 63):
    - Pass both views through TabularResNet → get embeddings
    - Each embedding is a dense vector (e.g., 256-dimensional)
 
-3. **Normalization** (line 162):
+3. **Normalization** (line 69):
    - Normalize embeddings to unit vectors: `embedding / ||embedding||`
    - Critical for using cosine similarity ([PyTorch F.normalize docs](https://pytorch.org/docs/stable/generated/torch.nn.functional.normalize.html))
 
-4. **Similarity matrix** (line 165):
+4. **Similarity matrix** (line 72):
    - Compute dot product between all pairs: `embeddings @ embeddings.T`
    - Results in (128, 128) matrix where entry (i,j) = similarity between sample i and j
    - Divide by temperature (0.07) to scale similarities ([SimCLR paper](https://arxiv.org/abs/2002.05709) for temperature explanation)
 
-5. **Positive pair labels** (lines 169-172):
+5. **Positive pair labels** (lines 76-79):
    - For sample i in first view, its positive pair is sample i in second view (index i + batch_size)
    - For sample i in second view, its positive pair is sample i in first view (index i - batch_size)
 
-6. **Cross-entropy loss** (line 180):
+6. **Cross-entropy loss** (line 87):
    - Treat as classification: for each sample, predict which of the 127 other samples is its positive pair
    - Loss pulls positive pairs together, pushes negatives apart
    - Uses [PyTorch cross_entropy](https://pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy.html)
