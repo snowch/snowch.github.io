@@ -204,7 +204,8 @@ plt.show()
 **Detailed augmentation process**:
 
 - **Q: Do we augment every data row?**
-  **A: Yes, every single record in the batch is augmented.** There's no selection process - we augment all samples.
+  **A: Yes, every single record in the batch is augmented.**
+  - There's no selection process - we augment all samples.
 
 - **Q: How many augmented copies per record?**
   **A: Exactly 2 copies per record** (called views). These are created independently with different random noise.
