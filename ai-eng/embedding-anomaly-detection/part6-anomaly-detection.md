@@ -11,7 +11,7 @@ bibliography:
   - references.bib
 ---
 
-# Part 6: Anomaly Detection Methods [DRAFT]
+# Part 6: Anomaly Detection Methods
 
 Apply various anomaly detection algorithms to your validated embeddings for OCSF observability data.
 
@@ -671,6 +671,27 @@ print(f"\nUse case: Detect cascading failures or performance degradation pattern
 
 ## 7. Method Comparison
 
+**Why compare methods?** Each anomaly detection algorithm (LOF, Isolation Forest, k-NN, Clustering) has different strengths and weaknesses. A systematic comparison on your specific OCSF data tells you which method works best for your operational patterns.
+
+**What this section does**:
+- Runs all four methods on the same embedding dataset
+- Computes precision, recall, and F1-score for each
+- Ranks methods by F1-score (balanced metric)
+- Helps you choose the best algorithm for your observability data
+
+**How to interpret results**:
+- **High precision, low recall**: Method is conservative (few false alarms, but misses some issues)
+- **Low precision, high recall**: Method is aggressive (catches everything, but many false alarms)
+- **High F1-score**: Best balance for most teams
+
+**Typical results for OCSF observability data**:
+- **Isolation Forest**: Often ranks #1 for high-dimensional embeddings (256-dim)
+- **LOF**: Strong for datasets with varying density patterns (mix of frequent/rare events)
+- **k-NN Distance**: Simple and interpretable, good baseline
+- **Clustering**: Works well when you have distinct operational modes
+
+**Next steps after comparison**: Use the winning method's threshold tuning (Section 8) to optimize for your team's precision/recall priorities.
+
 ```{code-cell}
 def compare_anomaly_methods(embeddings, true_labels):
     """
@@ -746,30 +767,30 @@ comparison_results = compare_anomaly_methods(all_embeddings, true_labels)
 
 ## 8. Threshold Tuning
 
-**Why threshold tuning matters**: All anomaly detection methods require setting a threshold - the cutoff between "normal" and "anomaly". Too low → miss attacks (low recall). Too high → false alarms (low precision).
+**Why threshold tuning matters**: All anomaly detection methods require setting a threshold - the cutoff between "normal" and "anomaly". Too low → miss operational issues (low recall). Too high → false alarms (low precision).
 
-**The challenge**: Security teams have different priorities:
-- **SOC analysts**: Want high precision (few false alarms to investigate)
-- **Compliance teams**: Want high recall (catch all anomalies for audit)
+**The challenge**: Operations teams have different priorities:
+- **Site Reliability Engineers (SREs)**: Want high precision (few false alarms to investigate)
+- **Platform teams**: Want high recall (catch all degradation early)
 - **Production systems**: Need balance based on investigation capacity
 
 **Precision-Recall trade-off**:
-- **High threshold** (99th percentile): Only flag clear outliers → High precision, low recall (misses subtle attacks)
+- **High threshold** (99th percentile): Only flag clear outliers → High precision, low recall (misses subtle issues)
 - **Low threshold** (90th percentile): Flag more events → High recall, low precision (many false positives)
 - **Sweet spot**: Find threshold that balances precision/recall for your use case
 
 **Example scenarios**:
-1. **Critical systems** (payment processing): High recall (95%) > precision. Can't miss fraudulent transactions.
+1. **Critical services** (payment processing): High recall (95%) > precision. Can't miss performance degradation.
 2. **Log analysis** (general monitoring): Balanced (F1 score). Limited investigation capacity.
-3. **Alert fatigue prevention**: High precision (90%) > recall. Security team overwhelmed by alerts.
+3. **Alert fatigue prevention**: High precision (90%) > recall. Operations team overwhelmed by alerts.
 
 ### Precision-Recall Curve
 
-**What is a PR curve?** A plot showing precision vs recall at different thresholds. Use it to visualize the trade-off and select the optimal threshold for your security team's priorities.
+**What is a PR curve?** A plot showing precision vs recall at different thresholds. Use it to visualize the trade-off and select the optimal threshold for your operations team's priorities.
 
 **How to read it**:
 - **Top-right corner**: Ideal (high precision AND high recall) - rarely achievable
-- **Top-left**: High precision, low recall (few alerts, might miss attacks)
+- **Top-left**: High precision, low recall (few alerts, might miss issues)
 - **Bottom-right**: Low precision, high recall (many alerts, catch everything)
 - **Area under curve (AUC)**: Overall method quality (higher = better across all thresholds)
 
@@ -778,9 +799,9 @@ comparison_results = compare_anomaly_methods(all_embeddings, true_labels)
 - **AUC 0.7-0.9**: Good - can find acceptable threshold
 - **AUC < 0.7**: Poor - consider different method or improve embeddings
 
-**For security data**: Choose threshold based on your **investigation capacity**:
+**For observability data**: Choose threshold based on your **investigation capacity**:
 - Can investigate 10 alerts/day? → Set threshold for 10 flagged events/day
-- Must catch all intrusions? → Set threshold for 95% recall, accept higher false positives
+- Must catch all degradation? → Set threshold for 95% recall, accept higher false positives
 
 ```{code-cell}
 from sklearn.metrics import precision_recall_curve, auc
@@ -839,7 +860,7 @@ plot_precision_recall_curve(true_labels, scores_knn, "k-NN Distance")
 2. **Online vs Batch**:
    - **Online** (real-time): Process each event as it arrives (<100ms latency)
    - **Batch** (offline): Process events in batches every 5 minutes
-   - **Security context**: Most attacks span minutes/hours, so 5-min batches are acceptable
+   - **Observability context**: Most operational issues span minutes/hours, so 5-min batches are acceptable
 
 3. **Novelty detection mode**:
    - **Fit once** on clean historical data (normal events only)
@@ -855,13 +876,13 @@ plot_precision_recall_curve(true_labels, scores_knn, "k-NN Distance")
 - **Throughput**: Events/second processed (target: >1000/sec)
 - **Latency**: P95 detection latency (target: <500ms)
 - **Alert rate**: Anomalies flagged per day (should be stable, spikes indicate issues)
-- **False positive rate**: % of alerts dismissed by security team (track via SIEM feedback)
+- **False positive rate**: % of alerts dismissed by operations team (track via incident feedback)
 
-**For security data**: Production pipeline must be **reliable** (no events dropped), **fast** (detect attacks within minutes), and **explainable** (provide context for each alert).
+**For observability data**: Production pipeline must be **reliable** (no events dropped), **fast** (detect issues within minutes), and **explainable** (provide context for each alert).
 
 ### Complete Anomaly Detection Pipeline
 
-**What this code provides**: A reusable class that wraps TabularResNet + preprocessing + anomaly detection, ready for integration with your security infrastructure.
+**What this code provides**: A reusable class that wraps TabularResNet + preprocessing + anomaly detection, ready for integration with your observability infrastructure.
 
 ```{code-cell}
 class AnomalyDetectionPipeline:
