@@ -724,7 +724,41 @@ comparison_results = compare_anomaly_methods(all_embeddings, true_labels)
 
 ## 8. Threshold Tuning
 
+**Why threshold tuning matters**: All anomaly detection methods require setting a threshold - the cutoff between "normal" and "anomaly". Too low → miss attacks (low recall). Too high → false alarms (low precision).
+
+**The challenge**: Security teams have different priorities:
+- **SOC analysts**: Want high precision (few false alarms to investigate)
+- **Compliance teams**: Want high recall (catch all anomalies for audit)
+- **Production systems**: Need balance based on investigation capacity
+
+**Precision-Recall trade-off**:
+- **High threshold** (99th percentile): Only flag clear outliers → High precision, low recall (misses subtle attacks)
+- **Low threshold** (90th percentile): Flag more events → High recall, low precision (many false positives)
+- **Sweet spot**: Find threshold that balances precision/recall for your use case
+
+**Example scenarios**:
+1. **Critical systems** (payment processing): High recall (95%) > precision. Can't miss fraudulent transactions.
+2. **Log analysis** (general monitoring): Balanced (F1 score). Limited investigation capacity.
+3. **Alert fatigue prevention**: High precision (90%) > recall. Security team overwhelmed by alerts.
+
 ### Precision-Recall Curve
+
+**What is a PR curve?** A plot showing precision vs recall at different thresholds. Use it to visualize the trade-off and select the optimal threshold for your security team's priorities.
+
+**How to read it**:
+- **Top-right corner**: Ideal (high precision AND high recall) - rarely achievable
+- **Top-left**: High precision, low recall (few alerts, might miss attacks)
+- **Bottom-right**: Low precision, high recall (many alerts, catch everything)
+- **Area under curve (AUC)**: Overall method quality (higher = better across all thresholds)
+
+**Interpretation**:
+- **AUC > 0.9**: Excellent - method works well regardless of threshold
+- **AUC 0.7-0.9**: Good - can find acceptable threshold
+- **AUC < 0.7**: Poor - consider different method or improve embeddings
+
+**For security data**: Choose threshold based on your **investigation capacity**:
+- Can investigate 10 alerts/day? → Set threshold for 10 flagged events/day
+- Must catch all intrusions? → Set threshold for 95% recall, accept higher false positives
 
 ```{code-cell}
 from sklearn.metrics import precision_recall_curve, auc
@@ -762,7 +796,50 @@ plot_precision_recall_curve(true_labels, scores_knn, "k-NN Distance")
 
 ## 9. Production Pipeline
 
+**Why a production pipeline matters**: Combining all the pieces (preprocessing, embedding generation, anomaly detection, alerting) into a single, deployable system.
+
+**The end-to-end flow**:
+1. **Ingest**: Receive OCSF events from log collectors (Splunk, Kafka, etc.)
+2. **Preprocess**: Extract features, apply scaler/encoders from Part 3
+3. **Embed**: Generate 256-dim embedding using trained TabularResNet
+4. **Retrieve**: Query vector DB for k nearest neighbors
+5. **Score**: Apply anomaly detection algorithm (LOF, k-NN, etc.)
+6. **Alert**: If score > threshold, send to SIEM/ticketing system
+7. **Store**: Persist embedding in vector DB for future comparisons (if not anomaly)
+
+**Key design decisions**:
+
+1. **Stateful vs Stateless**:
+   - **Stateful** (LOF, Isolation Forest): Pre-fitted on historical data, used for prediction
+   - **Stateless** (k-NN distance): No pre-fitting, query vector DB directly
+   - **Recommendation**: Start with stateless k-NN (simpler, scales better)
+
+2. **Online vs Batch**:
+   - **Online** (real-time): Process each event as it arrives (<100ms latency)
+   - **Batch** (offline): Process events in batches every 5 minutes
+   - **Security context**: Most attacks span minutes/hours, so 5-min batches are acceptable
+
+3. **Novelty detection mode**:
+   - **Fit once** on clean historical data (normal events only)
+   - **Predict** on new events (don't retrain on anomalies)
+   - **LOF novelty=True** enables this mode for streaming data
+
+4. **Error handling**:
+   - Missing features → use defaults or skip (don't crash pipeline)
+   - Model timeout → fall back to rule-based detection
+   - Vector DB down → buffer events, replay when recovered
+
+**Operational monitoring**:
+- **Throughput**: Events/second processed (target: >1000/sec)
+- **Latency**: P95 detection latency (target: <500ms)
+- **Alert rate**: Anomalies flagged per day (should be stable, spikes indicate issues)
+- **False positive rate**: % of alerts dismissed by security team (track via SIEM feedback)
+
+**For security data**: Production pipeline must be **reliable** (no events dropped), **fast** (detect attacks within minutes), and **explainable** (provide context for each alert).
+
 ### Complete Anomaly Detection Pipeline
+
+**What this code provides**: A reusable class that wraps TabularResNet + preprocessing + anomaly detection, ready for integration with your security infrastructure.
 
 ```{code-cell}
 class AnomalyDetectionPipeline:
