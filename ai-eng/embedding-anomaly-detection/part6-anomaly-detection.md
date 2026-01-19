@@ -107,7 +107,35 @@ is_anomaly = score > threshold
 
 ## 2. Local Outlier Factor (LOF)
 
-LOF identifies outliers based on local density deviation.
+**What is LOF?** Local Outlier Factor measures how isolated a point is compared to its local neighborhood. Instead of using global distance thresholds, LOF compares each point's density to its neighbors' density.
+
+**The key insight**: An anomaly isn't just "far away" - it's in a **less dense region** than its neighbors. A point can be far from cluster centers but still be normal if its local area has similar density.
+
+**How it works**:
+1. For each point, find its k nearest neighbors
+2. Compute the **local reachability density** (how tightly packed the neighborhood is)
+3. Compare this density to the neighbors' densities
+4. Points in sparser regions get high LOF scores (> 1 = outlier)
+
+**When to use LOF**:
+- **Multiple clusters with different densities**: Login events might be dense, while rare privileged access is sparser but still normal
+- **Security data with natural groupings**: Different event types (authentication, file access, network) have different baseline densities
+- **Detecting isolated attacks**: Brute force attempts that occur in sparse regions, even if not "far" from normal events
+
+**Advantages for OCSF security data**:
+- ✅ Adapts to local density (doesn't penalize naturally sparse event types)
+- ✅ Detects attacks that hide within legitimate traffic patterns
+- ✅ Works well when anomalies appear in unexpected combinations of features
+
+**Disadvantages**:
+- ❌ Sensitive to k parameter (too small = noisy, too large = misses local patterns)
+- ❌ Computationally expensive for large datasets (needs k-NN for every point)
+- ❌ Assumes anomalies are isolated (fails if attacks form dense clusters)
+
+**Interpretation**:
+- **LOF ≈ 1**: Similar density to neighbors (normal)
+- **LOF > 1.5**: Significantly less dense than neighbors (likely anomaly)
+- **LOF > 3**: Very isolated (strong anomaly signal)
 
 ```{code-cell}
 import logging
@@ -212,9 +240,48 @@ plt.show()
 
 ---
 
-## 2. Isolation Forest
+## 3. Isolation Forest
 
-Isolation Forest isolates anomalies by randomly partitioning the data.
+**What is Isolation Forest?** An ensemble method that isolates anomalies by building random decision trees. The key insight: anomalies are **easier to isolate** than normal points, requiring fewer random splits.
+
+**The intuition**: Imagine randomly drawing lines to separate points. An outlier far from clusters gets isolated quickly (few splits), while a normal point in a dense cluster needs many splits to isolate.
+
+**How it works**:
+1. Build 100 random trees (n_estimators=100), each selecting random features and split points
+2. For each point, measure its **average path length** (number of splits to isolate it)
+3. Shorter paths = easier to isolate = likely anomaly
+4. Score is normalized: values close to -1 are anomalies, close to 0 are normal
+
+**When to use Isolation Forest**:
+- **Large datasets**: Scales better than LOF (no pairwise distance computations)
+- **High-dimensional embeddings**: Works well with 256-dim TabularResNet embeddings
+- **Fast deployment**: No need to tune k parameter (unlike LOF, k-NN)
+- **Baseline comparison**: Quick to train, provides reasonable baseline performance
+
+**Advantages for OCSF security data**:
+- ✅ Fast training and prediction (tree-based, can parallelize)
+- ✅ Handles curse of dimensionality better than distance-based methods
+- ✅ Detects global outliers effectively (events unlike anything seen before)
+- ✅ No assumptions about data distribution
+
+**Disadvantages**:
+- ❌ May miss local anomalies (focuses on global outliers)
+- ❌ Sensitive to contamination parameter (must estimate % of anomalies)
+- ❌ Random nature can give inconsistent results (use ensemble averaging)
+- ❌ Less interpretable than distance-based methods
+
+**Hyperparameter tuning**:
+- **contamination**: Set to expected anomaly rate
+  - Too low (0.01) → misses anomalies
+  - Too high (0.2) → many false positives
+  - Start with 0.1 (10% anomalies) and adjust based on domain knowledge
+
+- **n_estimators**: Number of trees
+  - More trees (200) → more stable but slower
+  - Fewer trees (50) → faster but noisier
+  - Default 100 is usually good balance
+
+**For security data**: Isolation Forest works well as a **first pass** to catch obvious outliers before applying more expensive methods like LOF.
 
 ```{code-cell}
 from sklearn.ensemble import IsolationForest
@@ -262,11 +329,69 @@ print(f"  F1-Score:  {f1_if:.3f}")
 
 ---
 
-## 3. Distance-Based Methods
+## 4. Distance-Based Methods
 
 ### k-NN Distance
 
-Points with large distance to k-th nearest neighbor are anomalies.
+**What is k-NN distance?** A simple but effective method: compute the distance from each point to its k-th nearest neighbor. Points far from their neighbors are anomalies.
+
+**The intuition**: Normal OCSF events have similar historical events nearby (e.g., previous logins by same user). Anomalies don't have similar neighbors, so their k-NN distance is large.
+
+**How it works**:
+1. For each event embedding, find k nearest neighbors in vector DB
+2. Compute distance to the k-th neighbor (not 1st, to avoid noise)
+3. Set a threshold (e.g., 90th percentile of all distances)
+4. Events with distance > threshold are anomalies
+
+**Why k-th neighbor, not 1st?**
+- **1st neighbor**: Too sensitive to noise (one similar point → normal score)
+- **k-th neighbor** (k=5-20): More robust, requires multiple similar events to be considered normal
+- **Average of k neighbors**: Even more stable but slower to compute
+
+**When to use k-NN distance**:
+- **Vector DB architecture**: You're already retrieving neighbors, so distance is free
+- **Interpretable results**: "This login has no similar logins in the past 30 days" is easy to explain
+- **Real-time detection**: Fast lookup in vector DB, immediate scoring
+- **Baseline method**: Simple to implement and understand
+
+**Advantages for OCSF security data**:
+- ✅ **Directly maps to vector DB operations**: retrieve k neighbors → compute distance → score
+- ✅ **Easy to explain** to security analysts: "No similar events found"
+- ✅ **Works well with time windows**: Only compare to recent events (last 7 days)
+- ✅ **Low latency**: Single vector DB query per event
+
+**Disadvantages**:
+- ❌ Sensitive to k choice (too small = noisy, too large = misses anomalies)
+- ❌ Requires threshold tuning (90th, 95th, 99th percentile?)
+- ❌ Assumes similar distances across all event types (may need per-type thresholds)
+- ❌ Outliers can pollute the database (need to filter detected anomalies)
+
+**Hyperparameter tuning**:
+
+- **k (number of neighbors)**:
+  - k=5: Sensitive, good for rare events
+  - k=20: Robust, recommended starting point
+  - k=50: Very conservative, may miss subtle anomalies
+
+- **threshold_percentile**:
+  - 90th: 10% flagged as anomalies (high recall, more false positives)
+  - 95th: 5% flagged (balanced)
+  - 99th: 1% flagged (high precision, may miss anomalies)
+
+**Distance metrics** (supported by vector DBs):
+- **Cosine similarity**: Good for directional differences (e.g., different user behavior patterns)
+- **Euclidean (L2)**: Good for magnitude differences (e.g., 10x more bytes than normal)
+- **Negative inner product**: Fast approximation of cosine for normalized embeddings
+
+**Interpretation**:
+- **Distance < threshold**: Normal event (has similar historical events)
+- **Distance > threshold**: Anomaly (no similar events in history)
+- **Distance >> threshold** (2-3x): Strong anomaly signal (investigate immediately)
+
+**For security data**: k-NN distance is the **most common production method** because it:
+1. Leverages existing vector DB infrastructure
+2. Provides intuitive explanations for security teams
+3. Scales to millions of events with approximate nearest neighbor search
 
 ```{code-cell}
 from sklearn.neighbors import NearestNeighbors
@@ -326,6 +451,66 @@ Use one of these metrics consistently across indexing, retrieval, and scoring to
 ---
 
 ## 5. Clustering-Based Anomaly Detection
+
+**What is clustering-based detection?** First cluster your embeddings into groups (e.g., k-means), then flag points far from any cluster centroid as anomalies.
+
+**The intuition**: Normal OCSF events form natural clusters (login events, file access, network connections, etc.). Anomalies don't fit into any cluster and appear far from all centroids.
+
+**How it works**:
+1. Run k-means clustering on historical embeddings (e.g., k=5 clusters)
+2. For each event, compute distance to **nearest cluster centroid**
+3. Events far from all centroids (> 95th percentile) are anomalies
+4. Can update clusters periodically (weekly) as data distribution shifts
+
+**When to use clustering-based detection**:
+- **Known event types**: Your OCSF data has clear categories (authentication, file ops, network, etc.)
+- **Stable patterns**: Event distributions don't change rapidly (daily clustering is stable)
+- **Explainability**: Can label clusters and say "event doesn't match any known pattern"
+- **Preprocessing for other methods**: Cluster first, then apply LOF within clusters
+
+**Advantages for OCSF security data**:
+- ✅ **Semantic clustering**: Clusters often match natural event types (authentication, privileged access, bulk transfers)
+- ✅ **Per-cluster thresholds**: Can tune detection sensitivity per event type
+- ✅ **Drift detection**: Cluster shifts over time indicate changing attack patterns
+- ✅ **Efficient**: Single distance computation per event (to nearest centroid)
+
+**Disadvantages**:
+- ❌ Must choose k (number of clusters) - wrong k → poor performance
+- ❌ Assumes spherical clusters (k-means limitation)
+- ❌ Misses anomalies **within** clusters (only detects inter-cluster anomalies)
+- ❌ Sensitive to cluster updates (re-clustering can change detection behavior)
+
+**Hyperparameter tuning**:
+
+- **n_clusters (k)**:
+  - Too few (k=3): Clusters are too broad, many anomalies missed
+  - Too many (k=20): Over-segmentation, normal events flagged as anomalies
+  - **Recommendation**: Use Silhouette Score from Part 5 to choose k
+  - **Security heuristic**: k = number of OCSF event types you expect (typically 5-10)
+
+- **threshold_percentile**:
+  - 90th: Aggressive detection (10% flagged)
+  - 95th: Balanced (5% flagged) - recommended starting point
+  - 99th: Conservative (1% flagged)
+
+**Cluster interpretation for security**:
+- **Cluster 0**: "Normal login events" (centroid = typical login pattern)
+- **Cluster 1**: "Failed logins" (centroid = failed auth pattern)
+- **Cluster 2**: "Privileged access" (centroid = admin/sudo events)
+- **Cluster 3**: "Bulk file operations" (centroid = large data transfers)
+- **Anomaly**: Event far from all cluster centroids → investigate
+
+**Combining with other methods**:
+- **Hierarchical**: First cluster, then apply LOF within each cluster (catches local anomalies)
+- **Cascade**: First clustering (fast), then k-NN (expensive) only for events flagged by clustering
+- **Ensemble**: Average scores from clustering, LOF, and k-NN for more robust detection
+
+**Operational considerations**:
+- **Cluster update frequency**: Weekly or monthly (too frequent → unstable, too rare → stale)
+- **Incremental clustering**: For streaming data, use online k-means to avoid full retraining
+- **Cluster drift monitoring**: Track cluster centroids over time - large shifts indicate concept drift
+
+**For security data**: Clustering works well as a **pre-filter** before expensive methods, or when you want **explainable clusters** that map to known event types.
 
 ```{code-cell}
 from sklearn.cluster import KMeans
