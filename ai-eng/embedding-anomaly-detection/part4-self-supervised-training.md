@@ -45,6 +45,105 @@ Since your observability data is **unlabelled**, you need self-supervised learni
 3. Train the model so these two versions have **similar embeddings** (they're "positive pairs")
 4. Meanwhile, ensure embeddings from different records stay **far apart** (they're "negative pairs")
 
+```{code-cell}
+:tags: [hide-input]
+
+import os
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import numpy as np
+
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 10)
+ax.axis('off')
+
+# Original record (Record A)
+record_a_y = 8
+ax.add_patch(FancyBboxPatch((0.5, record_a_y), 3, 1,
+                            boxstyle="round,pad=0.1",
+                            edgecolor='#2E86AB', facecolor='#E8F4F8', linewidth=2))
+ax.text(2, record_a_y + 0.5, 'Record A (Login Event)\nuser: 12345, bytes: 1024\nstatus: success',
+        ha='center', va='center', fontsize=9, weight='bold')
+
+# Augmented version 1
+aug1_y = 6
+ax.add_patch(FancyBboxPatch((0.5, aug1_y), 3, 1,
+                            boxstyle="round,pad=0.1",
+                            edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2))
+ax.text(2, aug1_y + 0.5, 'Augmented A₁\nuser: 12345, bytes: 1075 (+5%)\nstatus: success',
+        ha='center', va='center', fontsize=9, style='italic')
+
+# Augmented version 2
+aug2_y = 4
+ax.add_patch(FancyBboxPatch((0.5, aug2_y), 3, 1,
+                            boxstyle="round,pad=0.1",
+                            edgecolor='#A23B72', facecolor='#F8E8F0', linewidth=2))
+ax.text(2, aug2_y + 0.5, 'Augmented A₂\nuser: 12345, bytes: 973 (-5%)\nstatus: success',
+        ha='center', va='center', fontsize=9, style='italic')
+
+# Different record (Record B)
+record_b_y = 1.5
+ax.add_patch(FancyBboxPatch((0.5, record_b_y), 3, 1,
+                            boxstyle="round,pad=0.1",
+                            edgecolor='#2E86AB', facecolor='#E8F4F8', linewidth=2))
+ax.text(2, record_b_y + 0.5, 'Record B (Different Event)\nuser: 67890, bytes: 5120\nstatus: failure',
+        ha='center', va='center', fontsize=9, weight='bold')
+
+# Arrows to embeddings
+arrow_props = dict(arrowstyle='->', lw=2, color='#555555')
+ax.annotate('', xy=(5.5, 6.5), xytext=(3.5, aug1_y + 0.5), arrowprops=arrow_props)
+ax.annotate('', xy=(5.5, 5.5), xytext=(3.5, aug2_y + 0.5), arrowprops=arrow_props)
+ax.annotate('', xy=(5.5, 2), xytext=(3.5, record_b_y + 0.5), arrowprops=arrow_props)
+
+# Embedding space label
+ax.text(7.5, 9, 'Embedding Space', ha='center', fontsize=11, weight='bold')
+
+# Embeddings as points
+# Positive pair (close together)
+embed_a1 = ax.scatter([5.5], [6.5], s=400, c='#A23B72', marker='o',
+                      edgecolors='black', linewidths=2, zorder=3)
+ax.text(5.5, 6.5, 'A₁', ha='center', va='center', fontsize=10,
+        weight='bold', color='white')
+
+embed_a2 = ax.scatter([5.5], [5.5], s=400, c='#A23B72', marker='o',
+                      edgecolors='black', linewidths=2, zorder=3)
+ax.text(5.5, 5.5, 'A₂', ha='center', va='center', fontsize=10,
+        weight='bold', color='white')
+
+# Negative (far away)
+embed_b = ax.scatter([8.5], [2], s=400, c='#F18F01', marker='o',
+                     edgecolors='black', linewidths=2, zorder=3)
+ax.text(8.5, 2, 'B', ha='center', va='center', fontsize=10,
+        weight='bold', color='white')
+
+# Visual indicators
+# Positive pair - close together (green bracket)
+ax.plot([4.8, 4.8], [5.3, 6.7], 'g-', linewidth=3, alpha=0.7)
+ax.text(4.3, 6, '✓ Close\n(Positive\nPair)', ha='center', va='center',
+        fontsize=9, color='green', weight='bold')
+
+# Negative pair - far apart (red line)
+ax.plot([5.5, 8.5], [5.5, 2], 'r--', linewidth=2, alpha=0.5)
+ax.text(7, 3.3, '✗ Far Apart\n(Negative Pair)', ha='center', va='center',
+        fontsize=9, color='red', weight='bold',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+# Training objective
+ax.text(7.5, 0.5, 'Training Goal: Pull positive pairs together, push negatives apart',
+        ha='center', fontsize=10, style='italic',
+        bbox=dict(boxstyle='round', facecolor='#FFF3CD', alpha=0.8, pad=0.5))
+
+plt.tight_layout()
+plt.show()
+```
+
 **Analogy**: It's like teaching someone to recognize faces. Show them two photos of the same person from different angles and say "these are the same." Show them photos of different people and say "these are different." Over time, they learn what makes faces similar or different.
 
 **Why this works**: The model learns which variations in features are superficial (noise) vs meaningful (different events). Records with similar embeddings represent similar system behaviors, making it easy to detect anomalies as records with unusual embeddings.
