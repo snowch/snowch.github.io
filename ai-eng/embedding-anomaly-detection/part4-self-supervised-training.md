@@ -467,6 +467,158 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 - Randomly mask 15% of features: `{user_id: [MASK], status: success, bytes: 1024, duration: [MASK]}`
 - Train the model to predict the masked values: `user_id = 12345`, `duration = 5.2`
 
+```{code-cell}
+:tags: [remove-input]
+
+import os
+import logging
+import warnings
+
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
+import numpy as np
+
+# Color palette - light theme
+C = {
+    'bg': '#FFFFFF',
+    'card': '#F6F8FA',
+    'mask': '#9333EA',     # Purple - masked
+    'pred': '#F59E0B',     # Orange - predictions
+    'enc': '#1A7F37',      # Green - encoder
+    'text': '#1F2328',
+    'muted': '#656D76',
+    'grid': '#D0D7DE',
+    'feature': '#0969DA',  # Blue - normal features
+}
+
+# Figure - wider for horizontal layout with more whitespace
+fig, ax = plt.subplots(figsize=(13, 5.5), facecolor=C['bg'])
+ax.set_facecolor(C['bg'])
+ax.set_xlim(0, 13)
+ax.set_ylim(0, 5.5)
+ax.axis('off')
+
+# === LEFT: Original Record ===
+def feature_row(x, y, key, value, is_masked=False, mask_color=None):
+    """Draw a single feature row."""
+    color = mask_color if is_masked else C['feature']
+    bg = '#F3E8FF' if is_masked else C['card']
+
+    row = FancyBboxPatch((x, y), 2.0, 0.38, boxstyle="round,pad=0.02,rounding_size=0.05",
+                         facecolor=bg, edgecolor=color, linewidth=1.5, zorder=2)
+    ax.add_patch(row)
+
+    ax.text(x+0.08, y+0.19, key + ":", ha='left', va='center', fontsize=9,
+            fontweight='bold', color=C['text'], family='monospace')
+    ax.text(x+1.92, y+0.19, value, ha='right', va='center', fontsize=9,
+            color=color, family='monospace', fontweight='bold' if is_masked else 'normal')
+
+# Original record box
+orig_box = FancyBboxPatch((0.2, 2.6), 2.3, 2.2, boxstyle="round,pad=0.05,rounding_size=0.12",
+                          facecolor='white', edgecolor=C['feature'], linewidth=2, zorder=1)
+ax.add_patch(orig_box)
+ax.text(1.35, 4.95, "Original Record", ha='center', va='bottom', fontsize=11,
+        fontweight='bold', color=C['feature'])
+
+# Features
+feature_row(0.35, 4.25, "user_id", "12345")
+feature_row(0.35, 3.8, "status", "success")
+feature_row(0.35, 3.35, "bytes", "1024")
+feature_row(0.35, 2.9, "duration", "5.2")
+
+# === Arrow: Original -> Masked ===
+ax.annotate('', xy=(3.25, 3.7), xytext=(2.7, 3.7),
+            arrowprops=dict(arrowstyle='-|>', color=C['muted'], lw=1.5))
+ax.text(2.97, 3.95, "mask\n15%", ha='center', va='bottom', fontsize=8, color=C['muted'])
+
+# === MIDDLE-LEFT: Masked Record ===
+mask_box = FancyBboxPatch((3.35, 2.6), 2.3, 2.2, boxstyle="round,pad=0.05,rounding_size=0.12",
+                          facecolor='white', edgecolor=C['mask'], linewidth=2, zorder=1)
+ax.add_patch(mask_box)
+ax.text(4.5, 4.95, "Masked (15%)", ha='center', va='bottom', fontsize=11,
+        fontweight='bold', color=C['mask'])
+
+# Masked features
+feature_row(3.5, 4.25, "user_id", "[MASK]", is_masked=True, mask_color=C['mask'])
+feature_row(3.5, 3.8, "status", "success")
+feature_row(3.5, 3.35, "bytes", "1024")
+feature_row(3.5, 2.9, "duration", "[MASK]", is_masked=True, mask_color=C['mask'])
+
+# === Arrow: Masked -> Encoder ===
+ax.annotate('', xy=(6.35, 3.7), xytext=(5.75, 3.7),
+            arrowprops=dict(arrowstyle='-|>', color=C['muted'], lw=1.5))
+
+# === MIDDLE: Encoder ===
+enc_box = FancyBboxPatch((6.4, 2.9), 1.2, 1.6, boxstyle="round,pad=0.05,rounding_size=0.12",
+                         facecolor=C['card'], edgecolor=C['enc'], linewidth=2.5, zorder=2)
+ax.add_patch(enc_box)
+ax.text(7.0, 3.85, "f(·)", ha='center', va='center', fontsize=16,
+        fontweight='bold', color=C['enc'])
+ax.text(7.0, 3.3, "Encoder", ha='center', va='center', fontsize=10, color=C['muted'])
+
+# === Arrow: Encoder -> Predictions ===
+ax.annotate('', xy=(8.25, 3.7), xytext=(7.7, 3.7),
+            arrowprops=dict(arrowstyle='-|>', color=C['muted'], lw=1.5))
+ax.text(7.97, 3.95, "prediction\nheads", ha='center', va='bottom', fontsize=8, color=C['muted'])
+
+# === RIGHT: Predictions ===
+pred_box = FancyBboxPatch((8.35, 2.6), 2.9, 2.2, boxstyle="round,pad=0.05,rounding_size=0.12",
+                          facecolor='white', edgecolor=C['pred'], linewidth=2, zorder=1)
+ax.add_patch(pred_box)
+ax.text(9.8, 4.95, "Predictions", ha='center', va='bottom', fontsize=11,
+        fontweight='bold', color=C['pred'])
+
+# Prediction heads
+def pred_head(x, y, feature, pred_value, loss_type):
+    """Draw a prediction with head info."""
+    head_box = FancyBboxPatch((x, y), 2.7, 0.55, boxstyle="round,pad=0.02,rounding_size=0.08",
+                              facecolor='#FEF3C7', edgecolor=C['pred'], linewidth=1.5, zorder=2)
+    ax.add_patch(head_box)
+
+    ax.text(x+0.1, y+0.28, feature + ":", ha='left', va='center', fontsize=9,
+            fontweight='bold', color=C['text'], family='monospace')
+    ax.text(x+1.35, y+0.28, pred_value, ha='center', va='center', fontsize=10,
+            fontweight='bold', color=C['enc'], family='monospace')
+    ax.text(x+2.6, y+0.28, loss_type, ha='right', va='center', fontsize=8,
+            color=C['muted'], style='italic')
+
+    # Checkmark
+    ax.text(x+1.8, y+0.28, "✓", ha='center', va='center', fontsize=10,
+            color=C['enc'], fontweight='bold')
+
+pred_head(8.45, 4.1, "user_id", "12345", "CE loss")
+pred_head(8.45, 3.4, "duration", "5.2", "MSE loss")
+
+# Info text
+ax.text(9.8, 2.95, "Only compute loss on\nmasked positions", ha='center', va='top',
+        fontsize=9, color=C['muted'], style='italic')
+
+# === BOTTOM: Learned Relationships (centered under encoder) ===
+learn_box = FancyBboxPatch((5.0, 0.4), 4.0, 1.1, boxstyle="round,pad=0.05,rounding_size=0.1",
+                           facecolor='#ECFDF5', edgecolor=C['enc'], linewidth=1.5, zorder=1)
+ax.add_patch(learn_box)
+ax.text(7.0, 1.3, "Learned Relationships", ha='center', va='center', fontsize=10,
+        fontweight='bold', color=C['enc'])
+ax.text(7.0, 0.8, '"user 12345 + success + ~1000 bytes → duration ~5 seconds"',
+        ha='center', va='center', fontsize=9, color=C['muted'], style='italic')
+
+# Arrow from encoder to learned
+ax.annotate('', xy=(7.0, 1.5), xytext=(7.0, 2.9),
+            arrowprops=dict(arrowstyle='-|>', color=C['enc'], lw=1.5, ls='--', alpha=0.6))
+
+# === LEGEND ===
+ax.scatter(1.0, 0.95, s=80, c=C['mask'], edgecolors='white', linewidths=1)
+ax.text(1.25, 0.95, "Masked feature", fontsize=9, color=C['text'], va='center')
+ax.scatter(1.0, 0.55, s=80, c=C['pred'], edgecolors='white', linewidths=1)
+ax.text(1.25, 0.55, "Predicted value", fontsize=9, color=C['text'], va='center')
+
+plt.tight_layout(pad=0.3)
+plt.show()
+```
+
 **Why this works**: To predict missing features, the model must learn relationships between features (e.g., "successful logins from user 12345 typically transfer ~1000 bytes in ~5 seconds"). These learned relationships create useful embeddings that capture "normal" behavior patterns.
 
 **What MFP requires**:
@@ -480,7 +632,10 @@ print("Use contrastive_loss() with your TabularResNet model for self-supervised 
 
 **Adding prediction heads to TabularResNet**:
 
-```python
+```{code-block} python
+:linenos:
+:emphasize-lines: 17-20, 24, 34-35, 38
+
 import torch.nn as nn
 
 class TabularResNetWithMFP(nn.Module):
@@ -545,17 +700,20 @@ print("Extended model ready for MFP training")
 
 **Understanding the prediction heads**:
 
-- **`categorical_predictors`** (lines 71-74): A `ModuleList` containing one linear layer per categorical feature
+- **`categorical_predictors`** (lines 17-20): A `ModuleList` containing one linear layer per categorical feature
   - If you have 4 categorical features with cardinalities [100, 50, 200, 1000], you get 4 linear layers:
     - Layer 0: `Linear(d_model=256, output=100)` - predicts values for categorical feature 0 (100 possible values)
     - Layer 1: `Linear(d_model=256, output=50)` - predicts values for categorical feature 1 (50 possible values)
     - Layer 2: `Linear(d_model=256, output=200)` - predicts values for categorical feature 2
     - Layer 3: `Linear(d_model=256, output=1000)` - predicts values for categorical feature 3
   - Each layer takes the embedding (256-dim) and outputs logits for that feature's vocabulary
+  - Line 34: Uses list comprehension to apply each predictor to the embedding
+  - Line 35: Stacks predictions into a single tensor of shape `(batch, num_categorical, vocab_size)`
 
-- **`numerical_predictor`** (line 78): A single linear layer for all numerical features
+- **`numerical_predictor`** (line 24): A single linear layer for all numerical features
   - If you have 50 numerical features: `Linear(d_model=256, output=50)`
   - Takes embedding (256-dim) and outputs predictions for all 50 numerical values at once
+  - Line 38: Single forward pass predicts all numerical features simultaneously
   - Uses MSE loss (continuous values), not cross-entropy
 
 **Complete MFP loss with both categorical and numerical masking**:
