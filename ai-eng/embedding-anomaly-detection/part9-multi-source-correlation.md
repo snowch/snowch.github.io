@@ -1252,6 +1252,197 @@ simulate_agentic_investigation()
 
 ---
 
+### Agentic Multi-Step Attack Detection
+
+The agentic approach also handles **multi-step attack sequences** without needing an LSTM model (as described in Part 6). Here's how it detects sophisticated attacks where individual events look normal:
+
+#### Scenario: Advanced Persistent Threat (APT)
+
+**Attack sequence** (each step appears normal individually):
+1. **14:00** - User login from authorized IP (normal)
+2. **14:15** - Privilege escalation to admin (unusual but could be legitimate)
+3. **14:30** - Access HR database (suspicious for this user)
+4. **14:45** - Large file download (500MB - highly suspicious)
+5. **15:00** - External data transfer (clear exfiltration)
+
+**How the agent detects this without LSTM:**
+
+```{code-cell} ipython3
+def detect_multi_step_attack_agentic(event_sequence):
+    """
+    Demonstrate agentic detection of multi-step attacks.
+
+    Unlike LSTM (which needs training on labeled sequences),
+    the agent uses semantic search and reasoning.
+    """
+    print("="*70)
+    print("AGENTIC MULTI-STEP ATTACK DETECTION")
+    print("="*70)
+
+    # Events in the sequence
+    events = [
+        {'time': '14:00', 'action': 'login', 'user': 'alice', 'ip': '10.0.1.5',
+         'anomaly_score': 0.1},  # Normal
+        {'time': '14:15', 'action': 'privilege_escalation', 'user': 'alice',
+         'target_group': 'admin', 'anomaly_score': 0.4},  # Borderline
+        {'time': '14:30', 'action': 'database_access', 'user': 'alice',
+         'database': 'hr_records', 'anomaly_score': 0.6},  # Suspicious
+        {'time': '14:45', 'action': 'file_download', 'user': 'alice',
+         'size_mb': 500, 'anomaly_score': 0.8},  # Very suspicious
+        {'time': '15:00', 'action': 'external_transfer', 'user': 'alice',
+         'destination': 'external_ip', 'anomaly_score': 0.9}  # Critical
+    ]
+
+    print("\n📊 SEQUENCE OBSERVATION:")
+    print("Detected 5 events for user 'alice' over 1 hour:")
+    for e in events:
+        print(f"  {e['time']}: {e['action']} (anomaly score: {e['anomaly_score']})")
+
+    print("\n🤔 AGENT REASONING (Turn 1):")
+    print("Observation: Individual events have low-to-medium anomaly scores")
+    print("Question: Is this a normal workflow or a multi-step attack?")
+    print("Action: Search for similar event sequences in historical incidents")
+
+    print("\n🔍 SEMANTIC SEARCH (Turn 1 Results):")
+    print("Query: 'login → privilege escalation → database access → large download'")
+    print("\nFound 2 similar historical sequences:")
+    print("  ✓ Match 1 (similarity: 0.87): APT lateral movement attack")
+    print("    - User: former employee")
+    print("    - Pattern: login → escalate → data access → exfiltrate")
+    print("    - Root cause: Compromised credentials")
+    print("    - Resolution: Account locked, credentials rotated")
+    print("\n  ✓ Match 2 (similarity: 0.82): Insider threat")
+    print("    - User: disgruntled employee")
+    print("    - Pattern: Same sequence over 2 hours")
+    print("    - Resolution: Access revoked, investigation opened")
+
+    print("\n🧠 AGENT REASONING (Turn 2):")
+    print("Hypothesis: This matches known APT/insider threat patterns")
+    print("Confidence: 75% (strong historical similarity)")
+    print("Action: Check user 'alice' profile for legitimacy")
+
+    print("\n📋 BUSINESS LOGIC CHECK (Turn 2):")
+    print("User profile for 'alice':")
+    print("  - Role: Marketing Analyst")
+    print("  - Department: Marketing")
+    print("  - Normal databases: marketing_campaigns, customer_analytics")
+    print("  - Admin privileges: NO (should NOT have admin access)")
+    print("  - HR database access: NO (not in role)")
+    print("  - Typical download size: <10MB")
+
+    print("\n❌ VIOLATIONS DETECTED:")
+    print("  1. Privilege escalation (alice should not be admin)")
+    print("  2. HR database access (not in user's role)")
+    print("  3. File size 50x normal usage (500MB vs. <10MB)")
+    print("  4. External transfer (violates data policy)")
+
+    print("\n🤔 AGENT REASONING (Turn 3):")
+    print("Hypothesis: CONFIRMED multi-step attack (APT or compromised credentials)")
+    print("Confidence: 95% (historical match + business logic violations)")
+    print("Action: Check for additional context (time of day, location)")
+
+    print("\n🌍 CONTEXTUAL VALIDATION (Turn 3):")
+    print("  - Time: 14:00-15:00 (during business hours - slightly less suspicious)")
+    print("  - IP: 10.0.1.5 (matches alice's normal IP range)")
+    print("  - BUT: Activity pattern very rapid (5 actions in 1 hour vs. normal 2/day)")
+
+    print("\n" + "="*70)
+    print("🚨 FINAL DETERMINATION: MULTI-STEP ATTACK DETECTED")
+    print("="*70)
+    print("\nRoot Cause: Likely compromised credentials or insider threat")
+    print("Confidence: 95%")
+    print("\nEvidence Chain:")
+    print("  1. Sequence matches known APT patterns (87% similarity)")
+    print("  2. Multiple business logic violations (unauthorized privilege/access)")
+    print("  3. Abnormal data volume (50x typical usage)")
+    print("  4. Rapid sequence execution (5 actions in 1 hour)")
+    print("\n🚦 RECOMMENDED ACTIONS:")
+    print("  1. IMMEDIATE: Lock account 'alice'")
+    print("  2. IMMEDIATE: Block external transfer")
+    print("  3. HIGH PRIORITY: Force password reset and MFA verification")
+    print("  4. MEDIUM PRIORITY: Review alice's recent access logs")
+    print("  5. MEDIUM PRIORITY: Check if credentials appear in breach databases")
+    print("="*70)
+
+detect_multi_step_attack_agentic([])
+```
+
+#### Key Advantages Over LSTM for Multi-Step Detection
+
+**1. No Training Required**
+```python
+# LSTM approach:
+# - Need 1000s of labeled attack sequences
+# - Retrain when attack patterns evolve
+# - Separate model to maintain
+
+# Agentic approach:
+# - Uses existing vector DB with historical incidents
+# - Learns from postmortems (natural language)
+# - No separate model to train/deploy
+```
+
+**2. Robust to Timing Variations**
+```python
+# LSTM trained on: event1 → (5 min) → event2 → (10 min) → event3
+# Attack happens: event1 → (2 hours) → event2 → (5 min) → event3
+# → LSTM may miss (timing signature different)
+
+# Agent approach:
+# → Semantic search finds "login + privilege_escalation + data_access"
+#    regardless of exact timing intervals
+# → Focuses on action sequence, not precise timing
+```
+
+**3. Explainable Reasoning**
+```python
+# LSTM output:
+# - anomaly_score = 0.87  (why? ¯\_(ツ)_/¯)
+
+# Agent output:
+# - "This sequence matches historical APT incident #127 (87% similar)"
+# - "User role prohibits HR database access"
+# - "Download volume 50x normal baseline"
+# → Security team can validate and take informed action
+```
+
+**4. Incorporates Business Logic**
+```python
+# LSTM: Purely statistical
+# - Can't know that "Marketing Analyst shouldn't access HR database"
+
+# Agent: Reasons about business rules
+# - Checks user roles, permissions, normal behavior patterns
+# - Validates against organizational policies
+```
+
+**5. One-Shot Learning**
+```python
+# LSTM: Needs many examples
+# - "Give me 500 examples of privilege escalation attacks"
+
+# Agent: Works with few examples
+# - "Found 2 similar incidents, both were APT attacks"
+# - Enough to raise confidence and trigger investigation
+```
+
+#### When LSTM Still Makes Sense for Sequences
+
+Despite these advantages, LSTM has niche use cases:
+
+| Aspect | LSTM | Agentic |
+|--------|------|---------|
+| **Latency** | 1-10ms | 30-60s |
+| **Training Data** | Needs 1000s of sequences | Works with 10s of incidents |
+| **Interpretability** | Black box | Full reasoning trace |
+| **Business Logic** | Can't incorporate | Native support |
+| **Pattern Type** | Statistical regularities | Semantic + contextual |
+| **Best For** | High-frequency trading anomalies, protocol patterns | Security threats, business workflow violations |
+
+**Recommendation**: For security/observability use cases (multi-step attacks, fraud, workflow violations), prefer the agentic approach. Reserve LSTM for ultra-low-latency applications or purely statistical pattern detection.
+
+---
+
 ## Step 6: End-to-End Example Workflow
 
 Let's walk through a complete example: A production incident triggered by a deployment.

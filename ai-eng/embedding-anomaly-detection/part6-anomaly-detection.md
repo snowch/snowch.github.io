@@ -584,11 +584,33 @@ The methods above (LOF, Isolation Forest, k-NN, clustering) detect anomalies in 
 - Higher latency (must buffer events into sequences before scoring)
 - More infrastructure to maintain (model training, versioning, monitoring)
 
-**Recommendation**: Start with vector DB methods (Sections 1-5). Only add sequence detection if you have clear evidence of multi-step attacks or workflow violations that single-event methods miss.
+**Recommendation**: Start with vector DB methods (Sections 1-5). For multi-step attack detection:
+- **Prefer the agentic approach** ([Part 9: Agentic RCA](part9-multi-source-correlation#alternative-agentic-iterative-investigation)) - uses semantic search and reasoning to detect multi-step patterns without training an LSTM
+- **Use LSTM (shown below)** only when you need sub-second latency or purely statistical pattern detection
+
+### Alternative: Agentic Multi-Step Detection
+
+For most teams, the **agentic approach in Part 9** is preferable to LSTM for multi-step attack detection:
+
+**Why agentic approach is better:**
+- ✅ No separate model to train/maintain (uses existing vector DB)
+- ✅ Robust to timing variations (semantic similarity vs. exact temporal patterns)
+- ✅ Explainable reasoning (shows investigation trace)
+- ✅ Works with few examples (one-shot learning via historical search)
+- ✅ Incorporates business logic (can reason about workflows)
+
+**When to use LSTM instead:**
+- Need sub-millisecond latency
+- Purely statistical patterns without semantic meaning
+- Have large labeled sequence datasets
+
+See [Part 9: Agentic Sequence Investigation](part9-multi-source-correlation#alternative-agentic-iterative-investigation) for the recommended approach.
 
 ---
 
-### Implementation
+### LSTM Implementation (Optional)
+
+For teams that need ultra-low latency or have specific requirements for neural sequence modeling:
 
 For detecting anomalies across sequences of events (e.g., multi-step attacks).
 
