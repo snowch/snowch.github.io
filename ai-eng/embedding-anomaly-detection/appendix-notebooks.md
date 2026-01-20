@@ -45,17 +45,17 @@ Pre-generated OCSF data (~15 minutes of synthetic observability events):
 
 ---
 
-## Download Notebooks
+## Notebooks
 
-{download}`Download notebooks (notebooks.zip) <./notebooks.zip>`
-
-**Contents:**
+View the executed notebooks with output, or download to run yourself:
 
 | Notebook | Description | Prerequisites |
 |----------|-------------|---------------|
-| `03-feature-engineering.ipynb` | Load OCSF data, extract temporal features, encode for ML | Sample data |
-| `04-self-supervised-training.ipynb` | Train TabularResNet with contrastive learning | Part 3 output |
-| `06-anomaly-detection.ipynb` | Compare k-NN, LOF, Isolation Forest detection | Part 4 output |
+| [Feature Engineering](notebooks/03-feature-engineering) | Load OCSF data, extract temporal features, encode for ML | Sample data |
+| [Self-Supervised Training](notebooks/04-self-supervised-training) | Train TabularResNet with contrastive learning | Part 3 output |
+| [Anomaly Detection](notebooks/06-anomaly-detection) | Compare k-NN, LOF, Isolation Forest detection | Part 4 output |
+
+{download}`Download all notebooks (notebooks.zip) <./notebooks.zip>`
 
 ---
 
