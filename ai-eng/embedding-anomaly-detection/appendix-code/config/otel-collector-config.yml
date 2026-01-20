@@ -12,8 +12,8 @@ processors:
     send_batch_size: 1024
 
 exporters:
-  logging:
-    loglevel: info
+  debug:
+    verbosity: basic
 
   file:
     path: /var/log/otel/traces.json
@@ -23,4 +23,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, file]
+      exporters: [debug, file]

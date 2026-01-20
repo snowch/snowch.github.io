@@ -14,11 +14,6 @@ services:
       - auth-service
     labels:
       - "monitoring=enabled"
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: web-api
 
   auth-service:
     build: ./services/auth-service
@@ -28,11 +23,6 @@ services:
       - LDAP_URL=ldap://openldap:389
     labels:
       - "monitoring=enabled"
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: auth-service
 
   payment-worker:
     build: ./services/payment-worker
@@ -44,11 +34,6 @@ services:
       - postgres
     labels:
       - "monitoring=enabled"
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: payment-worker
 
   # Data Stores
   postgres:
