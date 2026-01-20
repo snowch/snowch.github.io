@@ -6,7 +6,7 @@ Generate realistic observability data in OCSF format for **self-supervised** ano
 
 - Realistic observability data from a multi-service application
 - Normal traffic + anomaly scenarios (unlabeled)
-- Application logs in OCSF format
+- **Logs**, **metrics**, and **traces** in OCSF format
 - No labels required - use with self-supervised learning
 
 ## Quick Start
@@ -18,9 +18,17 @@ docker compose up -d
 # 2. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
 # Traffic is automatically generated
 
-# 3. Export logs and convert to OCSF format
+# 3. Export and convert all data types to OCSF format:
+
+# Logs (from Docker):
 docker compose logs --no-color > ./logs/docker.log
 python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
+
+# Traces (from OpenTelemetry):
+python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
+
+# Metrics (from Prometheus):
+python scripts/export_prometheus_metrics.py --duration 10
 
 # 4. (Optional) Generate small labeled subset for evaluation
 python scripts/label_subset_for_evaluation.py
@@ -31,9 +39,13 @@ python scripts/label_subset_for_evaluation.py
 - Docker and Docker Compose
 - Python 3.8+ with: `pip install pandas pyarrow`
 
-## Output Dataset
+## Output Datasets
+
+After running the export scripts:
 
 - `data/ocsf_logs.parquet` - Application logs in OCSF format (unlabeled)
+- `data/ocsf_traces.parquet` - Distributed traces in OCSF format (unlabeled)
+- `data/ocsf_metrics.parquet` - System metrics in OCSF format (unlabeled)
 - `data/ocsf_eval_subset.parquet` - Small labeled subset for evaluation (optional)
 
 ## Architecture
@@ -46,8 +58,16 @@ The stack includes:
 - **postgres**: Database
 - **redis**: Cache
 - **prometheus**: Metrics collection
-- **otel-collector**: Distributed tracing
+- **otel-collector**: Distributed tracing (exports to ./logs/otel/)
 - **fluentd**: Log aggregation
+
+## Export Scripts
+
+| Script | Data Source | Output |
+|--------|-------------|--------|
+| `convert_to_ocsf.py` | Docker logs | `ocsf_logs.parquet` |
+| `convert_traces_to_ocsf.py` | OTel collector | `ocsf_traces.parquet` |
+| `export_prometheus_metrics.py` | Prometheus API | `ocsf_metrics.parquet` |
 
 ## Use Cases
 

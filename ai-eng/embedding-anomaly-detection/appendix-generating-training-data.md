@@ -96,7 +96,7 @@ The zip contains a complete, runnable stack:
 - `services/auth-service/` - Node.js auth service (app.js, Dockerfile, package.json)
 - `services/payment-worker/` - Celery worker (worker.py, Dockerfile, requirements.txt)
 - `config/` - Prometheus, OpenTelemetry, and Fluentd configurations
-- `scripts/` - OCSF converter and optional labeling script
+- `scripts/` - OCSF converters for logs, traces, and metrics, plus optional labeling script
 
 ---
 
@@ -249,15 +249,22 @@ docker compose ps
 # 4. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
 # The load-generator service automatically sends traffic to web-api
 
-# 5. Export Docker logs and convert to OCSF format
+# 5. Export and convert all data types to OCSF format:
+
+# Logs (from Docker):
 docker compose logs --no-color > ./logs/docker.log
 python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
 
-# Or pipe directly:
-docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
+# Traces (from OpenTelemetry):
+python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
 
-# 6. Output file (ready for Parts 2-3 of tutorial):
+# Metrics (from Prometheus):
+python scripts/export_prometheus_metrics.py --duration 10
+
+# 6. Output files (ready for Parts 2-3 of tutorial):
 # - data/ocsf_logs.parquet (application logs in OCSF format)
+# - data/ocsf_traces.parquet (distributed traces in OCSF format)
+# - data/ocsf_metrics.parquet (system metrics in OCSF format)
 ```
 
 ### Prerequisites
@@ -348,7 +355,10 @@ This appendix provides a complete, open-source solution for generating realistic
 1. **Docker Compose stack**: Multi-service application with observability instrumentation
 2. **Instrumented services**: Web API, auth service, payment worker generating structured JSON logs
 3. **Load generator**: Creates normal traffic + anomaly scenarios (naturally occurring, unlabeled)
-4. **OCSF converter**: Converts Docker logs to OCSF-formatted Parquet (`data/ocsf_logs.parquet`)
+4. **OCSF converters**: Three scripts to convert observability data to OCSF-formatted Parquet:
+   - `data/ocsf_logs.parquet` - Application logs from Docker
+   - `data/ocsf_traces.parquet` - Distributed traces from OpenTelemetry
+   - `data/ocsf_metrics.parquet` - System metrics from Prometheus
 5. **Optional evaluation labels**: Small labeled subset for comparing detection methods (Part 6, Section 7 only)
 
 **Key difference from supervised learning**:

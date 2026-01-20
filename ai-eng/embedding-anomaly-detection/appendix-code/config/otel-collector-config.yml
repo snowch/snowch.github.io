@@ -14,10 +14,16 @@ processors:
 exporters:
   debug:
     verbosity: basic
+  file:
+    path: /var/log/otel/traces.jsonl
+    rotation:
+      max_megabytes: 100
+      max_days: 1
+      max_backups: 3
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [debug, file]
