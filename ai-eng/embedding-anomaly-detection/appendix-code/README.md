@@ -12,8 +12,9 @@ Generate realistic observability data in OCSF format for **self-supervised** ano
 ## Quick Start
 
 ```bash
-# 1. Create required directories
+# 1. Create required directories (with write permissions for containers)
 mkdir -p ./logs/otel ./data
+chmod 777 ./logs/otel
 
 # 2. Start all services
 docker compose up -d
