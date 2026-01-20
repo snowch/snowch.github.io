@@ -1,5 +1,6 @@
 # Python dependencies for building the Jupyter Book
 jupyter-book
+nbconvert
 mystmd
 numpy
 pandas
