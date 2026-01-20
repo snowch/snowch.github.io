@@ -109,28 +109,112 @@ Create a realistic multi-service application with built-in observability:
 :language: yaml
 ```
 
+### Configuration Files
+
+The observability stack requires these configuration files:
+
+**config/prometheus.yml** - Metrics collection:
+
+```{literalinclude} appendix-code/config/prometheus.yml
+:language: yaml
+```
+
+**config/otel-collector-config.yml** - Distributed tracing:
+
+```{literalinclude} appendix-code/config/otel-collector-config.yml
+:language: yaml
+```
+
+**config/fluentd.conf** - Log aggregation:
+
+```{literalinclude} appendix-code/config/fluentd.conf
+:language: text
+```
+
 ---
 
 ## Part 2: Instrumented Services
 
-### services/web-api/app.py
+### Web API Service
 
-Flask service with comprehensive observability:
+**services/web-api/app.py** - Flask service with comprehensive observability:
 
 ```{literalinclude} appendix-code/services/web-api/app.py
 :language: python
+```
+
+**services/web-api/Dockerfile**:
+
+```{literalinclude} appendix-code/services/web-api/Dockerfile
+:language: dockerfile
+```
+
+**services/web-api/requirements.txt**:
+
+```{literalinclude} appendix-code/services/web-api/requirements.txt
+:language: text
+```
+
+### Auth Service
+
+**services/auth-service/app.js** - Node.js authentication service:
+
+```{literalinclude} appendix-code/services/auth-service/app.js
+:language: javascript
+```
+
+**services/auth-service/Dockerfile**:
+
+```{literalinclude} appendix-code/services/auth-service/Dockerfile
+:language: dockerfile
+```
+
+**services/auth-service/package.json**:
+
+```{literalinclude} appendix-code/services/auth-service/package.json
+:language: json
+```
+
+### Payment Worker
+
+**services/payment-worker/worker.py** - Celery background worker:
+
+```{literalinclude} appendix-code/services/payment-worker/worker.py
+:language: python
+```
+
+**services/payment-worker/Dockerfile**:
+
+```{literalinclude} appendix-code/services/payment-worker/Dockerfile
+:language: dockerfile
+```
+
+**services/payment-worker/requirements.txt**:
+
+```{literalinclude} appendix-code/services/payment-worker/requirements.txt
+:language: text
 ```
 
 ---
 
 ## Part 3: Load Generator
 
-### services/load-generator/generate_load.py
-
-Generates realistic traffic patterns with controlled anomalies:
+**services/load-generator/generate_load.py** - Generates realistic traffic patterns with controlled anomalies:
 
 ```{literalinclude} appendix-code/services/load-generator/generate_load.py
 :language: python
+```
+
+**services/load-generator/Dockerfile**:
+
+```{literalinclude} appendix-code/services/load-generator/Dockerfile
+:language: dockerfile
+```
+
+**services/load-generator/requirements.txt**:
+
+```{literalinclude} appendix-code/services/load-generator/requirements.txt
+:language: text
 ```
 
 ---
