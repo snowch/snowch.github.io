@@ -40,11 +40,17 @@ graph TB
     subgraph obs["Observability Stack"]
         prom["Prometheus<br/>(metrics)"]
         otel["OpenTelemetry<br/>(traces)"]
-        fluentd["Fluentd<br/>(logs)"]
+        docker["Docker<br/>(logs)"]
     end
 
     subgraph gen["Load Generation"]
         loadgen["load-generator<br/>(traffic + anomalies)"]
+    end
+
+    subgraph ocsf["OCSF Conversion"]
+        logs_parquet["ocsf_logs.parquet"]
+        traces_parquet["ocsf_traces.parquet"]
+        metrics_parquet["ocsf_metrics.parquet"]
     end
 
     webapi -->|queries| postgres
@@ -54,23 +60,25 @@ graph TB
     worker -->|writes| postgres
 
     webapi -.->|metrics| prom
-    auth -.->|metrics| prom
-    worker -.->|metrics| prom
     postgres -.->|metrics| prom
     redis -.->|metrics| prom
 
     webapi -.->|traces| otel
-    auth -.->|traces| otel
 
-    webapi -.->|logs| fluentd
-    auth -.->|logs| fluentd
-    worker -.->|logs| fluentd
+    webapi -.->|logs| docker
+    auth -.->|logs| docker
+    worker -.->|logs| docker
 
     loadgen -->|HTTP requests| webapi
+
+    docker -->|convert_to_ocsf.py| logs_parquet
+    otel -->|convert_traces_to_ocsf.py| traces_parquet
+    prom -->|export_prometheus_metrics.py| metrics_parquet
 
     style apps fill:#e1f5ff
     style obs fill:#fff4e1
     style gen fill:#ffe1f5
+    style ocsf fill:#e1ffe1
 ```
 
 **Diagram explanation**:
@@ -79,6 +87,7 @@ graph TB
 - **Application Services** (blue): Multi-service architecture generating realistic traffic
 - **Observability Stack** (yellow): Collects logs, metrics, and traces
 - **Load Generator** (pink): Creates normal traffic + anomaly scenarios
+- **OCSF Conversion** (green): Python scripts convert data to OCSF parquet format
 
 ---
 
