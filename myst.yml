@@ -139,6 +139,8 @@ project:
               title: "Notebook: Feature Engineering"
             - file: ai-eng/embedding-anomaly-detection/notebooks/04-self-supervised-training.ipynb
               title: "Notebook: Self-Supervised Training"
+            - file: ai-eng/embedding-anomaly-detection/notebooks/05-model-inference.ipynb
+              title: "Notebook: Model Saving & Inference"
             - file: ai-eng/embedding-anomaly-detection/notebooks/06-anomaly-detection.ipynb
               title: "Notebook: Anomaly Detection"
 
