@@ -27,12 +27,12 @@ kernelspec:
 
 ## Download Sample Data
 
-Pre-generated OCSF data (~15 minutes of synthetic observability events):
+Pre-generated OCSF data (~3 hours of synthetic observability events):
 
 {download}`Download sample data (ocsf_data.zip) <./data.zip>`
 
 **Contents:**
-- `ocsf_logs.parquet` - ~5,700 application log events (59 columns)
+- `ocsf_logs.parquet` - ~27,000 application log events (59 columns)
 - `ocsf_traces.parquet` - ~2,800 distributed trace spans (17 columns)
 - `ocsf_metrics.parquet` - ~7,000 metric data points (33 columns)
 - `ocsf_eval_subset.parquet` - 1,000 labeled events for evaluation (~2% anomaly rate)
@@ -53,6 +53,7 @@ View the executed notebooks with output, or download to run yourself:
 |----------|-------------|---------------|
 | [Feature Engineering](notebooks/03-feature-engineering) | Load OCSF data, extract temporal features, encode for ML | Sample data |
 | [Self-Supervised Training](notebooks/04-self-supervised-training) | Train TabularResNet with contrastive learning | Part 3 output |
+| [Model Inference](notebooks/05-model-inference) | Load trained model and generate embeddings for new data | Part 4 output |
 | [Anomaly Detection](notebooks/06-anomaly-detection) | Compare k-NN, LOF, Isolation Forest detection | Part 4 output |
 
 {download}`Download all notebooks (notebooks.zip) <./notebooks.zip>`
@@ -79,7 +80,13 @@ graph LR
         embed["Extract embeddings"]
     end
 
-    subgraph nb3["06-anomaly-detection"]
+    subgraph nb3["05-model-inference"]
+        loadmodel["Load trained model"]
+        infer["Generate embeddings"]
+        package["Package for deployment"]
+    end
+
+    subgraph nb4["06-anomaly-detection"]
         knn["k-NN distance"]
         lof["LOF"]
         iso["Isolation Forest"]
@@ -89,12 +96,14 @@ graph LR
     parquet --> load
     load --> temporal --> encode
     encode --> model --> train --> embed
+    embed --> loadmodel --> infer --> package
     embed --> knn & lof & iso --> ensemble
 
     style data fill:#e1ffe1
     style nb1 fill:#e1f5ff
     style nb2 fill:#fff4e1
-    style nb3 fill:#ffe1e1
+    style nb3 fill:#ffe8e1
+    style nb4 fill:#ffe1e1
 ```
 
 ---
@@ -107,7 +116,7 @@ graph LR
 
 **Key steps:**
 1. Load OCSF parquet data
-2. Explore schema (60 columns with nested objects flattened)
+2. Explore schema (59 columns with nested objects flattened)
 3. Extract temporal features (hour, day, cyclical sin/cos encoding)
 4. Select categorical and numerical feature subsets
 5. Handle missing values
@@ -130,6 +139,21 @@ graph LR
 6. Visualize with t-SNE
 
 **Output:** `embeddings.npy`, `tabular_resnet.pt`
+
+---
+
+### 05-model-inference.ipynb
+
+**Goal**: Load the trained model and generate embeddings for new OCSF data.
+
+**Key steps:**
+1. Load saved model weights and feature artifacts
+2. Create inference pipeline for new data
+3. Preprocess new OCSF events (same encoding as training)
+4. Generate embeddings using trained TabularResNet
+5. Package model for production deployment
+
+**Output:** `inference_package.pt` (model + preprocessing in one file)
 
 ---
 
@@ -189,8 +213,8 @@ Want more data or different anomaly scenarios? See [Appendix: Generating Trainin
 
 This appendix provides everything needed to run the tutorial hands-on:
 
-1. **Sample data**: Pre-generated OCSF parquet files with ~15K events
-2. **Notebooks**: Three Jupyter notebooks covering the core workflow
+1. **Sample data**: Pre-generated OCSF parquet files with ~27K events
+2. **Notebooks**: Four Jupyter notebooks covering the core workflow
 3. **No setup required**: Just download, install dependencies, and run
 
 **Workflow**: Feature Engineering → Self-Supervised Training → Anomaly Detection
