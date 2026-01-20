@@ -149,7 +149,7 @@ class OCSFConverter:
                 "severity_id": severity_id,
                 "time": time_ms,
 
-                # Metadata (required)
+                # Metadata (required) - stored as JSON and also flattened
                 "metadata": json.dumps(log_entry.get('metadata', {
                     "version": "1.0.0",
                     "product": {"name": service, "vendor_name": "Demo"}
@@ -174,6 +174,15 @@ class OCSFConverter:
                 # Raw data (for debugging/training)
                 "raw_data": raw_line[:2000] if raw_line else None,
             }
+
+            # Flatten metadata fields
+            metadata = log_entry.get('metadata', {})
+            if metadata:
+                ocsf_event["metadata_version"] = metadata.get('version')
+                product = metadata.get('product', {})
+                ocsf_event["metadata_product_name"] = product.get('name')
+                ocsf_event["metadata_product_version"] = product.get('version')
+                ocsf_event["metadata_product_vendor_name"] = product.get('vendor_name')
 
             # Handle nested objects - store as JSON strings for parquet compatibility
             # but also flatten key fields for ML
@@ -216,12 +225,14 @@ class OCSFConverter:
                 ocsf_event["http_request_url_path"] = url.get('path')
                 ocsf_event["http_request_url_hostname"] = url.get('hostname')
                 ocsf_event["http_request_url_scheme"] = url.get('scheme')
+                ocsf_event["http_request_url_query_string"] = url.get('query_string')
 
             # HTTP response
             http_response = log_entry.get('http_response', {})
             if http_response:
                 ocsf_event["http_response"] = json.dumps(http_response)
                 ocsf_event["http_response_code"] = http_response.get('code')
+                ocsf_event["http_response_status"] = http_response.get('status')
                 ocsf_event["http_response_latency"] = http_response.get('latency')
 
             # Device info
@@ -321,6 +332,14 @@ Examples:
         print("Reading from stdin...")
         log_lines = sys.stdin.readlines()
     else:
+        if not os.path.exists(args.log_file):
+            print(f"Error: Log file not found: {args.log_file}")
+            print()
+            print("To capture logs from running Docker services:")
+            print("  docker compose logs --no-color > ./logs/docker.log")
+            print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
+            sys.exit(1)
+
         print(f"Reading from {args.log_file}...")
         with open(args.log_file, 'r') as f:
             log_lines = f.readlines()
