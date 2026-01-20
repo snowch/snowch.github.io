@@ -321,6 +321,14 @@ Examples:
         print("Reading from stdin...")
         log_lines = sys.stdin.readlines()
     else:
+        if not os.path.exists(args.log_file):
+            print(f"Error: Log file not found: {args.log_file}")
+            print()
+            print("To capture logs from running Docker services:")
+            print("  docker compose logs --no-color > ./logs/docker.log")
+            print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
+            sys.exit(1)
+
         print(f"Reading from {args.log_file}...")
         with open(args.log_file, 'r') as f:
             log_lines = f.readlines()

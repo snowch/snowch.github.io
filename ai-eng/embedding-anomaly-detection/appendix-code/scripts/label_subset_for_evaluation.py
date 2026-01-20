@@ -9,6 +9,8 @@ Usage:
     python scripts/label_subset_for_evaluation.py
 """
 
+import os
+import sys
 import pandas as pd
 
 
@@ -23,7 +25,22 @@ def label_evaluation_subset(ocsf_events_path, sample_size=1000):
     Returns:
         Small labeled DataFrame for validation
     """
+    # Check if input file exists
+    if not os.path.exists(ocsf_events_path):
+        print(f"Input file not found: {ocsf_events_path}")
+        print()
+        print("Please run the log conversion first:")
+        print("  docker compose logs --no-color > ./logs/docker.log")
+        print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
+        return None
+
     df = pd.read_parquet(ocsf_events_path)
+
+    if len(df) == 0:
+        print(f"No events found in {ocsf_events_path}")
+        print("Make sure docker compose services are running and generating logs.")
+        return None
+
     print(f"Loaded {len(df)} events with columns: {list(df.columns)}")
 
     # Sample a subset
@@ -111,4 +128,6 @@ def label_evaluation_subset(ocsf_events_path, sample_size=1000):
 
 if __name__ == '__main__':
     # Generate small labeled subset for Part 6 evaluation (optional)
-    label_evaluation_subset('data/ocsf_logs.parquet', sample_size=1000)
+    result = label_evaluation_subset('data/ocsf_logs.parquet', sample_size=1000)
+    if result is None:
+        sys.exit(1)
