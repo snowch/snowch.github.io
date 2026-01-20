@@ -64,9 +64,10 @@ services:
       - '--storage.tsdb.path=/prometheus'
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector-contrib:latest
     volumes:
       - ./config/otel-collector-config.yml:/etc/otel/config.yml
+      - ./logs/otel:/var/log/otel
     ports:
       - "4317:4317"  # OTLP gRPC
       - "4318:4318"  # OTLP HTTP
