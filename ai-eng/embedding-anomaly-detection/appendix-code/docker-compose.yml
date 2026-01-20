@@ -65,6 +65,7 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
+    user: "1000:1000"  # Run as non-root so exported files are readable
     volumes:
       - ./config/otel-collector-config.yml:/etc/otel/config.yml
       - ./logs/otel:/var/log/otel
