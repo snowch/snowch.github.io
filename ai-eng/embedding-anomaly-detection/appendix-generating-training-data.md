@@ -272,20 +272,23 @@ sudo rm -rf ./logs/otel 2>/dev/null || true
 mkdir -p ./logs/otel ./data
 chmod 777 ./logs/otel
 
-# 3. Start all services (builds containers on first run)
+# 3. Build services (ensures latest code)
+docker compose build
+
+# 4. Start all services
 docker compose up -d
 
-# 4. Verify services are running
+# 5. Verify services are running
 docker compose ps
 
-# 5. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
+# 6. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
 # The load-generator service automatically sends traffic to web-api
 # All telemetry flows through OpenTelemetry Collector to ./logs/otel/
 
-# 6. Convert all OpenTelemetry data to OCSF format (single command):
+# 7. Convert all OpenTelemetry data to OCSF format (single command):
 python scripts/convert_otel_to_ocsf.py
 
-# 7. Output files (ready for Parts 2-3 of tutorial):
+# 8. Output files (ready for Parts 2-3 of tutorial):
 # - data/ocsf_logs.parquet (application logs in OCSF format)
 # - data/ocsf_traces.parquet (distributed traces in OCSF format)
 # - data/ocsf_metrics.parquet (system metrics in OCSF format)

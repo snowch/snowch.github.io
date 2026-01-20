@@ -25,16 +25,19 @@ sudo rm -rf ./logs/otel 2>/dev/null || true
 mkdir -p ./logs/otel ./data
 chmod 777 ./logs/otel
 
-# 2. Start all services
+# 2. Build services (ensures latest code)
+docker compose build
+
+# 3. Start all services
 docker compose up -d
 
-# 3. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
+# 4. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
 # Traffic is automatically generated
 
-# 4. Convert all OpenTelemetry data to OCSF format:
+# 5. Convert all OpenTelemetry data to OCSF format:
 python scripts/convert_otel_to_ocsf.py
 
-# 5. (Optional) Generate small labeled subset for evaluation
+# 6. (Optional) Generate small labeled subset for evaluation
 python scripts/label_subset_for_evaluation.py
 ```
 
