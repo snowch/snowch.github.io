@@ -42,7 +42,7 @@ python scripts/label_subset_for_evaluation.py
 
 ## Prerequisites
 
-- Docker and Docker Compose
+- Docker 20.10+ with Compose plugin (uses `docker compose`, not `docker-compose`)
 - Python 3.8+ with: `pip install pandas pyarrow`
 
 ## Output Datasets
