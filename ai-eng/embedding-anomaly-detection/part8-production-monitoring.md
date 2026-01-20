@@ -48,6 +48,65 @@ This part teaches you how to detect and respond to these issues.
 
 ---
 
+## Production Risks & Limitations
+
+Before diving into monitoring techniques, understand these critical limitations of embedding-based anomaly detection:
+
+### 1. Poisoned Baseline Risk ("Cold Start Problem")
+
+**The risk**: Your embedding model learns what's "normal" from historical data. If that data already contains undetected attacks or anomalies, you'll *normalize* malicious behavior.
+
+**Example**: If an attacker had persistent access for 3 months before you deployed this system, their activity patterns become part of your "normal" baseline.
+
+**Mitigations**:
+- **Clean set validation**: Have analysts manually verify a sample of training data is genuinely normal
+- **Active learning loop**: Flag uncertain predictions for human review and incorporate feedback
+- **Honeypot injection**: Include known-bad synthetic events in training to ensure they're detected
+- **Gradual trust**: Start with high-sensitivity thresholds and relax them as you gain confidence
+
+### 2. Cost vs. Coverage Trade-off
+
+**The risk**: Generating an embedding + vector search for every log line is computationally expensive. At scale (millions of events/day), this becomes prohibitive.
+
+**Reality check**:
+- 10M events/day × 100ms/event = 277 GPU-hours/day
+- Vector DB costs scale with storage AND queries
+
+**Mitigations**:
+- **Pre-filter aggressively**: Use simple rules to discard obvious noise (health checks, routine cron jobs, successful auth from known IPs)
+- **Tiered approach**: Run embeddings only on "interesting" events (errors, auth failures, new IPs, privilege changes)
+- **Batch processing**: For non-critical detection, batch events and process hourly instead of real-time
+- **Sample during training**: You don't need to embed *every* historical event to train a good model
+
+### 3. Explainability Gap
+
+**The risk**: When the system flags an anomaly, it can tell you "this event is unusual" but not *which specific feature* made it unusual. The embedding is a black box.
+
+**Example**: You know "this login is anomalous" but the model can't explicitly say "because the user_agent combined with this IP subnet is rare."
+
+**Mitigations**:
+- **Retrieve neighbors**: Show the k nearest normal events so analysts can visually compare
+- **Feature deltas**: Compute which raw features differ most from the nearest neighbors
+- **SHAP/LIME integration**: For critical alerts, run post-hoc explainability (adds latency)
+- **Hybrid approach**: Combine embedding anomaly scores with rule-based detections that provide explicit reasons
+
+### 4. Temporal Blindness (Single-Event Focus)
+
+**The risk**: Basic embedding approaches score each event independently. They miss slow-burn attacks that look normal event-by-event but are anomalous as a sequence.
+
+**Example**: An attacker making one login attempt per hour for a week won't trigger single-event detection, but the pattern is clearly suspicious.
+
+**Mitigations**:
+- **Sequence models**: Use LSTM or attention over embedding sequences (covered in Part 6)
+- **Session aggregation**: Embed entire sessions, not individual events
+- **Temporal features**: Include time-since-last-event, event-count-in-window as input features
+
+---
+
+**Bottom line**: Embedding-based anomaly detection is powerful but not magic. Use it as *one layer* in a defense-in-depth strategy, not as your only detection mechanism.
+
+---
+
 ## 1. Embedding Drift Detection
 
 ### Statistical Drift Tests
