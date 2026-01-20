@@ -222,6 +222,7 @@ Examples:
         print("  3. The web-api OpenTelemetry instrumentation failed to initialize")
         print()
         print("To fix:")
+        print("  sudo rm -rf ./logs/otel")
         print("  mkdir -p ./logs/otel && chmod 777 ./logs/otel")
         print("  docker compose restart otel-collector")
         print("  # Wait a few minutes for traces to be generated")
