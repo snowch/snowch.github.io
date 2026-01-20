@@ -2,17 +2,14 @@
 """
 Convert raw observability data to OCSF (Open Cybersecurity Schema Framework) format.
 
+This converter produces rich OCSF-compliant data with:
+- All required fields (class_uid, category_uid, severity_id, time, type_uid, metadata)
+- Nested objects (actor, src_endpoint, dst_endpoint, http_request, http_response)
+- Flattened versions for direct ML use (actor.user.name -> actor_user_name)
+
 Usage:
-    # 1. Run docker compose for a while to generate logs:
-    docker compose up -d
-    sleep 60  # Let it run for a minute
-
-    # 2. Export logs and convert to OCSF:
-    docker compose logs --no-color web-api payment-worker auth-service > ./logs/docker.log
+    docker compose logs --no-color > ./logs/docker.log
     python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
-
-    # Or pipe directly:
-    docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
 """
 
 import json
@@ -23,7 +20,6 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-# Try to import pandas, provide helpful error if missing
 try:
     import pandas as pd
 except ImportError:
@@ -32,20 +28,38 @@ except ImportError:
 
 
 class OCSFConverter:
-    """
-    Convert raw observability data to OCSF (Open Cybersecurity Schema Framework) format.
-    """
+    """Convert raw observability data to OCSF format with nested objects."""
+
+    # OCSF class definitions
+    OCSF_CLASSES = {
+        6001: "Web Resources Activity",
+        6002: "Application Lifecycle",
+        6003: "API Activity",
+        6004: "Web Resource Access Activity",
+    }
+
+    # Activity types for API Activity (6003)
+    ACTIVITY_NAMES = {
+        0: "Unknown",
+        1: "Create",
+        2: "Read",
+        3: "Update",
+        4: "Delete",
+    }
+
+    # Severity mapping
+    SEVERITY_MAP = {
+        'DEBUG': 1,
+        'INFO': 2,
+        'WARNING': 3,
+        'WARN': 3,
+        'ERROR': 4,
+        'CRITICAL': 5,
+        'FATAL': 6,
+    }
 
     def convert_logs_to_ocsf(self, log_lines):
-        """
-        Convert logs to OCSF format.
-
-        Args:
-            log_lines: Iterable of log lines (strings)
-
-        Returns:
-            List of OCSF-formatted events
-        """
+        """Convert logs to OCSF format with full schema compliance."""
         ocsf_events = []
 
         for line in log_lines:
@@ -61,9 +75,7 @@ class OCSFConverter:
 
     def _parse_log_line(self, line):
         """Parse a single log line and convert to OCSF format."""
-
-        # Try to extract JSON from the line
-        # Docker compose logs format: "container-name-1  | {json...}"
+        # Try to extract JSON from docker compose log format: "container-name-1  | {json...}"
         json_match = re.search(r'\{.*\}', line)
         if json_match:
             try:
@@ -79,90 +91,188 @@ class OCSFConverter:
         except json.JSONDecodeError:
             pass
 
-        # Skip non-JSON lines (like startup messages)
         return None
 
     def _log_to_ocsf(self, log_entry, raw_line=""):
-        """Convert a parsed log entry to OCSF format."""
+        """Convert a parsed log entry to full OCSF format."""
         try:
             # Parse timestamp
-            timestamp_str = log_entry.get('timestamp', '')
-            try:
-                if ',' in timestamp_str:
-                    timestamp_str = timestamp_str.replace(',', '.')
-                dt = datetime.fromisoformat(timestamp_str.replace(' ', 'T'))
-                time_ms = int(dt.timestamp() * 1000)
-            except:
-                time_ms = int(datetime.now().timestamp() * 1000)
+            time_ms = log_entry.get('time')
+            if not time_ms:
+                timestamp_str = log_entry.get('timestamp', '')
+                try:
+                    if ',' in timestamp_str:
+                        timestamp_str = timestamp_str.replace(',', '.')
+                    dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00').replace(' ', 'T'))
+                    time_ms = int(dt.timestamp() * 1000)
+                except:
+                    time_ms = int(datetime.now().timestamp() * 1000)
 
-            # Determine service from log entry or raw line
+            # Get service name
             service = log_entry.get('service', 'unknown')
             if service == 'unknown' and raw_line:
-                # Try to extract from docker compose log prefix
-                if 'web-api' in raw_line:
-                    service = 'web-api'
-                elif 'payment-worker' in raw_line:
-                    service = 'payment-worker'
-                elif 'auth-service' in raw_line:
-                    service = 'auth-service'
+                for svc in ['web-api', 'payment-worker', 'auth-service']:
+                    if svc in raw_line:
+                        service = svc
+                        break
 
-            message = log_entry.get('message', '')
+            # Get OCSF class info (default to API Activity)
+            class_uid = log_entry.get('class_uid', 6003)
+            class_name = log_entry.get('class_name', self.OCSF_CLASSES.get(class_uid, "API Activity"))
+            category_uid = log_entry.get('category_uid', 6)
+            category_name = log_entry.get('category_name', "Application Activity")
+            activity_id = log_entry.get('activity_id', 1)
+            activity_name = log_entry.get('activity_name', self.ACTIVITY_NAMES.get(activity_id, "Unknown"))
+
+            # Calculate type_uid
+            type_uid = log_entry.get('type_uid', class_uid * 100 + activity_id)
+
+            # Get severity
             level = log_entry.get('level', 'INFO')
+            severity_id = log_entry.get('severity_id', self.SEVERITY_MAP.get(str(level).upper(), 2))
 
-            # Map to OCSF Application Activity (class_uid: 6001)
+            # Get status info
+            status_id = log_entry.get('status_id', 1)
+            status = log_entry.get('status', 'Success' if status_id == 1 else 'Failure')
+            status_code = log_entry.get('status_code', '200')
+
+            # Build the OCSF event with all fields
             ocsf_event = {
-                "class_uid": 6001,
-                "category_uid": 6,
-                "severity_id": self._map_severity(level),
+                # Required fields
+                "class_uid": class_uid,
+                "class_name": class_name,
+                "category_uid": category_uid,
+                "category_name": category_name,
+                "activity_id": activity_id,
+                "activity_name": activity_name,
+                "type_uid": type_uid,
+                "severity_id": severity_id,
                 "time": time_ms,
-                "metadata": {
+
+                # Metadata (required)
+                "metadata": json.dumps(log_entry.get('metadata', {
                     "version": "1.0.0",
-                    "product": {
-                        "name": service,
-                        "vendor_name": "Demo"
-                    }
-                },
-                "activity_id": 1,
-                "message": message,
+                    "product": {"name": service, "vendor_name": "Demo"}
+                })),
+
+                # Status fields (recommended)
+                "status_id": status_id,
+                "status": status,
+                "status_code": status_code,
+
+                # Message
+                "message": log_entry.get('message', ''),
                 "service": service,
                 "level": level,
+
+                # Duration (if present)
+                "duration": log_entry.get('duration'),
+
+                # Trace context
+                "trace_id": log_entry.get('trace_id'),
+
+                # Raw data (for debugging/training)
+                "raw_data": raw_line[:2000] if raw_line else None,
             }
 
-            # Extract trace_id if present
-            if 'trace_id=' in message:
-                try:
-                    trace_id = message.split('trace_id=')[1].split()[0].strip(',')
-                    ocsf_event['trace_id'] = trace_id
-                except:
-                    pass
+            # Handle nested objects - store as JSON strings for parquet compatibility
+            # but also flatten key fields for ML
 
-            # Determine status from message content
-            if 'error' in message.lower() or 'failed' in message.lower() or 'timeout' in message.lower():
-                ocsf_event['status_id'] = 2  # Failure
-            else:
-                ocsf_event['status_id'] = 1  # Success
+            # Actor object
+            actor = log_entry.get('actor', {})
+            if actor:
+                ocsf_event["actor"] = json.dumps(actor)
+                # Flatten common actor fields
+                user = actor.get('user', {})
+                ocsf_event["actor_user_uid"] = user.get('uid')
+                ocsf_event["actor_user_name"] = user.get('name')
+                ocsf_event["actor_user_email"] = user.get('email')
+                session = actor.get('session', {})
+                ocsf_event["actor_session_uid"] = session.get('uid')
 
-            # Extract duration if present
-            duration_match = re.search(r'(\d+\.?\d*)\s*ms', message)
-            if duration_match:
-                ocsf_event['duration'] = float(duration_match.group(1))
+            # Source endpoint
+            src_endpoint = log_entry.get('src_endpoint', {})
+            if src_endpoint:
+                ocsf_event["src_endpoint"] = json.dumps(src_endpoint)
+                ocsf_event["src_endpoint_ip"] = src_endpoint.get('ip')
+                ocsf_event["src_endpoint_port"] = src_endpoint.get('port')
+                ocsf_event["src_endpoint_domain"] = src_endpoint.get('domain')
+
+            # Destination endpoint
+            dst_endpoint = log_entry.get('dst_endpoint', {})
+            if dst_endpoint:
+                ocsf_event["dst_endpoint"] = json.dumps(dst_endpoint)
+                ocsf_event["dst_endpoint_ip"] = dst_endpoint.get('ip')
+                ocsf_event["dst_endpoint_port"] = dst_endpoint.get('port')
+                ocsf_event["dst_endpoint_svc_name"] = dst_endpoint.get('svc_name')
+
+            # HTTP request
+            http_request = log_entry.get('http_request', {})
+            if http_request:
+                ocsf_event["http_request"] = json.dumps(http_request)
+                ocsf_event["http_request_method"] = http_request.get('method')
+                ocsf_event["http_request_user_agent"] = http_request.get('user_agent')
+                url = http_request.get('url', {})
+                ocsf_event["http_request_url_path"] = url.get('path')
+                ocsf_event["http_request_url_hostname"] = url.get('hostname')
+                ocsf_event["http_request_url_scheme"] = url.get('scheme')
+
+            # HTTP response
+            http_response = log_entry.get('http_response', {})
+            if http_response:
+                ocsf_event["http_response"] = json.dumps(http_response)
+                ocsf_event["http_response_code"] = http_response.get('code')
+                ocsf_event["http_response_latency"] = http_response.get('latency')
+
+            # Device info
+            device = log_entry.get('device', {})
+            if device:
+                ocsf_event["device"] = json.dumps(device)
+                ocsf_event["device_hostname"] = device.get('hostname')
+                ocsf_event["device_type"] = device.get('type')
+
+            # Resources (affected resources)
+            resources = log_entry.get('resources', [])
+            if resources:
+                ocsf_event["resources"] = json.dumps(resources)
+                if resources and len(resources) > 0:
+                    ocsf_event["resource_type"] = resources[0].get('type')
+                    ocsf_event["resource_uid"] = resources[0].get('uid')
+
+            # Anomaly info (custom extension)
+            anomaly = log_entry.get('anomaly', {})
+            if anomaly:
+                ocsf_event["anomaly"] = json.dumps(anomaly)
+                ocsf_event["anomaly_type"] = anomaly.get('type')
+                ocsf_event["anomaly_severity"] = anomaly.get('severity')
+
+            # Error info
+            error = log_entry.get('error', {})
+            if error:
+                ocsf_event["error"] = json.dumps(error)
+                ocsf_event["error_message"] = error.get('message')
+                ocsf_event["error_type"] = error.get('type')
+
+            # Store any unmapped fields
+            known_fields = {
+                'timestamp', 'time', 'service', 'level', 'message', 'metadata',
+                'class_uid', 'class_name', 'category_uid', 'category_name',
+                'activity_id', 'activity_name', 'type_uid', 'severity_id',
+                'status_id', 'status', 'status_code', 'duration', 'trace_id',
+                'actor', 'src_endpoint', 'dst_endpoint', 'http_request',
+                'http_response', 'device', 'resources', 'anomaly', 'error'
+            }
+            unmapped = {k: v for k, v in log_entry.items() if k not in known_fields}
+            if unmapped:
+                ocsf_event["unmapped"] = json.dumps(unmapped)
+
+            # Remove None values
+            ocsf_event = {k: v for k, v in ocsf_event.items() if v is not None}
 
             return ocsf_event
 
         except Exception as e:
             return None
-
-    def _map_severity(self, log_level):
-        """Map log level to OCSF severity."""
-        severity_map = {
-            'DEBUG': 1,
-            'INFO': 2,
-            'WARNING': 3,
-            'WARN': 3,
-            'ERROR': 4,
-            'CRITICAL': 5
-        }
-        return severity_map.get(str(log_level).upper(), 2)
 
     def save_to_parquet(self, ocsf_events, output_path):
         """Save OCSF events to Parquet for training."""
@@ -174,6 +284,7 @@ class OCSFConverter:
         df = pd.DataFrame(ocsf_events)
         df.to_parquet(output_path, compression='snappy')
         print(f"Saved {len(df)} OCSF events to {output_path}")
+        return df
 
 
 def main():
@@ -182,7 +293,6 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Export docker logs and convert:
   docker compose logs --no-color > ./logs/docker.log
   python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
 
@@ -190,12 +300,9 @@ Examples:
   docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
         """
     )
-    parser.add_argument('--log-file',
-                        help='Path to log file (e.g., from docker compose logs)')
-    parser.add_argument('--stdin', action='store_true',
-                        help='Read from stdin (for piping docker compose logs)')
-    parser.add_argument('--output-dir', default='./data',
-                        help='Output directory for parquet files (default: ./data)')
+    parser.add_argument('--log-file', help='Path to log file')
+    parser.add_argument('--stdin', action='store_true', help='Read from stdin')
+    parser.add_argument('--output-dir', default='./data', help='Output directory (default: ./data)')
 
     args = parser.parse_args()
 
@@ -205,9 +312,6 @@ Examples:
         print("To capture logs from running Docker services:")
         print("  docker compose logs --no-color > ./logs/docker.log")
         print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
-        print()
-        print("Or pipe directly:")
-        print("  docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin")
         sys.exit(1)
 
     converter = OCSFConverter()
@@ -233,14 +337,15 @@ Examples:
 
     # Save to parquet
     output_path = os.path.join(args.output_dir, 'ocsf_logs.parquet')
-    converter.save_to_parquet(log_events, output_path)
+    df = converter.save_to_parquet(log_events, output_path)
 
     # Print summary
     print(f"\nSummary:")
     print(f"  Total events: {len(log_events)}")
-    df = pd.DataFrame(log_events)
+    print(f"  Columns: {len(df.columns)}")
     print(f"  Services: {df['service'].unique().tolist()}")
-    print(f"  Severity distribution:")
+
+    print(f"\n  Severity distribution:")
     for sev, count in df['severity_id'].value_counts().sort_index().items():
         sev_name = {1: 'DEBUG', 2: 'INFO', 3: 'WARNING', 4: 'ERROR', 5: 'CRITICAL'}.get(sev, 'UNKNOWN')
         print(f"    {sev_name}: {count}")
@@ -248,6 +353,17 @@ Examples:
     if 'status_id' in df.columns:
         failures = (df['status_id'] == 2).sum()
         print(f"  Failures: {failures} ({100*failures/len(df):.1f}%)")
+
+    # Show available columns
+    print(f"\n  Available columns ({len(df.columns)}):")
+    # Group columns by category
+    core_cols = [c for c in df.columns if c in ['class_uid', 'class_name', 'category_uid', 'category_name', 'activity_id', 'activity_name', 'type_uid', 'severity_id', 'time', 'status_id', 'status', 'status_code', 'message', 'service', 'level', 'duration', 'trace_id']]
+    nested_cols = [c for c in df.columns if c in ['metadata', 'actor', 'src_endpoint', 'dst_endpoint', 'http_request', 'http_response', 'device', 'resources', 'anomaly', 'error', 'unmapped', 'raw_data']]
+    flat_cols = [c for c in df.columns if c not in core_cols + nested_cols]
+
+    print(f"    Core OCSF fields: {', '.join(core_cols)}")
+    print(f"    Nested objects (JSON): {', '.join(nested_cols)}")
+    print(f"    Flattened fields: {', '.join(flat_cols)}")
 
 
 if __name__ == '__main__':
