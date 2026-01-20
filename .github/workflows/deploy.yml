@@ -66,6 +66,16 @@ jobs:
           zip -r appendix-code.zip appendix-code/
           cd ../..
 
+      - name: Pre-execute embedding notebooks (sequential dependency chain)
+        run: |
+          # These notebooks must run in order: 03 generates artifacts -> 04 trains model -> 05/06 use them
+          cd ai-eng/embedding-anomaly-detection/notebooks
+          for nb in 03-feature-engineering 04-self-supervised-training 05-model-inference 06-anomaly-detection; do
+            echo "Executing ${nb}.ipynb..."
+            jupyter nbconvert --to notebook --execute --inplace "${nb}.ipynb"
+          done
+          cd ../../..
+
       - name: Build the site
         env:
           # base_path is "/" for a user site, and "/repo" for a project site.
