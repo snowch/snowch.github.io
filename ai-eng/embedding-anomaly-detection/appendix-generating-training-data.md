@@ -88,12 +88,14 @@ All code files from this appendix are available for download:
 
 {download}`Download appendix-code.zip <./appendix-code.zip>`
 
-The zip contains:
+The zip contains a complete, runnable stack:
 - `docker-compose.yml` - Infrastructure configuration
-- `services/web-api/app.py` - Flask service with observability
-- `services/load-generator/generate_load.py` - Traffic generator
-- `scripts/convert_to_ocsf.py` - OCSF converter
-- `scripts/label_subset_for_evaluation.py` - Optional labeling script
+- `services/web-api/` - Flask service with observability (app.py, Dockerfile, requirements.txt)
+- `services/load-generator/` - Traffic generator (generate_load.py, Dockerfile, requirements.txt)
+- `services/auth-service/` - Node.js auth service (app.js, Dockerfile, package.json)
+- `services/payment-worker/` - Celery worker (worker.py, Dockerfile, requirements.txt)
+- `config/` - Prometheus, OpenTelemetry, and Fluentd configurations
+- `scripts/` - OCSF converter and optional labeling script
 
 ---
 
