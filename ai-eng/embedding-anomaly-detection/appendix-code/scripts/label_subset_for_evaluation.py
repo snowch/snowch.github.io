@@ -29,9 +29,8 @@ def label_evaluation_subset(ocsf_events_path, sample_size=1000):
     if not os.path.exists(ocsf_events_path):
         print(f"Input file not found: {ocsf_events_path}")
         print()
-        print("Please run the log conversion first:")
-        print("  docker compose logs --no-color > ./logs/docker.log")
-        print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
+        print("Please run the OCSF conversion first:")
+        print("  python scripts/convert_otel_to_ocsf.py")
         return None
 
     df = pd.read_parquet(ocsf_events_path)
