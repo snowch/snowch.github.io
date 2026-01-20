@@ -352,9 +352,46 @@ All code from this series is available in executable notebooks. Each part includ
 
 ---
 
+## Appendices
+
+::::{grid} 1 1 2 2
+:gutter: 3
+
+:::{grid-item-card} Appendix: Notebooks & Sample Data
+:link: appendix-notebooks
+:link-type: doc
+
+Run the tutorial hands-on:
+- Pre-generated OCSF sample data
+- Jupyter notebooks for Parts 3, 4, 6
+- Docker one-liner for Jupyter environment
+- No setup required—just download and run
+
+**Hands-on** · 5 min setup
+:::
+
+:::{grid-item-card} Appendix: Generating Training Data
+:link: appendix-generating-training-data
+:link-type: doc
+
+Generate your own data:
+- Docker Compose stack with web-api, auth, payment services
+- OpenTelemetry for unified telemetry collection
+- Load generator with anomaly scenarios
+- OCSF converter for logs, traces, metrics
+
+**Data Generation** · 15 min setup
+:::
+
+::::
+
+---
+
 ## Get Started
 
 Ready to build your anomaly detection system? Start with [Part 1: Understanding ResNet Architecture](part1-understanding-resnet)!
+
+**Want to jump straight to hands-on code?** See [Appendix: Notebooks & Sample Data](appendix-notebooks) to download notebooks and sample data.
 
 ---
 
