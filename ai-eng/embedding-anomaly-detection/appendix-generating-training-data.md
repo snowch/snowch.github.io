@@ -37,17 +37,23 @@ graph TB
         redis[("redis-cache")]
     end
 
-    subgraph obs["Observability Stack"]
-        prom["Prometheus<br/>(metrics)"]
-        otel["OpenTelemetry<br/>(traces)"]
-        docker["Docker<br/>(logs)"]
+    subgraph otel["OpenTelemetry Collector"]
+        otlp_recv["OTLP Receiver<br/>(logs + traces)"]
+        prom_recv["Prometheus Receiver<br/>(metrics scraping)"]
+        file_exp["File Exporter<br/>(JSONL)"]
     end
 
     subgraph gen["Load Generation"]
         loadgen["load-generator<br/>(traffic + anomalies)"]
     end
 
-    subgraph ocsf["OCSF Conversion"]
+    subgraph ocsf["OCSF Output (./logs/otel/)"]
+        logs_jsonl["logs.jsonl"]
+        traces_jsonl["traces.jsonl"]
+        metrics_jsonl["metrics.jsonl"]
+    end
+
+    subgraph parquet["Parquet Files (./data/)"]
         logs_parquet["ocsf_logs.parquet"]
         traces_parquet["ocsf_traces.parquet"]
         metrics_parquet["ocsf_metrics.parquet"]
@@ -59,35 +65,38 @@ graph TB
     worker -->|jobs| redis
     worker -->|writes| postgres
 
-    webapi -.->|metrics| prom
-    postgres -.->|metrics| prom
-    redis -.->|metrics| prom
+    webapi -.->|OTLP logs| otlp_recv
+    webapi -.->|OTLP traces| otlp_recv
+    webapi -.->|/metrics| prom_recv
 
-    webapi -.->|traces| otel
+    otlp_recv --> file_exp
+    prom_recv --> file_exp
 
-    webapi -.->|logs| docker
-    auth -.->|logs| docker
-    worker -.->|logs| docker
+    file_exp --> logs_jsonl
+    file_exp --> traces_jsonl
+    file_exp --> metrics_jsonl
 
     loadgen -->|HTTP requests| webapi
 
-    docker -->|convert_to_ocsf.py| logs_parquet
-    otel -->|convert_traces_to_ocsf.py| traces_parquet
-    prom -->|export_prometheus_metrics.py| metrics_parquet
+    logs_jsonl -->|convert_otel_to_ocsf.py| logs_parquet
+    traces_jsonl -->|convert_otel_to_ocsf.py| traces_parquet
+    metrics_jsonl -->|convert_otel_to_ocsf.py| metrics_parquet
 
     style apps fill:#e1f5ff
-    style obs fill:#fff4e1
+    style otel fill:#fff4e1
     style gen fill:#ffe1f5
-    style ocsf fill:#e1ffe1
+    style ocsf fill:#ffe1e1
+    style parquet fill:#e1ffe1
 ```
 
 **Diagram explanation**:
 - **Solid lines**: Data/service dependencies
-- **Dotted lines**: Observability instrumentation
+- **Dotted lines**: Telemetry data flow (OTLP protocol)
 - **Application Services** (blue): Multi-service architecture generating realistic traffic
-- **Observability Stack** (yellow): Collects logs, metrics, and traces
+- **OpenTelemetry Collector** (yellow): Unified telemetry hub - receives logs/traces via OTLP, scrapes metrics from /metrics endpoints
 - **Load Generator** (pink): Creates normal traffic + anomaly scenarios
-- **OCSF Conversion** (green): Python scripts convert data to OCSF parquet format
+- **OCSF Output** (red): Raw JSONL files exported by OTel collector
+- **Parquet Files** (green): Single Python script converts all signals to OCSF parquet format
 
 ---
 
@@ -229,31 +238,23 @@ The observability stack requires these configuration files:
 
 ---
 
-## Section 4: Collecting and Converting to OCSF
+## Section 4: Converting OpenTelemetry Data to OCSF
 
-### scripts/convert_to_ocsf.py
+The OpenTelemetry Collector exports all three signals (logs, traces, metrics) as JSONL files to `./logs/otel/`. A single unified script converts them to OCSF-formatted Parquet files.
 
-Convert Docker logs to OCSF format:
+### scripts/convert_otel_to_ocsf.py
 
-```{literalinclude} appendix-code/scripts/convert_to_ocsf.py
+Convert all OpenTelemetry JSONL exports to OCSF format:
+
+```{literalinclude} appendix-code/scripts/convert_otel_to_ocsf.py
 :language: python
 ```
 
-### scripts/convert_traces_to_ocsf.py
-
-Convert OpenTelemetry traces to OCSF format:
-
-```{literalinclude} appendix-code/scripts/convert_traces_to_ocsf.py
-:language: python
-```
-
-### scripts/export_prometheus_metrics.py
-
-Export Prometheus metrics to OCSF format:
-
-```{literalinclude} appendix-code/scripts/export_prometheus_metrics.py
-:language: python
-```
+**Why unified conversion?**
+- **Single source of truth**: All telemetry flows through OpenTelemetry Collector
+- **Consistent format**: JSONL export format is the same for all signals
+- **Simpler workflow**: One script handles logs, traces, and metrics
+- **OCSF compliance**: Automatic field flattening for ML use
 
 ---
 
@@ -279,18 +280,10 @@ docker compose ps
 
 # 5. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
 # The load-generator service automatically sends traffic to web-api
+# All telemetry flows through OpenTelemetry Collector to ./logs/otel/
 
-# 6. Export and convert all data types to OCSF format:
-
-# Logs (from Docker):
-docker compose logs --no-color > ./logs/docker.log
-python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
-
-# Traces (from OpenTelemetry):
-python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
-
-# Metrics (from Prometheus):
-python scripts/export_prometheus_metrics.py --duration 10
+# 6. Convert all OpenTelemetry data to OCSF format (single command):
+python scripts/convert_otel_to_ocsf.py
 
 # 7. Output files (ready for Parts 2-3 of tutorial):
 # - data/ocsf_logs.parquet (application logs in OCSF format)
@@ -383,14 +376,15 @@ If you want to **evaluate** different anomaly detection methods (Part 6, Section
 
 This appendix provides a complete, open-source solution for generating realistic **unlabeled** observability data for self-supervised learning:
 
-1. **Docker Compose stack**: Multi-service application with observability instrumentation
-2. **Instrumented services**: Web API, auth service, payment worker generating structured JSON logs
-3. **Load generator**: Creates normal traffic + anomaly scenarios (naturally occurring, unlabeled)
-4. **OCSF converters**: Three scripts to convert observability data to OCSF-formatted Parquet:
-   - `data/ocsf_logs.parquet` - Application logs from Docker
-   - `data/ocsf_traces.parquet` - Distributed traces from OpenTelemetry
-   - `data/ocsf_metrics.parquet` - System metrics from Prometheus
-5. **Optional evaluation labels**: Small labeled subset for comparing detection methods (Part 6, Section 7 only)
+1. **Docker Compose stack**: Multi-service application with unified OpenTelemetry instrumentation
+2. **Instrumented services**: Web API, auth service, payment worker emitting telemetry via OTLP
+3. **OpenTelemetry Collector**: Central hub receiving logs/traces via OTLP and scraping metrics
+4. **Load generator**: Creates normal traffic + anomaly scenarios (naturally occurring, unlabeled)
+5. **Unified OCSF converter**: Single script converts all OTel exports to OCSF-formatted Parquet:
+   - `data/ocsf_logs.parquet` - Application logs (via OTLP)
+   - `data/ocsf_traces.parquet` - Distributed traces (via OTLP)
+   - `data/ocsf_metrics.parquet` - System metrics (scraped by OTel)
+6. **Optional evaluation labels**: Small labeled subset for comparing detection methods (Part 6, Section 7 only)
 
 **Key difference from supervised learning**:
 - ✅ **Generates unlabeled data** for self-supervised training (Part 4)

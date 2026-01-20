@@ -25,24 +25,67 @@ SIMULATED_USERS = [
     {"uid": "user-1005", "name": "eve.davis", "email": "eve@company.com", "department": "engineering"},
 ]
 
+# OpenTelemetry setup for unified observability (logs, traces, metrics via OTLP)
+otel_logger = None
+tracer = None
+otlp_endpoint = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://otel-collector:4317')
+
+try:
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME as RESOURCE_SERVICE_NAME
+    from opentelemetry._logs import set_logger_provider
+    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+    from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+    from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+
+    # Create shared resource
+    resource = Resource.create({
+        RESOURCE_SERVICE_NAME: SERVICE_NAME,
+        "service.version": SERVICE_VERSION,
+        "host.name": HOSTNAME,
+    })
+
+    # Set up tracing
+    trace.set_tracer_provider(TracerProvider(resource=resource))
+    tracer = trace.get_tracer(__name__)
+    otlp_trace_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
+    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_trace_exporter))
+
+    # Set up logging via OTLP
+    logger_provider = LoggerProvider(resource=resource)
+    set_logger_provider(logger_provider)
+    otlp_log_exporter = OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
+
+    # Create OTel logging handler
+    otel_handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
+    otel_logger = logging.getLogger("otel." + SERVICE_NAME)
+    otel_logger.setLevel(logging.INFO)
+    otel_logger.addHandler(otel_handler)
+
+    print(f"[{SERVICE_NAME}] OpenTelemetry enabled: logs and traces via OTLP to {otlp_endpoint}")
+except Exception as e:
+    print(f"[{SERVICE_NAME}] OpenTelemetry setup failed: {e}")
+    otel_logger = None
+    tracer = None
+
+
 class StructuredLogger:
-    """Logger that emits OCSF-ready structured JSON logs."""
+    """Logger that emits OCSF-ready structured JSON logs via OpenTelemetry."""
 
     def __init__(self, service_name):
         self.service_name = service_name
-        self.logger = logging.getLogger(service_name)
-        self.logger.setLevel(logging.INFO)
-
-        # Remove default handlers
-        self.logger.handlers = []
-
-        # Add custom handler
+        # Fallback to stdout if OTel unavailable
+        self.fallback_logger = logging.getLogger(service_name + ".fallback")
+        self.fallback_logger.setLevel(logging.INFO)
+        self.fallback_logger.handlers = []
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter('%(message)s'))
-        self.logger.addHandler(handler)
-
-        # Disable propagation to avoid duplicate logs
-        self.logger.propagate = False
+        self.fallback_logger.addHandler(handler)
+        self.fallback_logger.propagate = False
 
     def _emit(self, level, message, **kwargs):
         """Emit a structured log entry with OCSF-compatible fields."""
@@ -69,12 +112,19 @@ class StructuredLogger:
             }
         }
 
-        # Add optional fields
+        # Add optional OCSF fields
         for key, value in kwargs.items():
             if value is not None:
                 log_entry[key] = value
 
-        self.logger.info(json.dumps(log_entry))
+        # Log via OpenTelemetry if available
+        if otel_logger:
+            log_method = getattr(otel_logger, level.lower(), otel_logger.info)
+            # Pass structured data as extra attributes
+            log_method(json.dumps(log_entry), extra={"ocsf_data": log_entry})
+
+        # Always log to stdout for Docker capture (backup)
+        self.fallback_logger.info(json.dumps(log_entry))
 
     def info(self, message, **kwargs):
         self._emit("INFO", message, **kwargs)
@@ -94,23 +144,6 @@ logger = StructuredLogger(SERVICE_NAME)
 
 # Disable verbose werkzeug logging
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
-
-# Set up tracing (optional - graceful if otel-collector unavailable)
-tracer = None
-try:
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-
-    trace.set_tracer_provider(TracerProvider())
-    tracer = trace.get_tracer(__name__)
-    otlp_endpoint = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://otel-collector:4317')
-    otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
-    trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_exporter))
-    logger.info(f"OpenTelemetry tracing enabled, exporting to {otlp_endpoint}")
-except Exception as e:
-    logger.warning(f"OpenTelemetry tracing disabled: {e}")
 
 # Set up metrics
 request_count = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
