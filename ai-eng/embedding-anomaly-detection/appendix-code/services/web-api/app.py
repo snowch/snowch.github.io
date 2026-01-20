@@ -117,11 +117,10 @@ class StructuredLogger:
             if value is not None:
                 log_entry[key] = value
 
-        # Log via OpenTelemetry if available
+        # Log via OpenTelemetry if available (JSON in message body)
         if otel_logger:
             log_method = getattr(otel_logger, level.lower(), otel_logger.info)
-            # Pass structured data as extra attributes
-            log_method(json.dumps(log_entry), extra={"ocsf_data": log_entry})
+            log_method(json.dumps(log_entry))
 
         # Always log to stdout for Docker capture (backup)
         self.fallback_logger.info(json.dumps(log_entry))
