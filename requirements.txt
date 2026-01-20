@@ -3,6 +3,7 @@ jupyter-book
 mystmd
 numpy
 pandas
+pyarrow
 matplotlib
 matplotlib-venn
 scipy
