@@ -89,6 +89,7 @@ All code files from this appendix are available for download:
 {download}`Download appendix-code.zip <./appendix-code.zip>`
 
 The zip contains a complete, runnable stack:
+- `README.md` - Quick start guide and documentation
 - `docker-compose.yml` - Infrastructure configuration
 - `services/web-api/` - Flask service with observability (app.py, Dockerfile, requirements.txt)
 - `services/load-generator/` - Traffic generator (generate_load.py, Dockerfile, requirements.txt)
@@ -99,7 +100,7 @@ The zip contains a complete, runnable stack:
 
 ---
 
-## Part 1: Docker Compose Infrastructure
+## Section 1: Docker Compose Infrastructure
 
 ### docker-compose.yml
 
@@ -133,7 +134,7 @@ The observability stack requires these configuration files:
 
 ---
 
-## Part 2: Instrumented Services
+## Section 2: Instrumented Services
 
 ### Web API Service
 
@@ -197,7 +198,7 @@ The observability stack requires these configuration files:
 
 ---
 
-## Part 3: Load Generator
+## Section 3: Load Generator
 
 **services/load-generator/generate_load.py** - Generates realistic traffic patterns with controlled anomalies:
 
@@ -219,7 +220,7 @@ The observability stack requires these configuration files:
 
 ---
 
-## Part 4: Collecting and Converting to OCSF
+## Section 4: Collecting and Converting to OCSF
 
 ### scripts/convert_to_ocsf.py
 
@@ -231,7 +232,7 @@ Convert collected observability data to OCSF format:
 
 ---
 
-## Part 5: Running the Data Generation Pipeline
+## Section 5: Running the Data Generation Pipeline
 
 ### Quick Start
 
@@ -296,7 +297,7 @@ After 2 hours of generation, you'll have:
 
 ---
 
-## Part 6: Using Generated Data in Tutorial (No Labels Needed)
+## Section 6: Using Generated Data in Tutorial (No Labels Needed)
 
 Now you can use the generated data in Part 2 (TabularResNet) and Part 3 (Feature Engineering). **No labeling required** - the self-supervised and unsupervised methods work on raw observability data.
 
@@ -330,58 +331,13 @@ If you want to **evaluate** different anomaly detection methods (Part 6, Section
 
 ---
 
-## Part 7: Releasing as Open Source
+## Section 7: Releasing as Open Source
 
 ### README.md for the repository
 
-```markdown
-# OCSF Training Data Generator
-
-Generate realistic observability data in OCSF format for **self-supervised** anomaly detection training.
-
-## What This Generates
-
-- 2 hours of realistic observability data
-- ~72,000 normal events + 6-8 anomaly scenarios (unlabeled)
-- Logs, metrics, and traces in OCSF format
-- No labels required - use with self-supervised learning
-
-## Quick Start
-
-```bash
-docker-compose up -d
-docker-compose up load-generator
-python scripts/convert_to_ocsf.py
-
-# Optional: Generate small labeled subset for evaluation only
-python scripts/label_subset_for_evaluation.py
+```{literalinclude} appendix-code/README.md
+:language: markdown
 ```
-
-## Output Datasets
-
-- `data/ocsf_logs.parquet` - Application logs (unlabeled)
-- `data/ocsf_metrics.parquet` - System metrics (unlabeled)
-- `data/ocsf_traces.parquet` - Distributed traces (unlabeled)
-- `data/ocsf_eval_subset.parquet` - Small labeled subset for evaluation (optional)
-
-## Use Cases
-
-- Self-supervised training with TabularResNet (Part 4)
-- Unsupervised anomaly detection (Part 6: LOF, Isolation Forest, k-NN)
-- Testing observability systems
-- Learning OCSF schema
-
-## Important: No Labels Needed
-
-This generator creates **unlabeled** data that works with:
-- **Self-supervised learning** (Part 4: contrastive learning, masked prediction)
-- **Unsupervised anomaly detection** (Part 6: LOF, Isolation Forest, k-NN)
-
-Labels are only needed for evaluation/comparison (Part 6, Section 7), not training.
-
-## License
-
-MIT - Free to use for commercial and non-commercial purposes
 
 ---
 
@@ -389,12 +345,11 @@ MIT - Free to use for commercial and non-commercial purposes
 
 This appendix provides a complete, open-source solution for generating realistic **unlabeled** observability data for self-supervised learning:
 
-1. **Docker Compose stack**: Multi-service application with observability
-2. **Instrumented services**: Generate logs, metrics, traces
+1. **Docker Compose stack**: Multi-service application with observability instrumentation
+2. **Instrumented services**: Web API, auth service, payment worker generating structured JSON logs
 3. **Load generator**: Creates normal traffic + anomaly scenarios (naturally occurring, unlabeled)
-4. **OCSF converter**: Standardizes data to OCSF format
+4. **OCSF converter**: Converts Docker logs to OCSF-formatted Parquet (`data/ocsf_logs.parquet`)
 5. **Optional evaluation labels**: Small labeled subset for comparing detection methods (Part 6, Section 7 only)
-6. **Ready for tutorial**: Outputs Parquet files for Parts 2-9
 
 **Key difference from supervised learning**:
 - ✅ **Generates unlabeled data** for self-supervised training (Part 4)
