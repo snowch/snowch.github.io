@@ -3,20 +3,25 @@
 Convert raw observability data to OCSF (Open Cybersecurity Schema Framework) format.
 
 Usage:
-    # After running docker compose for a while:
-    python scripts/convert_to_ocsf.py
+    # 1. Run docker compose for a while to generate logs:
+    docker compose up -d
+    sleep 60  # Let it run for a minute
 
-    # Or generate sample data for testing:
-    python scripts/convert_to_ocsf.py --generate-sample
+    # 2. Export logs and convert to OCSF:
+    docker compose logs --no-color web-api payment-worker auth-service > ./logs/docker.log
+    python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
+
+    # Or pipe directly:
+    docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
 """
 
 import json
 import os
 import sys
+import re
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-import random
 
 # Try to import pandas, provide helpful error if missing
 try:
@@ -29,67 +34,60 @@ except ImportError:
 class OCSFConverter:
     """
     Convert raw observability data to OCSF (Open Cybersecurity Schema Framework) format.
-
-    OCSF provides standardized schemas for observability events.
     """
 
-    def convert_logs_to_ocsf(self, log_source):
+    def convert_logs_to_ocsf(self, log_lines):
         """
         Convert logs to OCSF format.
 
         Args:
-            log_source: Path to log file, directory of log files, or list of log entries
+            log_lines: Iterable of log lines (strings)
 
         Returns:
             List of OCSF-formatted events
         """
         ocsf_events = []
-        log_entries = []
 
-        # Handle different input types
-        if isinstance(log_source, list):
-            log_entries = log_source
-        elif os.path.isfile(log_source):
-            log_entries = self._read_log_file(log_source)
-        elif os.path.isdir(log_source):
-            for f in Path(log_source).glob('*.log'):
-                log_entries.extend(self._read_log_file(f))
-            for f in Path(log_source).glob('*.json'):
-                log_entries.extend(self._read_log_file(f))
+        for line in log_lines:
+            line = line.strip()
+            if not line:
+                continue
 
-        for log_entry in log_entries:
-            if isinstance(log_entry, str):
-                try:
-                    log_entry = json.loads(log_entry)
-                except json.JSONDecodeError:
-                    continue
-
-            ocsf_event = self._log_to_ocsf(log_entry)
+            ocsf_event = self._parse_log_line(line)
             if ocsf_event:
                 ocsf_events.append(ocsf_event)
 
         return ocsf_events
 
-    def _read_log_file(self, filepath):
-        """Read log entries from a file."""
-        entries = []
-        try:
-            with open(filepath, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        entries.append(line)
-        except Exception as e:
-            print(f"Warning: Could not read {filepath}: {e}")
-        return entries
+    def _parse_log_line(self, line):
+        """Parse a single log line and convert to OCSF format."""
 
-    def _log_to_ocsf(self, log_entry):
-        """Convert a single log entry to OCSF format."""
+        # Try to extract JSON from the line
+        # Docker compose logs format: "container-name-1  | {json...}"
+        json_match = re.search(r'\{.*\}', line)
+        if json_match:
+            try:
+                log_entry = json.loads(json_match.group())
+                return self._log_to_ocsf(log_entry, line)
+            except json.JSONDecodeError:
+                pass
+
+        # Try parsing as plain JSON line
+        try:
+            log_entry = json.loads(line)
+            return self._log_to_ocsf(log_entry, line)
+        except json.JSONDecodeError:
+            pass
+
+        # Skip non-JSON lines (like startup messages)
+        return None
+
+    def _log_to_ocsf(self, log_entry, raw_line=""):
+        """Convert a parsed log entry to OCSF format."""
         try:
             # Parse timestamp
             timestamp_str = log_entry.get('timestamp', '')
             try:
-                # Handle format: "2026-01-20 04:53:37,757"
                 if ',' in timestamp_str:
                     timestamp_str = timestamp_str.replace(',', '.')
                 dt = datetime.fromisoformat(timestamp_str.replace(' ', 'T'))
@@ -97,26 +95,40 @@ class OCSFConverter:
             except:
                 time_ms = int(datetime.now().timestamp() * 1000)
 
+            # Determine service from log entry or raw line
+            service = log_entry.get('service', 'unknown')
+            if service == 'unknown' and raw_line:
+                # Try to extract from docker compose log prefix
+                if 'web-api' in raw_line:
+                    service = 'web-api'
+                elif 'payment-worker' in raw_line:
+                    service = 'payment-worker'
+                elif 'auth-service' in raw_line:
+                    service = 'auth-service'
+
+            message = log_entry.get('message', '')
+            level = log_entry.get('level', 'INFO')
+
             # Map to OCSF Application Activity (class_uid: 6001)
             ocsf_event = {
-                "class_uid": 6001,  # Application Activity
-                "category_uid": 6,   # Application Activity category
-                "severity_id": self._map_severity(log_entry.get('level', 'INFO')),
+                "class_uid": 6001,
+                "category_uid": 6,
+                "severity_id": self._map_severity(level),
                 "time": time_ms,
                 "metadata": {
                     "version": "1.0.0",
                     "product": {
-                        "name": log_entry.get('service', 'unknown'),
+                        "name": service,
                         "vendor_name": "Demo"
                     }
                 },
-                "activity_id": 1,  # Log
-                "message": log_entry.get('message', ''),
-                "service": log_entry.get('service', 'unknown'),
+                "activity_id": 1,
+                "message": message,
+                "service": service,
+                "level": level,
             }
 
-            # Extract trace_id if present in message
-            message = log_entry.get('message', '')
+            # Extract trace_id if present
             if 'trace_id=' in message:
                 try:
                     trace_id = message.split('trace_id=')[1].split()[0].strip(',')
@@ -125,23 +137,19 @@ class OCSFConverter:
                     pass
 
             # Determine status from message content
-            if 'error' in message.lower() or 'failed' in message.lower():
+            if 'error' in message.lower() or 'failed' in message.lower() or 'timeout' in message.lower():
                 ocsf_event['status_id'] = 2  # Failure
             else:
                 ocsf_event['status_id'] = 1  # Success
 
             # Extract duration if present
-            if 'processed successfully in' in message:
-                try:
-                    duration_str = message.split('in ')[1].split('ms')[0]
-                    ocsf_event['duration'] = float(duration_str)
-                except:
-                    pass
+            duration_match = re.search(r'(\d+\.?\d*)\s*ms', message)
+            if duration_match:
+                ocsf_event['duration'] = float(duration_match.group(1))
 
             return ocsf_event
 
         except Exception as e:
-            print(f"Warning: Could not convert log entry: {e}")
             return None
 
     def _map_severity(self, log_level):
@@ -154,107 +162,73 @@ class OCSFConverter:
             'ERROR': 4,
             'CRITICAL': 5
         }
-        return severity_map.get(log_level.upper(), 2)
+        return severity_map.get(str(log_level).upper(), 2)
 
     def save_to_parquet(self, ocsf_events, output_path):
-        """
-        Save OCSF events to Parquet for training.
-
-        Args:
-            ocsf_events: List of OCSF-formatted events
-            output_path: Path to save Parquet file
-        """
+        """Save OCSF events to Parquet for training."""
         if not ocsf_events:
             print("Warning: No events to save")
             return
 
-        # Ensure output directory exists
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
         df = pd.DataFrame(ocsf_events)
         df.to_parquet(output_path, compression='snappy')
         print(f"Saved {len(df)} OCSF events to {output_path}")
 
 
-def generate_sample_logs(count=1000):
-    """Generate sample log data for demonstration."""
-    print(f"Generating {count} sample log entries...")
-
-    services = ['web-api', 'auth-service', 'payment-worker']
-    levels = ['INFO', 'INFO', 'INFO', 'INFO', 'WARNING', 'ERROR']  # Weighted toward INFO
-    messages = [
-        ("Checkout completed successfully, trace_id={trace_id}", "INFO"),
-        ("User {user_id} fetched from database, trace_id={trace_id}", "INFO"),
-        ("Cache hit for user {user_id}, trace_id={trace_id}", "INFO"),
-        ("Search completed for query: product", "INFO"),
-        ("Payment {payment_id} processed successfully in {duration:.2f}ms", "INFO"),
-        ("Slow checkout processing: {duration:.2f}s, trace_id={trace_id}", "WARNING"),
-        ("High memory allocation during checkout, trace_id={trace_id}", "WARNING"),
-        ("Database timeout during checkout, trace_id={trace_id}", "ERROR"),
-        ("Cache miss storm detected, trace_id={trace_id}", "ERROR"),
-    ]
-
-    logs = []
-    base_time = datetime.now() - timedelta(hours=2)
-
-    for i in range(count):
-        msg_template, level = random.choice(messages)
-        service = random.choice(services)
-
-        # Generate message with placeholders filled
-        message = msg_template.format(
-            trace_id=random.randint(10**30, 10**38),
-            user_id=random.randint(1, 1000),
-            payment_id=random.randint(10000, 99999),
-            duration=random.uniform(0.1, 5.0) if 'duration' in msg_template else 0
-        )
-
-        timestamp = base_time + timedelta(seconds=i * 7.2)  # ~500 events/hour
-
-        logs.append({
-            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S,%f")[:-3],
-            "service": service,
-            "level": level,
-            "message": message
-        })
-
-    return logs
-
-
 def main():
-    parser = argparse.ArgumentParser(description='Convert observability data to OCSF format')
-    parser.add_argument('--generate-sample', action='store_true',
-                        help='Generate sample data instead of reading from logs')
-    parser.add_argument('--log-dir', default='./logs',
-                        help='Directory containing log files (default: ./logs)')
+    parser = argparse.ArgumentParser(
+        description='Convert Docker service logs to OCSF format',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Export docker logs and convert:
+  docker compose logs --no-color > ./logs/docker.log
+  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
+
+  # Or pipe directly:
+  docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
+        """
+    )
+    parser.add_argument('--log-file',
+                        help='Path to log file (e.g., from docker compose logs)')
+    parser.add_argument('--stdin', action='store_true',
+                        help='Read from stdin (for piping docker compose logs)')
     parser.add_argument('--output-dir', default='./data',
                         help='Output directory for parquet files (default: ./data)')
-    parser.add_argument('--count', type=int, default=1000,
-                        help='Number of sample events to generate (default: 1000)')
 
     args = parser.parse_args()
 
-    converter = OCSFConverter()
-
-    # Determine log source
-    if args.generate_sample:
-        log_entries = generate_sample_logs(args.count)
-    elif os.path.isdir(args.log_dir):
-        log_entries = args.log_dir
-        print(f"Reading logs from {args.log_dir}")
-    else:
-        print(f"Log directory {args.log_dir} not found.")
-        print("Options:")
-        print("  1. Run 'docker compose up' first to generate logs")
-        print("  2. Use --generate-sample to create sample data")
-        print("  3. Specify a different directory with --log-dir")
+    if not args.log_file and not args.stdin:
+        print("Error: Must specify --log-file or --stdin")
+        print()
+        print("To capture logs from running Docker services:")
+        print("  docker compose logs --no-color > ./logs/docker.log")
+        print("  python scripts/convert_to_ocsf.py --log-file ./logs/docker.log")
+        print()
+        print("Or pipe directly:")
+        print("  docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin")
         sys.exit(1)
 
+    converter = OCSFConverter()
+
+    # Read log lines
+    if args.stdin:
+        print("Reading from stdin...")
+        log_lines = sys.stdin.readlines()
+    else:
+        print(f"Reading from {args.log_file}...")
+        with open(args.log_file, 'r') as f:
+            log_lines = f.readlines()
+
+    print(f"Processing {len(log_lines)} lines...")
+
     # Convert logs
-    log_events = converter.convert_logs_to_ocsf(log_entries)
+    log_events = converter.convert_logs_to_ocsf(log_lines)
 
     if not log_events:
-        print("No log events found. Try --generate-sample for demo data.")
+        print("No valid log events found.")
+        print("Make sure docker compose services are running and generating JSON logs.")
         sys.exit(1)
 
     # Save to parquet
@@ -264,13 +238,16 @@ def main():
     # Print summary
     print(f"\nSummary:")
     print(f"  Total events: {len(log_events)}")
-    if log_events:
-        df = pd.DataFrame(log_events)
-        print(f"  Services: {df['service'].unique().tolist()}")
-        print(f"  Severity distribution:")
-        for sev, count in df['severity_id'].value_counts().items():
-            sev_name = {1: 'DEBUG', 2: 'INFO', 3: 'WARNING', 4: 'ERROR', 5: 'CRITICAL'}.get(sev, 'UNKNOWN')
-            print(f"    {sev_name}: {count}")
+    df = pd.DataFrame(log_events)
+    print(f"  Services: {df['service'].unique().tolist()}")
+    print(f"  Severity distribution:")
+    for sev, count in df['severity_id'].value_counts().sort_index().items():
+        sev_name = {1: 'DEBUG', 2: 'INFO', 3: 'WARNING', 4: 'ERROR', 5: 'CRITICAL'}.get(sev, 'UNKNOWN')
+        print(f"    {sev_name}: {count}")
+
+    if 'status_id' in df.columns:
+        failures = (df['status_id'] == 2).sum()
+        print(f"  Failures: {failures} ({100*failures/len(df):.1f}%)")
 
 
 if __name__ == '__main__':
