@@ -27,7 +27,7 @@ jobs:
           path: |
             _build/execute
             _build/templates
-          key: myst-${{ runner.os }}-node20-py311-${{ hashFiles('requirements.txt', 'myst.yml', 'package-lock.json') }}
+          key: myst-${{ runner.os }}-node20-py311-${{ hashFiles('requirements.txt', 'myst.yml', 'package-lock.json', 'ai-eng/embedding-anomaly-detection/notebooks/*.ipynb', 'ai-eng/embedding-anomaly-detection/data/*') }}
           restore-keys: |
             myst-${{ runner.os }}-node20-py311-
 
