@@ -224,9 +224,25 @@ The observability stack requires these configuration files:
 
 ### scripts/convert_to_ocsf.py
 
-Convert collected observability data to OCSF format:
+Convert Docker logs to OCSF format:
 
 ```{literalinclude} appendix-code/scripts/convert_to_ocsf.py
+:language: python
+```
+
+### scripts/convert_traces_to_ocsf.py
+
+Convert OpenTelemetry traces to OCSF format:
+
+```{literalinclude} appendix-code/scripts/convert_traces_to_ocsf.py
+:language: python
+```
+
+### scripts/export_prometheus_metrics.py
+
+Export Prometheus metrics to OCSF format:
+
+```{literalinclude} appendix-code/scripts/export_prometheus_metrics.py
 :language: python
 ```
 
