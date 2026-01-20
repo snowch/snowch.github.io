@@ -240,16 +240,19 @@ Convert collected observability data to OCSF format:
 # 1. Download and extract the code (or use the zip from this appendix)
 cd appendix-code
 
-# 2. Start all services (builds containers on first run)
+# 2. Create required directories (must exist before docker compose)
+mkdir -p ./logs/otel ./data
+
+# 3. Start all services (builds containers on first run)
 docker compose up -d
 
-# 3. Verify services are running
+# 4. Verify services are running
 docker compose ps
 
-# 4. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
+# 5. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
 # The load-generator service automatically sends traffic to web-api
 
-# 5. Export and convert all data types to OCSF format:
+# 6. Export and convert all data types to OCSF format:
 
 # Logs (from Docker):
 docker compose logs --no-color > ./logs/docker.log
@@ -261,7 +264,7 @@ python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
 # Metrics (from Prometheus):
 python scripts/export_prometheus_metrics.py --duration 10
 
-# 6. Output files (ready for Parts 2-3 of tutorial):
+# 7. Output files (ready for Parts 2-3 of tutorial):
 # - data/ocsf_logs.parquet (application logs in OCSF format)
 # - data/ocsf_traces.parquet (distributed traces in OCSF format)
 # - data/ocsf_metrics.parquet (system metrics in OCSF format)

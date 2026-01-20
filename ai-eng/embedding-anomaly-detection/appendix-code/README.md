@@ -12,13 +12,16 @@ Generate realistic observability data in OCSF format for **self-supervised** ano
 ## Quick Start
 
 ```bash
-# 1. Start all services
+# 1. Create required directories
+mkdir -p ./logs/otel ./data
+
+# 2. Start all services
 docker compose up -d
 
-# 2. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
+# 3. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
 # Traffic is automatically generated
 
-# 3. Export and convert all data types to OCSF format:
+# 4. Export and convert all data types to OCSF format:
 
 # Logs (from Docker):
 docker compose logs --no-color > ./logs/docker.log
@@ -30,7 +33,7 @@ python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
 # Metrics (from Prometheus):
 python scripts/export_prometheus_metrics.py --duration 10
 
-# 4. (Optional) Generate small labeled subset for evaluation
+# 5. (Optional) Generate small labeled subset for evaluation
 python scripts/label_subset_for_evaluation.py
 ```
 

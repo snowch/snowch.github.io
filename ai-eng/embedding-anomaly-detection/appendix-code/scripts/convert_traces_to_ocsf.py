@@ -212,6 +212,22 @@ Examples:
         print("  python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl")
         sys.exit(1)
 
+    # Check if trace file exists
+    if args.trace_file and not os.path.exists(args.trace_file):
+        print(f"Warning: Trace file not found: {args.trace_file}")
+        print()
+        print("This can happen if:")
+        print("  1. The logs/otel directory doesn't exist (create it before starting docker compose)")
+        print("  2. The otel-collector hasn't received any traces yet")
+        print("  3. The web-api OpenTelemetry instrumentation failed to initialize")
+        print()
+        print("To fix:")
+        print("  mkdir -p ./logs/otel")
+        print("  docker compose down && docker compose up -d")
+        print("  # Wait a few minutes for traces to be generated")
+        print("  docker compose logs otel-collector | tail -20")
+        sys.exit(1)
+
     converter = OCSFTraceConverter()
 
     # Read trace lines
