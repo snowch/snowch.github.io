@@ -2,6 +2,13 @@
 
 Generate realistic observability data in OCSF format for **self-supervised** anomaly detection training.
 
+## Architecture
+
+All telemetry flows through **OpenTelemetry Collector**:
+- **Logs**: Services -> OTLP -> OTel Collector -> logs.jsonl
+- **Traces**: Services -> OTLP -> OTel Collector -> traces.jsonl
+- **Metrics**: OTel Collector scrapes /metrics -> metrics.jsonl
+
 ## What This Generates
 
 - Realistic observability data from a multi-service application
@@ -24,17 +31,8 @@ docker compose up -d
 # 3. Let the load generator run (5-10 min for demo, 2 hours for full dataset)
 # Traffic is automatically generated
 
-# 4. Export and convert all data types to OCSF format:
-
-# Logs (from Docker):
-docker compose logs --no-color > ./logs/docker.log
-python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
-
-# Traces (from OpenTelemetry):
-python scripts/convert_traces_to_ocsf.py --trace-file ./logs/otel/traces.jsonl
-
-# Metrics (from Prometheus):
-python scripts/export_prometheus_metrics.py --duration 10
+# 4. Convert all OpenTelemetry data to OCSF format:
+python scripts/convert_otel_to_ocsf.py
 
 # 5. (Optional) Generate small labeled subset for evaluation
 python scripts/label_subset_for_evaluation.py
@@ -47,33 +45,37 @@ python scripts/label_subset_for_evaluation.py
 
 ## Output Datasets
 
-After running the export scripts:
+After running the conversion script:
 
 - `data/ocsf_logs.parquet` - Application logs in OCSF format (unlabeled)
 - `data/ocsf_traces.parquet` - Distributed traces in OCSF format (unlabeled)
 - `data/ocsf_metrics.parquet` - System metrics in OCSF format (unlabeled)
 - `data/ocsf_eval_subset.parquet` - Small labeled subset for evaluation (optional)
 
-## Architecture
+## Stack Components
 
-The stack includes:
-- **web-api**: Flask service with observability instrumentation
-- **auth-service**: Node.js authentication service
-- **payment-worker**: Background job processor
-- **load-generator**: Generates realistic traffic patterns with anomalies
-- **postgres**: Database
-- **redis**: Cache
-- **prometheus**: Metrics collection
-- **otel-collector**: Distributed tracing (exports to ./logs/otel/)
-- **fluentd**: Log aggregation
+| Service | Role | Telemetry |
+|---------|------|-----------|
+| **web-api** | Flask service with observability | Logs + traces via OTLP, metrics via /metrics |
+| **auth-service** | Node.js authentication service | Logs via stdout |
+| **payment-worker** | Background job processor | Logs via stdout |
+| **postgres** | Database | - |
+| **redis** | Cache | - |
+| **otel-collector** | Unified telemetry hub | Exports all signals to JSONL |
+| **load-generator** | Traffic patterns with anomalies | - |
 
-## Export Scripts
+## Conversion Script
 
-| Script | Data Source | Output |
-|--------|-------------|--------|
-| `convert_to_ocsf.py` | Docker logs | `ocsf_logs.parquet` |
-| `convert_traces_to_ocsf.py` | OTel collector | `ocsf_traces.parquet` |
-| `export_prometheus_metrics.py` | Prometheus API | `ocsf_metrics.parquet` |
+| Script | Input | Output |
+|--------|-------|--------|
+| `convert_otel_to_ocsf.py` | `logs/otel/*.jsonl` | `data/ocsf_*.parquet` |
+
+Convert specific signals:
+```bash
+python scripts/convert_otel_to_ocsf.py --signal logs
+python scripts/convert_otel_to_ocsf.py --signal traces
+python scripts/convert_otel_to_ocsf.py --signal metrics
+```
 
 ## Use Cases
 

@@ -1,3 +1,10 @@
+# Unified OpenTelemetry Architecture:
+# - Logs: Services -> OTLP -> OTel Collector -> logs.jsonl
+# - Traces: Services -> OTLP -> OTel Collector -> traces.jsonl
+# - Metrics: OTel Collector scrapes /metrics -> metrics.jsonl
+#
+# All three signals exported to ./logs/otel/ as JSONL files
+
 services:
   # Application Services
   web-api:
@@ -63,6 +70,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
 
+  # Unified telemetry collector - receives logs/traces via OTLP, scrapes metrics
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     user: "1000:1000"  # Run as non-root so exported files are readable
@@ -70,9 +78,12 @@ services:
       - ./config/otel-collector-config.yml:/etc/otel/config.yml
       - ./logs/otel:/var/log/otel
     ports:
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
+      - "4317:4317"  # OTLP gRPC (logs, traces)
+      - "4318:4318"  # OTLP HTTP (logs, traces)
+      - "8888:8888"  # Collector metrics
     command: ["--config=/etc/otel/config.yml"]
+    depends_on:
+      - web-api
 
   fluentd:
     image: fluent/fluentd:latest
