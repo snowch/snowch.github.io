@@ -6,13 +6,12 @@ Project notes for AI assistants.
 
 The site is deployed via GitHub Actions (`.github/workflows/deploy.yml`). When adding new notebook dependencies:
 
-1. **Add to workflow**: Update the `Install Python dependencies` step in `.github/workflows/deploy.yml`
-2. **Current dependencies**: jupyter-book, mystmd, numpy, matplotlib, matplotlib-venn, scipy, wavedrom, graphviz
+1. **Add to requirements.txt**: Add the package to `requirements.txt` in the repo root
+2. **Current dependencies**: jupyter-book, mystmd, numpy, pandas, pyarrow, matplotlib, matplotlib-venn, scipy, scikit-learn, wavedrom, graphviz, PyYAML, torch, torchvision
 
-**Example:** If a new notebook requires `pandas`, add it to the pip install line:
-```yaml
-- name: Install Python dependencies
-  run: pip install jupyter-book mystmd numpy matplotlib matplotlib-venn scipy pandas wavedrom graphviz
+**Example:** If a new notebook requires `seaborn`, add it to `requirements.txt`:
+```
+seaborn
 ```
 
 ## Matplotlib LaTeX Rendering
