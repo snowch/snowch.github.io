@@ -99,13 +99,17 @@ def label_evaluation_subset(ocsf_events_path, sample_size=1000):
         eval_df.loc[mask & (eval_df['anomaly_reason'] == ''), 'anomaly_reason'] = 'high_severity'
         print(f"  Found {mask.sum()} events with high severity (ERROR+)")
 
-    # 7. Check message content for error keywords
+    # 7. Check message content for specific anomaly keywords (not generic "error")
+    # Only check INFO-level messages to avoid double-counting ERROR logs
     if 'message' in eval_df.columns:
-        error_keywords = ['timeout', 'failed', 'error', 'exception', 'crash', 'leak', 'storm']
-        for keyword in error_keywords:
-            mask = eval_df['message'].str.lower().str.contains(keyword, na=False)
+        # Use specific keywords that indicate anomalies, not generic "error"
+        anomaly_keywords = ['timeout', 'leak', 'storm', 'exhausted', 'overflow', 'oom', 'killed']
+        info_mask = eval_df['severity_id'] <= 2 if 'severity_id' in eval_df.columns else True
+        for keyword in anomaly_keywords:
+            mask = info_mask & eval_df['message'].str.lower().str.contains(keyword, na=False)
+            new_anomalies = mask & (eval_df['is_anomaly'] == 0)
             eval_df.loc[mask, 'is_anomaly'] = 1
-            eval_df.loc[mask & (eval_df['anomaly_reason'] == ''), 'anomaly_reason'] = f'keyword_{keyword}'
+            eval_df.loc[new_anomalies & (eval_df['anomaly_reason'] == ''), 'anomaly_reason'] = f'keyword_{keyword}'
 
     # Summary
     total_anomalies = eval_df['is_anomaly'].sum()
