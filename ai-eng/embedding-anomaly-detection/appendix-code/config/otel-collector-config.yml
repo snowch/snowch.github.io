@@ -15,12 +15,9 @@ exporters:
   debug:
     verbosity: basic
 
-  file:
-    path: /var/log/otel/traces.json
-
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, file]
+      exporters: [debug]
