@@ -236,26 +236,43 @@ Convert collected observability data to OCSF format:
 ### Quick Start
 
 ```bash
-# 1. Clone the repository (once you've created it)
-git clone https://github.com/yourusername/ocsf-training-data-generator
-cd ocsf-training-data-generator
+# 1. Download and extract the code (or use the zip from this appendix)
+cd appendix-code
 
-# 2. Start the infrastructure
-docker-compose up -d
+# 2. Start all services (builds containers on first run)
+docker compose up -d
 
-# 3. Wait for services to be healthy
-docker-compose ps
+# 3. Verify services are running
+docker compose ps
 
-# 4. Start load generation (2 hours of data)
-docker-compose up load-generator
+# 4. Let the load generator run for a while (e.g., 5-10 minutes for demo, 2 hours for full dataset)
+# The load-generator service automatically sends traffic to web-api
 
-# 5. Collect generated data
-python scripts/convert_to_ocsf.py
+# 5. Export Docker logs and convert to OCSF format
+docker compose logs --no-color > ./logs/docker.log
+python scripts/convert_to_ocsf.py --log-file ./logs/docker.log
 
-# 6. Output files (ready for Parts 2-3 of tutorial):
-# - data/ocsf_logs.parquet (application logs)
-# - data/ocsf_metrics.parquet (system metrics)
-# - data/ocsf_traces.parquet (distributed traces)
+# Or pipe directly:
+docker compose logs --no-color | python scripts/convert_to_ocsf.py --stdin
+
+# 6. Output file (ready for Parts 2-3 of tutorial):
+# - data/ocsf_logs.parquet (application logs in OCSF format)
+```
+
+### Prerequisites
+
+Before running, ensure you have:
+- Docker and Docker Compose installed
+- Python 3.8+ with pandas and pyarrow: `pip install pandas pyarrow`
+
+### Stopping Services
+
+```bash
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (clears all data)
+docker compose down -v
 ```
 
 ### Generated Dataset Statistics
