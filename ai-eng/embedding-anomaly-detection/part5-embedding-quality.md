@@ -27,7 +27,7 @@ After training your TabularResNet using self-supervised learning ([Part 4](part4
 1. **Meaningful**: Similar OCSF records (e.g., login events from same user) have similar embeddings
 2. **Discriminative**: Different event types (e.g., successful login vs failed login) are separated in embedding space
 3. **Robust**: Small noise in input features (±5% in bytes, slight time jitter) doesn't drastically change embeddings
-4. **Useful**: Enable effective anomaly detection downstream (Part 6)
+4. **Useful**: Enable effective anomaly detection downstream ([Part 6](part6-anomaly-detection))
 
 **Why this matters for security data**: Poor embeddings make anomaly detection fail silently. If your model thinks failed logins look similar to successful logins, it won't catch account takeover attacks. Evaluation catches these problems early.
 
