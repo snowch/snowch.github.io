@@ -49,6 +49,15 @@ This tutorial series takes you from ResNet fundamentals to deploying and monitor
 - **Vector database**: A specialized database for storing and quickly searching through embeddings based on similarity
 - **ResNet**: A deep learning architecture that uses "residual connections" to train very deep networks effectively
 
+**Why OCSF?**
+
+Without OCSF, you would need separate models for each log format:
+- AWS CloudTrail: `eventSource`, `eventName`, `userIdentity.arn`
+- Okta: `actor.displayName`, `outcome.result`, `target[].type`
+- Linux auditd: `syscall`, `exe`, `auid`, `comm`
+
+With OCSF, all sources map to the same schema (`class_uid`, `activity_id`, `actor.user.name`), enabling **one embedding model** to work across all OCSF-compliant sources.
+
 ---
 
 ## Tutorial Series
@@ -365,30 +374,6 @@ graph TB
 
 ## Key Concepts
 
-### Why OCSF (Open Cybersecurity Schema Framework)?
-
-OCSF provides a **vendor-agnostic schema** that standardizes how security events are represented. This is critical for embedding-based anomaly detection:
-
-**The Problem Without OCSF:**
-- AWS CloudTrail uses `eventSource`, `eventName`, `userIdentity.arn`
-- Okta uses `actor.displayName`, `outcome.result`, `target[].type`
-- Linux auditd uses `syscall`, `exe`, `auid`, `comm`
-- Each source has different field names, structures, and semantics
-
-**Without standardization, you would need:**
-- Separate feature engineering pipelines for each data source
-- Different embedding models trained on each schema
-- Custom anomaly detection logic per data source
-- Maintenance burden that scales linearly with data sources
-
-**With OCSF:**
-- All sources map to the same schema (`class_uid`, `activity_id`, `actor.user.name`, etc.)
-- **One embedding model** works across AWS, Okta, Linux, and any OCSF-compliant source
-- Feature engineering code is reusable
-- Anomalies are comparable across sources (same embedding space)
-
-**OCSF adoption**: AWS Security Lake, Splunk, CrowdStrike, and 50+ vendors support OCSF, making it a practical choice for production systems.
-
 ### Why ResNet for Tabular Data?
 
 Research by Gorishniy et al. (2021) found that ResNet:
@@ -412,29 +397,6 @@ A vector database makes similarity search the **central** mechanism for anomaly 
 - Enabling k-NN distance scoring, density estimation, and thresholding at scale
 - Supporting incremental updates as new normal behavior arrives
 - Providing consistent retrieval for both batch and near real-time pipelines
-
----
-
-## Learning Path
-
-### For ML Engineers
-**Focus**: End-to-end production system
-1. Part 1 (skim) → Part 2 → Part 3 → Part 4
-2. Parts 5-6 (deep dive on evaluation)
-3. Parts 7-8 (deployment and monitoring)
-
-### For Security Engineers
-**Focus**: Applying to OCSF data
-1. Part 1 (overview only) → Part 2 (deep dive)
-2. Part 3 (feature engineering from OCSF)
-3. Part 6 (detection methods)
-4. Part 8 (monitoring alerts)
-
-### For Researchers
-**Focus**: Model architecture and training
-1. Parts 1-2 (architecture details)
-2. Parts 3-5 (feature engineering, training, and evaluation)
-3. Compare with your own methods
 
 ---
 
