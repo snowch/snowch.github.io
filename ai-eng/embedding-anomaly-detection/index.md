@@ -221,6 +221,54 @@ Generate your own data:
 **Data Generation** · 15 min setup
 :::
 
+:::{grid-item-card} Notebook: Feature Engineering
+:link: notebooks/03-feature-engineering
+:link-type: doc
+
+Load OCSF data and extract features:
+- Parse parquet files with pandas
+- Build categorical and numerical feature sets
+- Create training-ready datasets
+
+**Hands-on** · Part 3
+:::
+
+:::{grid-item-card} Notebook: Self-Supervised Training
+:link: notebooks/04-self-supervised-training
+:link-type: doc
+
+Train TabularResNet with contrastive learning:
+- Implement data augmentation strategies
+- Configure training hyperparameters
+- Monitor training progress
+
+**Hands-on** · Part 4
+:::
+
+:::{grid-item-card} Notebook: Model Saving & Inference
+:link: notebooks/05-model-inference
+:link-type: doc
+
+Load trained model and generate embeddings:
+- Save and load model checkpoints
+- Run inference on new data
+- Extract embedding vectors
+
+**Hands-on** · Part 5
+:::
+
+:::{grid-item-card} Notebook: Anomaly Detection
+:link: notebooks/06-anomaly-detection
+:link-type: doc
+
+Compare anomaly detection methods:
+- k-NN distance scoring
+- Local Outlier Factor (LOF)
+- Isolation Forest
+
+**Hands-on** · Part 6
+:::
+
 ::::
 
 ---
