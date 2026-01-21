@@ -53,6 +53,7 @@ View the executed notebooks with output, or download to run yourself:
 |----------|-------------|---------------|
 | [Feature Engineering](notebooks/03-feature-engineering) | Load OCSF data, extract temporal features, encode for ML | Sample data |
 | [Self-Supervised Training](notebooks/04-self-supervised-training) | Train TabularResNet with contrastive learning | Part 3 output |
+| [Embedding Evaluation](notebooks/05-embedding-evaluation) | Evaluate embedding quality with metrics and visualization | Part 4 output |
 | [Model Inference](notebooks/05-model-inference) | Load trained model and generate embeddings for new data | Part 4 output |
 | [Anomaly Detection](notebooks/06-anomaly-detection) | Compare k-NN, LOF, Isolation Forest detection | Part 4 output |
 
@@ -80,13 +81,20 @@ graph LR
         embed["Extract embeddings"]
     end
 
-    subgraph nb3["05-model-inference"]
+    subgraph nb3["05-embedding-evaluation"]
+        tsne["t-SNE visualization"]
+        metrics["Cluster quality metrics"]
+        neighbors["Nearest neighbor inspection"]
+        report["Quality report"]
+    end
+
+    subgraph nb4["05-model-inference"]
         loadmodel["Load trained model"]
         infer["Generate embeddings"]
         package["Package for deployment"]
     end
 
-    subgraph nb4["06-anomaly-detection"]
+    subgraph nb5["06-anomaly-detection"]
         knn["k-NN distance"]
         lof["LOF"]
         iso["Isolation Forest"]
@@ -96,14 +104,16 @@ graph LR
     parquet --> load
     load --> temporal --> encode
     encode --> model --> train --> embed
-    embed --> loadmodel --> infer --> package
+    embed --> tsne --> metrics --> neighbors --> report
+    report --> loadmodel --> infer --> package
     embed --> knn & lof & iso --> ensemble
 
     style data fill:#e1ffe1
     style nb1 fill:#e1f5ff
     style nb2 fill:#fff4e1
-    style nb3 fill:#ffe8e1
-    style nb4 fill:#ffe1e1
+    style nb3 fill:#ffe1ff
+    style nb4 fill:#ffe8e1
+    style nb5 fill:#ffe1e1
 ```
 
 ---
@@ -139,6 +149,22 @@ graph LR
 6. Visualize with t-SNE
 
 **Output:** `embeddings.npy`, `tabular_resnet.pt`
+
+---
+
+### 05-embedding-evaluation.ipynb
+
+**Goal**: Evaluate embedding quality before using them for anomaly detection.
+
+**Key steps:**
+1. Load embeddings from Part 4
+2. Visualize with t-SNE (project 128-dim → 2D)
+3. Compute cluster quality metrics (Silhouette, Davies-Bouldin, Calinski-Harabasz)
+4. Find optimal number of clusters (k=2 to k=7)
+5. Inspect nearest neighbors to verify semantic similarity
+6. Generate comprehensive quality report
+
+**Output:** Quality metrics, visualizations, production readiness verdict
 
 ---
 
@@ -214,7 +240,7 @@ Want more data or different anomaly scenarios? See [Appendix: Generating Trainin
 This appendix provides everything needed to run the tutorial hands-on:
 
 1. **Sample data**: Pre-generated OCSF parquet files with ~27K events
-2. **Notebooks**: Four Jupyter notebooks covering the core workflow
+2. **Notebooks**: Five Jupyter notebooks covering the core workflow
 3. **No setup required**: Just download, install dependencies, and run
 
-**Workflow**: Feature Engineering → Self-Supervised Training → Anomaly Detection
+**Workflow**: Feature Engineering → Self-Supervised Training → Embedding Evaluation → Anomaly Detection
