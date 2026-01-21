@@ -29,7 +29,7 @@ After training your TabularResNet using self-supervised learning ([Part 4](part4
 3. **Robust**: Small noise in input features (±5% in bytes, slight time jitter) doesn't drastically change embeddings
 4. **Useful**: Enable effective anomaly detection downstream ([Part 6](part6-anomaly-detection))
 
-**Why this matters for security data**: Poor embeddings make anomaly detection fail silently. If your model thinks failed logins look similar to successful logins, it won't catch account takeover attacks. Evaluation catches these problems early.
+**Why this matters for observability data**: Poor embeddings make anomaly detection fail silently. If your model thinks failed logins look similar to successful logins, it won't catch account takeover attacks. Evaluation catches these problems early.
 
 ---
 
