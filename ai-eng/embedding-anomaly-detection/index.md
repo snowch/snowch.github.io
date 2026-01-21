@@ -415,29 +415,6 @@ A vector database makes similarity search the **central** mechanism for anomaly 
 
 ---
 
-## Learning Path
-
-### For ML Engineers
-**Focus**: End-to-end production system
-1. Part 1 (skim) → Part 2 → Part 3 → Part 4
-2. Parts 5-6 (deep dive on evaluation)
-3. Parts 7-8 (deployment and monitoring)
-
-### For Security Engineers
-**Focus**: Applying to OCSF data
-1. Part 1 (overview only) → Part 2 (deep dive)
-2. Part 3 (feature engineering from OCSF)
-3. Part 6 (detection methods)
-4. Part 8 (monitoring alerts)
-
-### For Researchers
-**Focus**: Model architecture and training
-1. Parts 1-2 (architecture details)
-2. Parts 3-5 (feature engineering, training, and evaluation)
-3. Compare with your own methods
-
----
-
 ## Code Repository
 
 All code from this series is available in executable notebooks. Each part includes:
