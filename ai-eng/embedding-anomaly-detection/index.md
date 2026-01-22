@@ -210,7 +210,7 @@ All code examples are executable and production-ready.
 
 Run the tutorial hands-on:
 - Pre-generated OCSF sample data
-- Jupyter notebooks for Parts 3, 4, 5, 6
+- Jupyter notebooks for Parts 3-6
 - Docker one-liner for Jupyter environment
 - No setup required—just download and run
 
@@ -254,7 +254,20 @@ Train TabularResNet with contrastive learning:
 **Hands-on** · Part 4
 :::
 
-:::{grid-item-card} Notebook: Model Saving & Inference
+:::{grid-item-card} Notebook: Embedding Evaluation
+:link: notebooks/05-embedding-evaluation
+:link-type: doc
+
+Evaluate embedding quality before deployment:
+- t-SNE/UMAP visualization
+- Cluster quality metrics (Silhouette, Davies-Bouldin)
+- Nearest neighbor inspection
+- Production readiness report
+
+**Hands-on** · Part 5
+:::
+
+:::{grid-item-card} Notebook: Model Inference
 :link: notebooks/05-model-inference
 :link-type: doc
 
@@ -263,7 +276,7 @@ Load trained model and generate embeddings:
 - Run inference on new data
 - Extract embedding vectors
 
-**Hands-on** · Part 5
+**Hands-on** · Inference
 :::
 
 :::{grid-item-card} Notebook: Anomaly Detection
