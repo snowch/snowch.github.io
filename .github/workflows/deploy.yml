@@ -59,13 +59,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate downloadable code archives
-        run: |
-          # Create zip for embedding appendix code (must be before build so {download} directive works)
-          cd ai-eng/embedding-anomaly-detection
-          zip -r appendix-code.zip appendix-code/
-          cd ../..
-
       - name: Build the site
         env:
           # base_path is "/" for a user site, and "/repo" for a project site.
