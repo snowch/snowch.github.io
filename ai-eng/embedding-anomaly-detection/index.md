@@ -13,6 +13,14 @@ bibliography:
 
 # Embedding-Based Anomaly Detection for Observability
 
+```{note}
+**This tutorial series has moved to its own dedicated site!**
+
+👉 **[Visit the full tutorial series](https://snowch.github.io/observability-anomaly-detection/)**
+
+The series is now maintained as a standalone repository with improved organization, hands-on notebooks, and easier navigation.
+```
+
 A comprehensive 9-part tutorial series on building production-ready anomaly detection systems using ResNet embeddings for OCSF (Open Cybersecurity Schema Framework) observability data.
 
 **What you'll learn**: How to build, train, and deploy a **custom embedding model** (TabularResNet) specifically designed for OCSF observability data. This model transforms security logs and system metrics into vector representations. Anomaly detection happens entirely through vector database similarity search—no separate detection model needed. The system processes streaming OCSF events in near real-time to automatically identify unusual behavior.
