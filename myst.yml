@@ -135,15 +135,15 @@ project:
               title: "Appendix: Generating Training Data"
             - file: ai-eng/embedding-anomaly-detection/appendix-notebooks.md
               title: "Appendix: Notebooks & Sample Data"
-            - file: ai-eng/embedding-anomaly-detection/notebooks/03-feature-engineering.ipynb
+            - file: ai-eng/embedding-anomaly-detection/notebooks/03-feature-engineering.md
               title: "Notebook: Feature Engineering"
-            - file: ai-eng/embedding-anomaly-detection/notebooks/04-self-supervised-training.ipynb
+            - file: ai-eng/embedding-anomaly-detection/notebooks/04-self-supervised-training.md
               title: "Notebook: Self-Supervised Training"
-            - file: ai-eng/embedding-anomaly-detection/notebooks/05-embedding-evaluation.ipynb
+            - file: ai-eng/embedding-anomaly-detection/notebooks/05-embedding-evaluation.md
               title: "Notebook: Embedding Evaluation"
-            - file: ai-eng/embedding-anomaly-detection/notebooks/05-model-inference.ipynb
+            - file: ai-eng/embedding-anomaly-detection/notebooks/05-model-inference.md
               title: "Notebook: Model Inference"
-            - file: ai-eng/embedding-anomaly-detection/notebooks/06-anomaly-detection.ipynb
+            - file: ai-eng/embedding-anomaly-detection/notebooks/06-anomaly-detection.md
               title: "Notebook: Anomaly Detection"
 
         - title: "ML/AI Algorithms"
