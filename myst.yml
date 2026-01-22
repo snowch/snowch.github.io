@@ -159,6 +159,8 @@ project:
       
     - file: embeddings.md
       title: Embeddings at Scale Book
+    - file: observability-anomaly-detection.md
+      title: Observability Anomaly Detection
     - file: probability/probability.md
       title: Probability Book
     - file: matrix-calculus.md
