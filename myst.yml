@@ -34,6 +34,11 @@ project:
             - file: probability/birthday_tutorial.md
               title: Birthday Paradox
 
+        - title: Observability
+          children:
+            - file: observability/index.md
+              title: "Introduction: Observability & Anomaly Detection"
+
         - title: Neural Networks From Scratch
           children:
             - file: ai-eng/nnfs/index.md
