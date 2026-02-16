@@ -25,6 +25,8 @@ project:
 
     - title: AI Engineering Blog
       children:
+        - file: ai-eng/other-sections.md
+          title: "Table of Contents"
         - title: Probability
           children:
             - file: probability/index.md
@@ -123,8 +125,6 @@ project:
               title: "Softmax: From Scores to Probabilities"
             - file: ai-eng/ml-algorithms/tree_based_feature_importance.md
               title: "Tree-Based Feature Importance [DRAFT]"
-        - file: ai-eng/other-sections.md
-          title: "Other Sections"
 
     - file: embeddings.md
       title: Embeddings at Scale Book
