@@ -123,7 +123,9 @@ project:
               title: "Softmax: From Scores to Probabilities"
             - file: ai-eng/ml-algorithms/tree_based_feature_importance.md
               title: "Tree-Based Feature Importance [DRAFT]"
-      
+        - file: ai-eng/other-sections.md
+          title: "Other Sections"
+
     - file: embeddings.md
       title: Embeddings at Scale Book
     - file: observability-anomaly-detection.md
