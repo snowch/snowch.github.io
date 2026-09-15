@@ -140,6 +140,8 @@ project:
       title: Other Books & Guides
     - file: opensource.md
       title: Open Source Work
+    - file: apps.md
+      title: Apps
     - file: external-articles.md
       title: External Articles
     - file: talks.md
