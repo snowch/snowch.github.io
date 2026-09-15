@@ -144,6 +144,10 @@ project:
       title: External Articles
     - file: talks.md
       title: Talks & Presentations
+    - title: Other Work
+      children:
+        - file: apps.md
+          title: Apps
     - title: Computer Architecture Notes
       children:
         - file: computer-architecture/computer_architecture_coming_soon.md
