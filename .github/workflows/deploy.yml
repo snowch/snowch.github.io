@@ -20,6 +20,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so generate_sitemap.py can date each page from its
+          # last commit; a shallow clone makes it omit <lastmod> entirely.
+          fetch-depth: 0
 
       - name: Restore MyST caches (execute + templates)
         uses: actions/cache@v4
