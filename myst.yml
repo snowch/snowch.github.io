@@ -129,7 +129,9 @@ project:
 
     - file: embeddings.md
       title: Embeddings at Scale Book
-    - file: observability-anomaly-detection.md
+    # Slug must differ from the observability-anomaly-detection project site,
+    # which owns that path
+    - file: anomaly-detection.md
       title: Observability Anomaly Detection
     # Slug must differ from the sizing-and-tco project site, which owns that path
     - file: sizing.md
