@@ -7,8 +7,16 @@ For sites with project pages (e.g., snowch.github.io/project-name):
 - Creates sitemap-main.xml for the main site
 - Creates sitemap_index.xml that references main + project sitemaps
 - robots.txt points to sitemap_index.xml
+
+URLs come from the built HTML tree, not from the source TOC. MyST publishes
+each page under its own slug -- probability/inclusion_exclusion_tutorial.md is
+served at /inclusion-exclusion-tutorial/ -- so source paths do not predict
+published URLs.
 """
+import json
 import os
+import subprocess
+import sys
 import yaml
 from datetime import datetime
 from pathlib import Path
@@ -19,71 +27,103 @@ def load_myst_config(config_path='myst.yml'):
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def extract_pages_from_toc(toc, pages=None):
-    """Recursively extract all page files from the table of contents."""
-    if pages is None:
-        pages = []
+def discover_built_pages(build_dir='_build/html'):
+    """Find every page the build actually published.
 
-    for item in toc:
-        if isinstance(item, dict):
-            # Add the file if it exists
-            if 'file' in item:
-                pages.append(item['file'])
-            # Recursively process children
-            if 'children' in item:
-                extract_pages_from_toc(item['children'], pages)
+    MyST writes one directory per page, each holding an index.html, so a
+    directory containing an index.html is a page and anything else (theme
+    assets, static files) is not. Returns routes sorted, with '' for the
+    home page.
+    """
+    build_path = Path(build_dir)
 
-    return pages
+    if not build_path.is_dir():
+        return []
 
-def file_to_url(file_path, base_url):
-    """Convert a file path to a URL."""
-    # Remove .md or .ipynb extension and add .html
-    if file_path.endswith('.md'):
-        url_path = file_path[:-3] + '.html'
-    elif file_path.endswith('.ipynb'):
-        url_path = file_path[:-6] + '.html'
-    else:
-        url_path = file_path
+    routes = []
+    for index_file in build_path.rglob('index.html'):
+        route = index_file.parent.relative_to(build_path).as_posix()
+        routes.append('' if route == '.' else route)
 
-    # Handle index.html specially
-    if url_path == 'index.html':
-        return base_url.rstrip('/') + '/'
+    return sorted(routes)
 
-    return urljoin(base_url, url_path)
+def page_to_url(route, base_url):
+    """Convert a built route to its published URL."""
+    base = base_url.rstrip('/') + '/'
+    return base if not route else f'{base}{route}/'
 
-def get_file_lastmod(file_path, build_dir='_build/html'):
-    """Get last modification time of the built HTML file."""
-    # Convert source path to built HTML path
-    html_path = file_path.replace('.md', '.html').replace('.ipynb', '.html')
-    full_path = os.path.join(build_dir, html_path)
+def get_page_source(route, build_dir):
+    """Map a built route back to the file it was written from.
 
-    if os.path.exists(full_path):
-        mtime = os.path.getmtime(full_path)
-        return datetime.fromtimestamp(mtime).strftime('%Y-%m-%d')
+    The build writes a JSON payload beside each page recording its source
+    location, which is the only link back from a slug to its markdown.
+    """
+    payload = Path(build_dir) / ((route or 'index') + '.json')
 
-    # Fallback to current date if file doesn't exist
-    return datetime.now().strftime('%Y-%m-%d')
+    try:
+        location = json.loads(payload.read_text()).get('location')
+    except (OSError, ValueError):
+        return None
 
-def generate_main_sitemap(config, build_dir='_build/html', base_url='https://snowch.github.io/'):
+    if not location:
+        return None
+
+    source = Path(location.lstrip('/'))
+    return source if source.exists() else None
+
+def git_last_modified(source):
+    """Date of the last commit touching a file, or None if git cannot say."""
+    try:
+        result = subprocess.run(
+            ['git', 'log', '-1', '--format=%cs', '--', str(source)],
+            capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    return result.stdout.strip() or None
+
+def is_shallow_clone():
+    """Whether git history is truncated, which hides real modification dates."""
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', '--is-shallow-repository'],
+            capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return False
+
+    return result.stdout.strip() == 'true'
+
+def get_lastmod(route, build_dir, trust_git_dates):
+    """Get the date a page last changed, or None if there is no honest answer.
+
+    <lastmod> is optional, and a wrong one is worse than none. Built files are
+    all stamped at build time, and a shallow clone reports the boundary commit
+    for anything it did not fetch, so only a full history answers this.
+    """
+    if not trust_git_dates:
+        return None
+
+    source = get_page_source(route, build_dir)
+    if not source:
+        return None
+
+    return git_last_modified(source)
+
+def generate_main_sitemap(routes, build_dir='_build/html', base_url='https://snowch.github.io/',
+                          trust_git_dates=True):
     """Generate sitemap for main site pages."""
-    pages = []
-
-    # Extract pages from project TOC
-    if 'project' in config and 'toc' in config['project']:
-        pages = extract_pages_from_toc(config['project']['toc'])
-
     # Start building the sitemap XML
     sitemap_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
     sitemap_lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
 
     # Add each page to the sitemap
-    for page in pages:
-        url = file_to_url(page, base_url)
-        lastmod = get_file_lastmod(page, build_dir)
+    for route in routes:
+        lastmod = get_lastmod(route, build_dir, trust_git_dates)
 
         sitemap_lines.append('  <url>')
-        sitemap_lines.append(f'    <loc>{url}</loc>')
-        sitemap_lines.append(f'    <lastmod>{lastmod}</lastmod>')
+        sitemap_lines.append(f'    <loc>{page_to_url(route, base_url)}</loc>')
+        if lastmod:
+            sitemap_lines.append(f'    <lastmod>{lastmod}</lastmod>')
         sitemap_lines.append('    <changefreq>monthly</changefreq>')
         sitemap_lines.append('    <priority>0.8</priority>')
         sitemap_lines.append('  </url>')
@@ -148,14 +188,24 @@ def main():
     # Build directory
     build_dir = '_build/html'
 
-    # Ensure build directory exists
-    if not os.path.exists(build_dir):
-        print(f"Warning: Build directory {build_dir} does not exist.")
-        print("Creating directory and proceeding...")
-        os.makedirs(build_dir, exist_ok=True)
+    # Without a build there are no URLs to publish. Fail rather than write an
+    # empty sitemap over a good one.
+    routes = discover_built_pages(build_dir)
+    if not routes:
+        print(f"Error: no built pages found in {build_dir}.")
+        print("Run `myst build --html` before this script.")
+        sys.exit(1)
+
+    # A shallow clone dates unchanged pages to the boundary commit, so omit
+    # <lastmod> entirely rather than publish dates that look real and are not.
+    trust_git_dates = not is_shallow_clone()
+    if not trust_git_dates:
+        print("Warning: shallow git clone -- omitting <lastmod>.")
+        print("Set fetch-depth: 0 on actions/checkout for real modification dates.")
 
     # Generate main sitemap
-    main_sitemap_xml = generate_main_sitemap(config, build_dir, base_url)
+    main_sitemap_xml = generate_main_sitemap(routes, build_dir, base_url,
+                                             trust_git_dates)
     main_sitemap_path = os.path.join(build_dir, 'sitemap-main.xml')
 
     with open(main_sitemap_path, 'w') as f:
@@ -189,7 +239,8 @@ def main():
 
     print(f"✓ Generated {robots_path}")
 
-    # Remove old sitemap.xml if it exists (from previous MyST builds)
+    # Remove MyST's own sitemap.xml: it is built with the dev server's host,
+    # so its URLs point at localhost rather than the published site.
     old_sitemap = os.path.join(build_dir, 'sitemap.xml')
     if os.path.exists(old_sitemap):
         os.remove(old_sitemap)

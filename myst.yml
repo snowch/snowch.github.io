@@ -20,7 +20,7 @@ project:
     - learn_probability
     - sizing-and-tco
     - embeddings-at-scale-book
-    - learn_linear_algebra
+    # learn_linear_algebra publishes no sitemap.xml -- re-add once it does
   toc:
     - file: index.md
 
@@ -131,7 +131,8 @@ project:
       title: Embeddings at Scale Book
     - file: observability-anomaly-detection.md
       title: Observability Anomaly Detection
-    - file: sizing-and-tco.md
+    # Slug must differ from the sizing-and-tco project site, which owns that path
+    - file: sizing.md
       title: Sizing and TCO
     - file: probability/probability.md
       title: Probability Book
