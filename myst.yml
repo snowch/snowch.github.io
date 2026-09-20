@@ -18,6 +18,7 @@ project:
   # These will be included in the sitemap index
   project_sites:
     - learn_probability
+    - sizing-and-tco
     - embeddings-at-scale-book
     - learn_linear_algebra
   toc:
@@ -130,6 +131,8 @@ project:
       title: Embeddings at Scale Book
     - file: observability-anomaly-detection.md
       title: Observability Anomaly Detection
+    - file: sizing-and-tco.md
+      title: Sizing and TCO
     - file: probability/probability.md
       title: Probability Book
     - file: matrix-calculus.md
