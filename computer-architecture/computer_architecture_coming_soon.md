@@ -33,4 +33,6 @@ This section will cover computer architecture topics based on the Harvey Mudd ED
 
 ---
 
+In the meantime, the interactive [Bit Lab](https://snowch.github.io/programmer-calculator/docs/bit-lab.html) covers the ground this section will start from: an ALU built from gates, the N Z C V flags, and how an instruction's opcode selects the operation.
+
 *Stay tuned for detailed tutorials and interactive examples!*

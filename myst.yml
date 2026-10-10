@@ -160,6 +160,8 @@ project:
           title: Coming Soon
     - title: Digital Design Notes
       children:
+        - file: digital-design/bit-lab.md
+          title: "Bit Lab: Gates, Adders, Registers & Flags"
         - file: digital-design/d_flipflop_tutorial.ipynb
           title: D Flip-Flops
         - file: digital-design/d-flip-flop-interactive.ipynb
