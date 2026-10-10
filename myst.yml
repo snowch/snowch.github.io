@@ -160,6 +160,8 @@ project:
           title: Coming Soon
     - title: Digital Design Notes
       children:
+        - title: "Digital Design course: from bits to a working computer"
+          url: https://snowch.github.io/digital-design/
         - file: digital-design/bit-lab.md
           title: "Bit Lab: Gates, Adders, Registers & Flags"
         - file: digital-design/d_flipflop_tutorial.ipynb

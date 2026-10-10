@@ -27,8 +27,9 @@ Jump straight to a part:
 
 - **[Two's complement: a short tutorial (PDF)](https://snowch.github.io/programmer-calculator/docs/twos-complement.pdf)** — seven pages on reading and writing negative numbers, NOT versus negation, arithmetic modulo 256, overflow, sign extension and reading hex directly, with practice problems and a cheat sheet.
 - **[Programmer Calculator](https://snowch.github.io/programmer-calculator/)** — the installable calculator the Bit Lab lives with: hex, decimal, octal and binary, bitwise operations, shifts and rotates, CPU-style C V Z N flags, and 110 digital-design exercises whose primers link back to the tutorial and the lab.
-- **[Build a 4-bit binary calculator from logic gates](https://github.com/snowch/binary-adder)** — a breadboard tutorial that builds the half adder, full adder and ripple-carry adder from 74HC86, 74HC08 and 74HC32 chips.
 
 ## Where to go next
 
 Once the register section makes sense, continue with the [D Flip-Flops tutorial](d_flipflop_tutorial.md), which opens up the edge-triggered cell: the master and slave latches inside it, setup and hold time, and clock-to-Q delay.
+
+For the whole journey from signals to a working CPU, with lessons on gates, the ALU, registers, flags and instructions, take the [Digital Design course](https://snowch.github.io/digital-design/).
