@@ -164,6 +164,8 @@ project:
           url: https://snowch.github.io/digital-design/
         - file: digital-design/gates-to-alu.md
           title: From Gates to an ALU
+        - file: digital-design/adding-to-subtracting.md
+          title: From Adding to Subtracting
         - file: digital-design/gates-to-register.md
           title: From Gates to a Register
         - file: digital-design/bit-lab.md

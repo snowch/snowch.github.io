@@ -15,5 +15,6 @@ This is the first of two short prerequisites for the [Bit Lab](bit-lab.md). It a
 
 ## Next
 
+- [From Adding to Subtracting](adding-to-subtracting.md): how this same adder subtracts, with the borrow read off the carry.
 - [From Gates to a Register](gates-to-register.md): the other half of a CPU, how the same kinds of gates are made to remember.
 - The [Bit Lab](bit-lab.md): this adder inside a working 8-bit ALU with subtraction, the N Z C V flags and guided exercises.
