@@ -168,12 +168,14 @@ project:
           title: "1. From Gates to an ALU"
         - file: digital-design/adding-to-subtracting.md
           title: "2. From Adding to Subtracting"
+        - file: digital-design/readings-drills.md
+          title: "3. Two Readings: Drills"
         - file: digital-design/bit-lab.md
-          title: "3. Bit Lab: the ALU and its Flags"
+          title: "4. Bit Lab: the ALU and its Flags"
         - file: digital-design/who-decides.md
-          title: "4. Signed or Unsigned: Who Decides?"
+          title: "5. Signed or Unsigned: Who Decides?"
         - file: digital-design/bytes-to-registers.md
-          title: "5. From Bytes to Registers"
+          title: "6. From Bytes to Registers"
         - file: digital-design/gates-to-register.md
           title: "Side trip: From Gates to a Register"
         - file: digital-design/d_flipflop_tutorial.ipynb

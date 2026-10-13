@@ -1,7 +1,7 @@
 # Signed or Unsigned: Who Decides?
 
 ```{note}
-Part 4 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). It runs in the browser with nothing to install:
+Part 5 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). It runs in the browser with nothing to install:
 **[Open Signed or unsigned: who decides? →](https://snowch.github.io/programmer-calculator/docs/who-decides.html)**
 ```
 
