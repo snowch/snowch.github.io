@@ -15,6 +15,7 @@ This sits between [From Gates to an ALU](gates-to-alu.md) and the [Bit Lab](bit-
 
 ## Next
 
+- [From Bytes to Registers](bytes-to-registers.md): the compare's other half on a 32-bit machine, how a byte is widened to fill a register.
 - The [Bit Lab](bit-lab.md): SUB and CMP are this circuit at 8 bits, and its `CMP` snippet now has a "show the working" button that draws these rows.
 - [From Gates to a Register](gates-to-register.md): the other half of a CPU.
 - The [flag drills](https://snowch.github.io/programmer-calculator/docs/flag-drills.html) begin with predicting the flags of a `CMP`.

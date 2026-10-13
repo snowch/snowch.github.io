@@ -166,6 +166,8 @@ project:
           title: From Gates to an ALU
         - file: digital-design/adding-to-subtracting.md
           title: From Adding to Subtracting
+        - file: digital-design/bytes-to-registers.md
+          title: From Bytes to Registers
         - file: digital-design/gates-to-register.md
           title: From Gates to a Register
         - file: digital-design/bit-lab.md

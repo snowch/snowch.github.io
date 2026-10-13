@@ -23,6 +23,7 @@ Jump straight to a part:
 
 ## Companions
 
+- **[From Bytes to Registers](bytes-to-registers.md)** — the lab's "under the hood" material on its own page: why a byte must be widened, what the two loads write, and the widened compare drawn cell by cell for any pair.
 - **[Flag drills](https://snowch.github.io/programmer-calculator/docs/flag-drills.html)** — randomised predict-then-check exercises that follow on from the lab's signed-or-unsigned section: work out the N Z C V flags of a `CMP`, pick which ARM branches fire, recover the declared type and comparison from a compiled `if`, and widen a byte into a 32-bit register by hand.
 - **[Two's complement: a short tutorial (PDF)](https://snowch.github.io/programmer-calculator/docs/twos-complement.pdf)** — seven pages on reading and writing negative numbers, NOT versus negation, arithmetic modulo 256, overflow, sign extension and reading hex directly, with practice problems and a cheat sheet.
 - **[Programmer Calculator](https://snowch.github.io/programmer-calculator/)** — the installable calculator the Bit Lab lives with: hex, decimal, octal and binary, bitwise operations, shifts and rotates, CPU-style C V Z N flags, and 110 digital-design exercises whose primers link back to the tutorial and the lab.
