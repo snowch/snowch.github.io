@@ -1,11 +1,11 @@
-# Bit Lab: Gates, Adders, Registers and Flags
+# Bit Lab: the ALU and its Flags
 
 ```{note}
 The Bit Lab is an interactive page hosted alongside my Programmer Calculator. It runs in the browser with nothing to install:
 **[Open the Bit Lab →](https://snowch.github.io/programmer-calculator/docs/bit-lab.html)**
 ```
 
-The Bit Lab is a working miniature ALU made of gates you can tap, with the N Z C V flags built from gates beside it. Its prerequisites are the previous pages here, [From Gates to an ALU](gates-to-alu.md), [From Adding to Subtracting](adding-to-subtracting.md) and [From Gates to a Register](gates-to-register.md); the lab summarises them in a paragraph each and links to them, so you can also start here and step back when needed. It leads on to the ALU and flag material that Computer Architecture will assume.
+The Bit Lab is a working miniature ALU made of gates you can tap, with the N Z C V flags built from gates beside it. Part 3 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). Its prerequisites are the previous pages here, [From Gates to an ALU](gates-to-alu.md), [From Adding to Subtracting](adding-to-subtracting.md) and [From Gates to a Register](gates-to-register.md); the lab summarises them in a paragraph each and links to them, so you can also start here and step back when needed. It leads on to the ALU and flag material that Computer Architecture will assume.
 
 ## What it covers
 
@@ -14,6 +14,8 @@ The Bit Lab is a working miniature ALU made of gates you can tap, with the N Z C
 3. **A miniature ALU.** Thirteen operations at 4 or 8 bits, the gate network drawn for the chosen operation, inputs you can flip bit by bit, and the result in binary, hex, unsigned and signed.
 4. **The flags, live.** Each flag's gates drawn from the current result, and why carry (unsigned overflow) and V (signed overflow) are independent.
 5. **Exercises, a quiz, and a breadboard build.** Eight guided exercises, six check-yourself questions, and a schematic plus parts list for building the whole thing from 74HC-series chips.
+
+The signed-or-unsigned material that used to end this page is now part 4, [Signed or Unsigned: Who Decides?](who-decides.md).
 
 Jump straight to a part:
 [Background](https://snowch.github.io/programmer-calculator/docs/bit-lab.html#background) ·
