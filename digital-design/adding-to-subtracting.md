@@ -13,6 +13,8 @@ This sits between [From Gates to an ALU](gates-to-alu.md) and the [Bit Lab](bit-
 2. **Negating: NOT, then add 1.** Stepping back B places is stepping forward 16 − B. Inverting every bit of B gives 15 − B, so NOT B + 1 is 16 − B, which is −B. Shown as bit rows for the current B.
 3. **The adder does it.** Feed NOT B into the adder with the carry-in set to 1 and it computes A − B. Tap bits in A or B and watch the carries; the carry out of the top bit is the borrow signal inverted, which is why ARM's C = 1 means no borrow.
 
+4. **The same subtraction on paper.** The method for working in decimal: compute, fit the answer into the width on a number line that shows the wrap as a shift of one wheel size, then convert with the top bit worth minus its place value. It always agrees with the adder, and says which flag an ALU would raise when the answer did not fit.
+
 ## Next
 
 - [From Bytes to Registers](bytes-to-registers.md): the compare's other half on a 32-bit machine, how a byte is widened to fill a register.
