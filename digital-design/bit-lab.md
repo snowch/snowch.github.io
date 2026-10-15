@@ -5,7 +5,7 @@ The Bit Lab is an interactive page hosted alongside my Programmer Calculator. It
 **[Open the Bit Lab →](https://snowch.github.io/programmer-calculator/docs/bit-lab.html)**
 ```
 
-The Bit Lab is a working miniature ALU made of gates you can tap, with the N Z C V flags built from gates beside it. Part 4 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). Its prerequisites are the previous pages here, [From Gates to an ALU](gates-to-alu.md), [From Adding to Subtracting](adding-to-subtracting.md) and [From Gates to a Register](gates-to-register.md); the lab summarises them in a paragraph each and links to them, so you can also start here and step back when needed. It leads on to the ALU and flag material that Computer Architecture will assume.
+The Bit Lab is a working miniature ALU made of gates you can tap, with the N Z C V flags built from gates beside it. Part 5 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). Its prerequisites are the previous pages here, [From Gates to an ALU](gates-to-alu.md), [From Adding to Subtracting](adding-to-subtracting.md) and [From Gates to a Register](gates-to-register.md); the lab summarises them in a paragraph each and links to them, so you can also start here and step back when needed. It leads on to the ALU and flag material that Computer Architecture will assume.
 
 ## What it covers
 

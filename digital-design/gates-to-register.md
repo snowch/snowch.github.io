@@ -1,6 +1,7 @@
 # From Gates to a Register
 
 ```{note}
+Part 6 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md).
 An interactive page hosted alongside my Programmer Calculator. It runs in the browser with nothing to install:
 **[Open From gates to a register →](https://snowch.github.io/programmer-calculator/docs/gates-to-register.html)**
 ```

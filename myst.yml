@@ -170,16 +170,16 @@ project:
           title: "2. From Adding to Subtracting"
         - file: digital-design/readings-drills.md
           title: "3. Two Readings: Drills"
-        - file: digital-design/bit-lab.md
-          title: "4. Bit Lab: the ALU and its Flags"
-        - file: digital-design/who-decides.md
-          title: "5. Signed or Unsigned: Who Decides?"
-        - file: digital-design/bytes-to-registers.md
-          title: "6. From Bytes to Registers"
-        - file: digital-design/gates-to-register.md
-          title: "Side trip: From Gates to a Register"
         - file: digital-design/c-meets-the-wheel.md
-          title: "Side trip: Where C Meets the Wheel"
+          title: "4. Where C Meets the Wheel"
+        - file: digital-design/bit-lab.md
+          title: "5. Bit Lab: the ALU and its Flags"
+        - file: digital-design/gates-to-register.md
+          title: "6. From Gates to a Register"
+        - file: digital-design/who-decides.md
+          title: "7. Signed or Unsigned: Who Decides?"
+        - file: digital-design/bytes-to-registers.md
+          title: "8. From Bytes to Registers"
         - file: digital-design/d_flipflop_tutorial.ipynb
           title: D Flip-Flops
         - file: digital-design/d-flip-flop-interactive.ipynb

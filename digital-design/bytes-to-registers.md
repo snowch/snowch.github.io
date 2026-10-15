@@ -5,7 +5,7 @@ An interactive page hosted alongside my Programmer Calculator. It runs in the br
 **[Open From bytes to registers →](https://snowch.github.io/programmer-calculator/docs/bytes-to-registers.html)**
 ```
 
-This page answers a question that the [Bit Lab](bit-lab.md)'s signed-or-unsigned section raises: why does a compiled `if` use one load instruction for a `uint8_t` and a different one for an `int8_t`, when both are a single byte in memory? It sits after [From Adding to Subtracting](adding-to-subtracting.md) and before the lab's compare-and-branch material.
+This page answers a question that the [Bit Lab](bit-lab.md)'s signed-or-unsigned section raises: why does a compiled `if` use one load instruction for a `uint8_t` and a different one for an `int8_t`, when both are a single byte in memory? It is part 8 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md), after the compare-and-branch page.
 
 ## What it covers
 

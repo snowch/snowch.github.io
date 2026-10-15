@@ -1,7 +1,7 @@
 # Where C Meets the Wheel
 
 ```{note}
-A side trip from [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). It runs in the browser with nothing to install:
+Part 4 of [From Gates to a Compiled If](from-gates-to-a-compiled-if.md). It runs in the browser with nothing to install:
 **[Open Where C meets the wheel →](https://snowch.github.io/programmer-calculator/docs/c-meets-the-wheel.html)**
 ```
 
