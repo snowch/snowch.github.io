@@ -178,6 +178,8 @@ project:
           title: "6. From Bytes to Registers"
         - file: digital-design/gates-to-register.md
           title: "Side trip: From Gates to a Register"
+        - file: digital-design/c-meets-the-wheel.md
+          title: "Side trip: Where C Meets the Wheel"
         - file: digital-design/d_flipflop_tutorial.ipynb
           title: D Flip-Flops
         - file: digital-design/d-flip-flop-interactive.ipynb

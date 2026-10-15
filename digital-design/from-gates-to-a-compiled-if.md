@@ -19,6 +19,6 @@ They are about real machines: the assembly is ARM, the types are C's, and where 
 6. [From Bytes to Registers](bytes-to-registers.md): why a byte is widened to fill a register, and what the two loads write into the spare bits.
 7. [Flag drills](https://snowch.github.io/programmer-calculator/docs/flag-drills.html): randomised predict-then-check exercises on all of the above.
 
-Side trip: [From Gates to a Register](gates-to-register.md), how the same kinds of gates are made to remember, any time after part 4.
+Side trips: [From Gates to a Register](gates-to-register.md), how the same kinds of gates are made to remember, any time after part 4; and [Where C Meets the Wheel](c-meets-the-wheel.md), seven C integer traps stepped through in registers, any time after part 2.
 
 You need binary and hex, and the truth tables of NOT, AND, OR and XOR. Nothing else is assumed.
