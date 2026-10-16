@@ -7,7 +7,7 @@ Nine short interactive pages, hosted alongside my Programmer Calculator. They ru
 
 These pages grew out of my own notes while learning how a processor handles signed and unsigned numbers. They start with logic gates you can tap and end with an `if` statement compiled to ARM, traced flag by flag. Each page answers the question the one before it raises, every claim is drawn as bits or gates you can change, and the pages compute their values in the open rather than simulating anything behind the scenes.
 
-They are about real machines: the assembly is ARM, the types are C's, and where x86 differs they say so. The [Digital Design course](https://snowch.github.io/digital-design/) is the other track, where you build a machine of your own from gates to a running program. These notes read the machines you will actually meet.
+They are about real machines: the assembly is ARM, the types are C's, and where x86 differs they say so. They are one of three ways into the same machine. The [Digital Design course](https://snowch.github.io/digital-design/) builds a machine of your own, from gates to a running program. These notes read the machines you will actually meet. [Assembly Lab](https://snowch.github.io/assembly-lab/), still being written, drives a real one: you step a real instruction set one instruction at a time, with the C each instruction came from beside it.
 
 ## Reading order
 

@@ -162,6 +162,8 @@ project:
       children:
         - title: "Digital Design course: from bits to a working computer"
           url: https://snowch.github.io/digital-design/
+        - title: "Assembly Lab: from a line of C to the bits in a register"
+          url: https://snowch.github.io/assembly-lab/
         - file: digital-design/from-gates-to-a-compiled-if.md
           title: "From Gates to a Compiled If"
         - file: digital-design/gates-to-alu.md
