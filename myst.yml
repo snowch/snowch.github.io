@@ -146,6 +146,8 @@ project:
       url: https://snowch.github.io/digital-design/
     - title: Assembly Lab Course
       url: https://snowch.github.io/assembly-lab/
+    - title: Video Lab Course
+      url: https://snowch.github.io/video-lab/
     - file: books.md
       title: Other Books & Guides
     - file: opensource.md
