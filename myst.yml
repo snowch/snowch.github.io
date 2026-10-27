@@ -158,10 +158,6 @@ project:
       children:
         - file: apps.md
           title: Apps
-    - title: Computer Architecture Notes
-      children:
-        - file: computer-architecture/computer_architecture_coming_soon.md
-          title: Coming Soon
     - title: Digital Design Notes
       children:
         - file: digital-design/from-gates-to-a-compiled-if.md
