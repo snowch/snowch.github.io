@@ -31,9 +31,9 @@ jobs:
           path: |
             _build/execute
             _build/templates
-          key: myst-v2-${{ runner.os }}-node20-py311-${{ hashFiles('requirements.txt', 'myst.yml', 'package-lock.json', 'ai-eng/embedding-anomaly-detection/notebooks/*.ipynb', 'ai-eng/embedding-anomaly-detection/data/*') }}
+          key: myst-v2-${{ runner.os }}-node22-py311-${{ hashFiles('requirements.txt', 'myst.yml', 'package-lock.json', 'ai-eng/embedding-anomaly-detection/notebooks/*.ipynb', 'ai-eng/embedding-anomaly-detection/data/*') }}
           restore-keys: |
-            myst-v2-${{ runner.os }}-node20-py311-
+            myst-v2-${{ runner.os }}-node22-py311-
 
       - name: Setup Pages
         id: pages
@@ -42,7 +42,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install MyST CLI
         run: npm install -g mystmd
