@@ -148,6 +148,8 @@ project:
       url: https://snowch.github.io/assembly-lab/
     - title: Video Lab Course
       url: https://snowch.github.io/video-lab/
+    - title: GPU Lab Course
+      url: https://snowch.github.io/gpu-lab/
     - file: books.md
       title: Other Books & Guides
     - file: opensource.md

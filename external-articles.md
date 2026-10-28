@@ -6,6 +6,8 @@ Data engineering articles published on external platforms.
 
 | Date | Title | Platform |
 |------|-------|----------|
+| 2026 Oct | [Topics to Tables: From JSON on a Topic to Queryable Columns](https://www.vastdata.com/blog/from-json-to-queryable-columns) | VAST Data Blog |
+| 2026 Oct | [Topics to Tables: Kafka Messages That Arrive Already Queryable](https://www.vastdata.com/blog/kafka-messages-that-arrive-already-queryable) | VAST Data Blog |
 | 2025 Nov | [SOC: Activating Threat Detection with Real-Time AI](https://www.vastdata.com/blog/soc-activating-threat-detection-with-real-time-ai) | VAST Data Blog |
 | 2025 Oct | [Why Your SIEM Needs a VAST Cyber Lakehouse](https://www.vastdata.com/blog/why-your-siem-needs-a-vast-cyber-lakehouse) | VAST Data Blog |
 | 2025 Sep | [Flow: Supercharge Your Apache NiFi Data Pipelines with VAST Database](https://www.vastdata.com/blog/flow-supercharge-your-apache-nifi-data-pipelines-vast-database) | VAST Data Blog |
