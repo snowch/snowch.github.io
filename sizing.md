@@ -1,6 +1,6 @@
-# Sizing and TCO
+# Sizing & TCO Lab
 
-Capacity planning, sizing and total cost of ownership, modelled as code. A self-study book and toolkit built around one question — how big, how much, and how wrong could I be? — and one rule for answering it: every number says where it came from.
+Capacity planning, sizing and total cost of ownership, modelled as code. A self-study lab and toolkit built around one question — how big, how much, and how wrong could I be? — and one rule for answering it: every number says where it came from.
 
 ## Topics Covered
 
@@ -21,8 +21,8 @@ Capacity planning, sizing and total cost of ownership, modelled as code. A self-
 - **Gaps stay visible** — a constant nobody has measured leaves the nodes below it empty instead of quietly filled in
 - **Monte Carlo from scratch** — inverse-transform sampling, rank correlation and convergence written to be read, not called
 
-## Access the Full Book
+## Open the Lab
 
-**[Sizing and TCO →](https://snowch.github.io/sizing-and-tco/)**
+**[Sizing & TCO Lab →](https://snowch.github.io/sizing-and-tco/)**
 
-The complete book is available as an interactive resource, with worked models you can adjust and re-run in the browser. Source and toolkit on [GitHub](https://github.com/snowch/sizing-and-tco).
+The lab includes worked models you can adjust and re-run in the browser. Source and toolkit on [GitHub](https://github.com/snowch/sizing-and-tco).
