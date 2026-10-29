@@ -54,6 +54,8 @@ project:
         # Preserve the local slug; sizing-and-tco belongs to the project site.
         - file: sizing.md
           title: Sizing & TCO Lab
+        - title: Benchmarking Lab
+          url: https://snowch.github.io/benchmarking-lab/chapters/start-here.html
         # Preserve the local slug; observability-anomaly-detection belongs to the project site.
         - file: anomaly-detection.md
           title: Observability & Anomaly Detection
