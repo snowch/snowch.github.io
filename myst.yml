@@ -24,180 +24,191 @@ project:
   toc:
     - file: index.md
 
-    - title: AI Engineering Blog
-      children:
-        - file: ai-eng/other-sections.md
-          title: "Table of Contents"
-        - title: Probability
-          children:
-            - file: probability/index.md
-              title: "Introduction: Probability Tutorials & Notes"
-            - file: probability/inclusion_exclusion_tutorial.md
-              title: Inclusion-Exclusion Principle
-            - file: probability/birthday_tutorial.md
-              title: Birthday Paradox
-
-        - title: Observability
-          children:
-            - file: observability/index.md
-              title: "Introduction: Observability & Anomaly Detection"
-
-        - title: Neural Networks From Scratch
-          children:
-            - file: ai-eng/nnfs/index.md
-              title: "Introduction: Understanding Deep Learning From First Principles"
-            - file: ai-eng/nnfs/nn_edge_detector_blog.md
-              title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
-            - file: ai-eng/nnfs/nn_tutorial_blog.md
-              title: "Training an Edge-Detection Neural Network from Scratch"
-            - file: ai-eng/nnfs/nn_flexible_network_blog.md
-              title: Building a General Neural Network from Scratch
-            - file: ai-eng/nnfs/nn_pytorch_basics.md
-              title: PyTorch Basics (Flexible MLP)
-
-        # - title: Neural Network Architectures
-        #   children:
-        #     - file: ai-eng/nnfs/nn_architecture_patterns.md
-        #       title: Architecture Patterns (NA01)
-
-        - title: "LLM From Scratch: Foundations"
-          children:
-            - file: ai-eng/llmfs/index.md
-              title: "Introduction: Building GPT From First Principles"
-            - file: ai-eng/llmfs/L01_Tokenization_From_Scratch.md
-              title: "L01 - Tokenization: From Scratch"
-            - file: ai-eng/llmfs/L02_Embeddings_and_Positional_Encoding.md
-              title: "L02 - Embeddings & Positional Encoding"
-            - file: ai-eng/llmfs/L03_The_Attention_Mechanism.md
-              title: "L03 - Self-Attention: Understanding Context"
-            - file: ai-eng/llmfs/L04_Multi_Head_Attention.md
-              title: "L04 - Multi-Head Attention: Seeing in Parallel"
-            - file: ai-eng/llmfs/L05_Normalization_and_Residuals.md
-              title: "L05 - Normalization & Residuals"
-            - file: ai-eng/llmfs/L06_The_Causal_Mask.md
-              title: "L06 - The Causal Mask: How to Stop Cheating"
-            - file: ai-eng/llmfs/L07_Assembling_the_GPT.md
-              title: "L07 - Assembling the GPT: The Grand Finale"
-            - file: ai-eng/llmfs/L08_Architecture_Design_Choices.md
-              title: "L08 - Architecture Design Choices: Choosing Your Hyperparameters"
-            - file: ai-eng/llmfs/L09_Training_the_LLM.md
-              title: "L09 - Training the LLM: Learning to Speak"
-            - file: ai-eng/llmfs/L10_Inference_and_Sampling.md
-              title: "L10 - Inference & Sampling: Controlling the Creativity"
-            - file: ai-eng/llmfs/L11_Fine_tuning_and_Chat.md
-              title: "L11 - Fine-tuning: From Completion to Conversation"
-
-        - title: "LLM From Scratch: Production Techniques"
-          children:
-            - file: ai-eng/llmfs-production/index.md
-              title: "Introduction: Bridge to Production"
-            - file: ai-eng/llmfs-production/L12_Loading_Pretrained_Weights.md
-              title: "L12 - Loading Pretrained Weights & Transfer Learning [DRAFT]"
-            - file: ai-eng/llmfs-production/L13_Data_Loading_Pipelines.md
-              title: "L13 - Data Loading Pipelines at Scale [DRAFT]"
-            - file: ai-eng/llmfs-production/L14_Evaluation_Frameworks.md
-              title: "L14 - Evaluation Frameworks [DRAFT]"
-            - file: ai-eng/llmfs-production/L15_LoRA_PEFT.md
-              title: "L15 - Parameter-Efficient Fine-Tuning (LoRA) [DRAFT]"
-            - file: ai-eng/llmfs-production/L16_Mixed_Precision_Training.md
-              title: "L16 - Mixed Precision Training [DRAFT]"
-
-        - title: "LLM From Scratch: Scaling & Optimization"
-          children:
-            - file: ai-eng/llmfs-scaling/index.md
-              title: "Introduction: Advanced Scale & Performance"
-            - file: ai-eng/llmfs-scaling/L17_Attention_Optimizations.md
-              title: "L17 - Attention Optimizations [DRAFT]"
-            - file: ai-eng/llmfs-scaling/L18_Model_Parallelism.md
-              title: "L18 - Model Parallelism [DRAFT]"
-            - file: ai-eng/llmfs-scaling/L19_Long_Context_Handling.md
-              title: "L19 - Long Context Handling [DRAFT]"
-            - file: ai-eng/llmfs-scaling/L20_Quantization_Inference.md
-              title: "L20 - Quantization for Inference [DRAFT]"
-            - file: ai-eng/llmfs-scaling/L21_Deployment_Serving.md
-              title: "L21 - Deployment & Serving [DRAFT]"
-        - title: "ML/AI Algorithms"
-          children:
-            - file: ai-eng/ml-algorithms/latent_factors.md
-              title: "The Hidden Power of Latent Factors"
-            - file: ai-eng/ml-algorithms/als_tutorial.md
-              title: "Alternating Least Squares (ALS) for Movie Recommendations"
-            - file: ai-eng/ml-algorithms/softmax_from_scores.md
-              title: "Softmax: From Scores to Probabilities"
-            - file: ai-eng/ml-algorithms/tree_based_feature_importance.md
-              title: "Tree-Based Feature Importance [DRAFT]"
-
-    - file: embeddings.md
-      title: Embeddings at Scale Book
-    # Slug must differ from the observability-anomaly-detection project site,
-    # which owns that path
-    - file: anomaly-detection.md
-      title: Observability Anomaly Detection
-    # Slug must differ from the sizing-and-tco project site, which owns that path
-    - file: sizing.md
-      title: Sizing and TCO
-    - file: probability/probability.md
-      title: Probability Book
-    - file: matrix-calculus.md
-      title: Matrix Calculus Book
-    - file: linear-algebra.md
-      title: Learn Linear Algebra Book
-    - title: Parquet Book
-      url: https://snowch.github.io/parquet-book/
-    - title: Query Engine Book
-      url: https://snowch.github.io/query-engine-book/
-    - title: Systems From Scratch Book
-      url: https://snowch.github.io/computer-systems/
-    - title: Digital Design Course
-      url: https://snowch.github.io/digital-design/
-    - title: Assembly Lab Course
-      url: https://snowch.github.io/assembly-lab/
-    - title: Video Lab Course
-      url: https://snowch.github.io/video-lab/
-    - title: GPU Lab Course
-      url: https://snowch.github.io/gpu-lab/
     - file: books.md
-      title: Other Books & Guides
+      title: Books
+      children:
+        - file: embeddings.md
+          title: Embeddings at Scale
+        - file: probability/probability.md
+          title: Probability
+        - file: linear-algebra.md
+          title: Linear Algebra
+        - file: matrix-calculus.md
+          title: Matrix Calculus
+
+    - file: labs.md
+      title: Labs & Courses
+      children:
+        - title: Digital Design
+          url: https://snowch.github.io/digital-design/
+        - title: Assembly Lab
+          url: https://snowch.github.io/assembly-lab/
+        - title: Systems Lab
+          url: https://snowch.github.io/computer-systems/
+        - title: GPU Lab
+          url: https://snowch.github.io/gpu-lab/
+        - title: Parquet Lab
+          url: https://snowch.github.io/parquet-book/
+        - title: Query Engine Lab
+          url: https://snowch.github.io/query-engine-book/
+        # Preserve the local slug; sizing-and-tco belongs to the project site.
+        - file: sizing.md
+          title: Sizing & TCO Lab
+        - title: Benchmarking Lab
+          url: https://snowch.github.io/benchmarking-lab/chapters/start-here.html
+        # Preserve the local slug; observability-anomaly-detection belongs to the project site.
+        - file: anomaly-detection.md
+          title: Observability & Anomaly Detection
+        - title: Video Lab
+          url: https://snowch.github.io/video-lab/
+        - title: ML-101
+          url: https://github.com/snowch/ml-101/blob/main/00-README-FIRST.ipynb
+
+    - file: apps.md
+      title: Apps
+
+    - file: articles.md
+      title: Articles & Notes
+      children:
+        - title: AI Engineering Blog
+          children:
+            - file: ai-eng/other-sections.md
+              title: "Table of Contents"
+            - title: Probability
+              children:
+                - file: probability/index.md
+                  title: "Introduction: Probability Tutorials & Notes"
+                - file: probability/inclusion_exclusion_tutorial.md
+                  title: Inclusion-Exclusion Principle
+                - file: probability/birthday_tutorial.md
+                  title: Birthday Paradox
+
+            - title: Observability
+              children:
+                - file: observability/index.md
+                  title: "Introduction: Observability & Anomaly Detection"
+
+            - title: Neural Networks From Scratch
+              children:
+                - file: ai-eng/nnfs/index.md
+                  title: "Introduction: Understanding Deep Learning From First Principles"
+                - file: ai-eng/nnfs/nn_edge_detector_blog.md
+                  title: "Edge Detection Intuition: A Single Neuron as Pattern Matching"
+                - file: ai-eng/nnfs/nn_tutorial_blog.md
+                  title: "Training an Edge-Detection Neural Network from Scratch"
+                - file: ai-eng/nnfs/nn_flexible_network_blog.md
+                  title: Building a General Neural Network from Scratch
+                - file: ai-eng/nnfs/nn_pytorch_basics.md
+                  title: PyTorch Basics (Flexible MLP)
+
+            # - title: Neural Network Architectures
+            #   children:
+            #     - file: ai-eng/nnfs/nn_architecture_patterns.md
+            #       title: Architecture Patterns (NA01)
+
+            - title: "LLM From Scratch: Foundations"
+              children:
+                - file: ai-eng/llmfs/index.md
+                  title: "Introduction: Building GPT From First Principles"
+                - file: ai-eng/llmfs/L01_Tokenization_From_Scratch.md
+                  title: "L01 - Tokenization: From Scratch"
+                - file: ai-eng/llmfs/L02_Embeddings_and_Positional_Encoding.md
+                  title: "L02 - Embeddings & Positional Encoding"
+                - file: ai-eng/llmfs/L03_The_Attention_Mechanism.md
+                  title: "L03 - Self-Attention: Understanding Context"
+                - file: ai-eng/llmfs/L04_Multi_Head_Attention.md
+                  title: "L04 - Multi-Head Attention: Seeing in Parallel"
+                - file: ai-eng/llmfs/L05_Normalization_and_Residuals.md
+                  title: "L05 - Normalization & Residuals"
+                - file: ai-eng/llmfs/L06_The_Causal_Mask.md
+                  title: "L06 - The Causal Mask: How to Stop Cheating"
+                - file: ai-eng/llmfs/L07_Assembling_the_GPT.md
+                  title: "L07 - Assembling the GPT: The Grand Finale"
+                - file: ai-eng/llmfs/L08_Architecture_Design_Choices.md
+                  title: "L08 - Architecture Design Choices: Choosing Your Hyperparameters"
+                - file: ai-eng/llmfs/L09_Training_the_LLM.md
+                  title: "L09 - Training the LLM: Learning to Speak"
+                - file: ai-eng/llmfs/L10_Inference_and_Sampling.md
+                  title: "L10 - Inference & Sampling: Controlling the Creativity"
+                - file: ai-eng/llmfs/L11_Fine_tuning_and_Chat.md
+                  title: "L11 - Fine-tuning: From Completion to Conversation"
+
+            - title: "LLM From Scratch: Production Techniques"
+              children:
+                - file: ai-eng/llmfs-production/index.md
+                  title: "Introduction: Bridge to Production"
+                - file: ai-eng/llmfs-production/L12_Loading_Pretrained_Weights.md
+                  title: "L12 - Loading Pretrained Weights & Transfer Learning [DRAFT]"
+                - file: ai-eng/llmfs-production/L13_Data_Loading_Pipelines.md
+                  title: "L13 - Data Loading Pipelines at Scale [DRAFT]"
+                - file: ai-eng/llmfs-production/L14_Evaluation_Frameworks.md
+                  title: "L14 - Evaluation Frameworks [DRAFT]"
+                - file: ai-eng/llmfs-production/L15_LoRA_PEFT.md
+                  title: "L15 - Parameter-Efficient Fine-Tuning (LoRA) [DRAFT]"
+                - file: ai-eng/llmfs-production/L16_Mixed_Precision_Training.md
+                  title: "L16 - Mixed Precision Training [DRAFT]"
+
+            - title: "LLM From Scratch: Scaling & Optimization"
+              children:
+                - file: ai-eng/llmfs-scaling/index.md
+                  title: "Introduction: Advanced Scale & Performance"
+                - file: ai-eng/llmfs-scaling/L17_Attention_Optimizations.md
+                  title: "L17 - Attention Optimizations [DRAFT]"
+                - file: ai-eng/llmfs-scaling/L18_Model_Parallelism.md
+                  title: "L18 - Model Parallelism [DRAFT]"
+                - file: ai-eng/llmfs-scaling/L19_Long_Context_Handling.md
+                  title: "L19 - Long Context Handling [DRAFT]"
+                - file: ai-eng/llmfs-scaling/L20_Quantization_Inference.md
+                  title: "L20 - Quantization for Inference [DRAFT]"
+                - file: ai-eng/llmfs-scaling/L21_Deployment_Serving.md
+                  title: "L21 - Deployment & Serving [DRAFT]"
+            - title: "ML/AI Algorithms"
+              children:
+                - file: ai-eng/ml-algorithms/latent_factors.md
+                  title: "The Hidden Power of Latent Factors"
+                - file: ai-eng/ml-algorithms/als_tutorial.md
+                  title: "Alternating Least Squares (ALS) for Movie Recommendations"
+                - file: ai-eng/ml-algorithms/softmax_from_scores.md
+                  title: "Softmax: From Scores to Probabilities"
+                - file: ai-eng/ml-algorithms/tree_based_feature_importance.md
+                  title: "Tree-Based Feature Importance [DRAFT]"
+        - title: Digital Design Notes
+          children:
+            - file: digital-design/from-gates-to-a-compiled-if.md
+              title: "From Gates to a Compiled If"
+            - file: digital-design/gates-to-alu.md
+              title: "1. From Gates to an ALU"
+            - file: digital-design/adding-to-subtracting.md
+              title: "2. From Adding to Subtracting"
+            - file: digital-design/readings-drills.md
+              title: "3. Two Readings: Drills"
+            - file: digital-design/c-meets-the-wheel.md
+              title: "4. Where C Meets the Wheel"
+            - file: digital-design/bit-lab.md
+              title: "5. Bit Lab: the ALU and its Flags"
+            - file: digital-design/gates-to-register.md
+              title: "6. From Gates to a Register"
+            - file: digital-design/who-decides.md
+              title: "7. Signed or Unsigned: Who Decides?"
+            - file: digital-design/bytes-to-registers.md
+              title: "8. From Bytes to Registers"
+            - file: digital-design/d_flipflop_tutorial.ipynb
+              title: D Flip-Flops
+            - file: digital-design/d-flip-flop-interactive.ipynb
+              title: Interactive D Flip-Flop
+            - file: digital-design/latches_flipflop_quick_ref.md
+              title: "Latches & Flip-Flops Quick Reference"
+            - file: digital-design/timing_diagrams_tutorial.ipynb
+              title: Timing Diagrams
+            - file: digital-design/fsm_tutorial.ipynb
+              title: Finite State Machines
+        - file: external-articles.md
+          title: External Articles
+
     - file: opensource.md
-      title: Open Source Work
-    - file: external-articles.md
-      title: External Articles
+      title: Open Source
     - file: talks.md
-      title: Talks & Presentations
-    - title: Other Work
-      children:
-        - file: apps.md
-          title: Apps
-    - title: Digital Design Notes
-      children:
-        - file: digital-design/from-gates-to-a-compiled-if.md
-          title: "From Gates to a Compiled If"
-        - file: digital-design/gates-to-alu.md
-          title: "1. From Gates to an ALU"
-        - file: digital-design/adding-to-subtracting.md
-          title: "2. From Adding to Subtracting"
-        - file: digital-design/readings-drills.md
-          title: "3. Two Readings: Drills"
-        - file: digital-design/c-meets-the-wheel.md
-          title: "4. Where C Meets the Wheel"
-        - file: digital-design/bit-lab.md
-          title: "5. Bit Lab: the ALU and its Flags"
-        - file: digital-design/gates-to-register.md
-          title: "6. From Gates to a Register"
-        - file: digital-design/who-decides.md
-          title: "7. Signed or Unsigned: Who Decides?"
-        - file: digital-design/bytes-to-registers.md
-          title: "8. From Bytes to Registers"
-        - file: digital-design/d_flipflop_tutorial.ipynb
-          title: D Flip-Flops
-        - file: digital-design/d-flip-flop-interactive.ipynb
-          title: Interactive D Flip-Flop
-        - file: digital-design/latches_flipflop_quick_ref.md
-          title: "Latches & Flip-Flops Quick Reference"
-        - file: digital-design/timing_diagrams_tutorial.ipynb
-          title: Timing Diagrams
-        - file: digital-design/fsm_tutorial.ipynb
-          title: Finite State Machines
+      title: Talks
 
 site:
   template: book-theme

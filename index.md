@@ -16,6 +16,17 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 
 ---
 
+## Explore
+
+- [Books](books.md) — reading paths through embeddings, probability, linear algebra and matrix calculus.
+- [Labs & Courses](labs.md) — learn by building, measuring and experimenting with computers, data and video.
+- [Apps](apps.md) — tools for calculation and guided relaxation.
+- [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
+- [Open Source](opensource.md) — projects and integrations.
+- [Talks](talks.md) — presentations and recordings.
+
+---
+
 ## Select Highlights
 
 - **Built $xx million EMEA presales team from scratch** · Grew technical presales organization from zero to 12 staff (2 managers, 10 ICs) at HPE, managing regional AI/Big Data portfolio
