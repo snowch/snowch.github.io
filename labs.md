@@ -20,6 +20,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | [Parquet Lab](https://snowch.github.io/parquet-book/) — *Parquet, byte by byte* | Build a Parquet reader in Python and Rust using real file bytes, interactive examples and browser exercises |
 | [Query Engine Lab](https://snowch.github.io/query-engine-book/) — *Queries, operator by operator* | Build a Python query engine on Apache Arrow and compare operator costs with DuckDB. **In progress.** |
 | [Sizing & TCO Lab](sizing.md) | Adjust capacity and cost models, explore uncertainty and sensitivity, and trace inputs to their sources |
+| [Benchmarking Lab](https://snowch.github.io/benchmarking-lab/chapters/start-here.html) | Design fair technology comparisons, run browser experiments and downloadable service harnesses, analyse evidence and build a recommendation |
 | [Observability & Anomaly Detection](anomaly-detection.md) | Work through notebooks and examples for embeddings, anomaly detection and deployment with observability data |
 | [ML-101](https://github.com/snowch/ml-101/blob/main/00-README-FIRST.ipynb) | Practise machine learning fundamentals with scikit-learn |
 
