@@ -146,6 +146,8 @@ project:
       url: https://snowch.github.io/parquet-book/
     - title: Query Engine Book
       url: https://snowch.github.io/query-engine-book/
+    - title: Systems From Scratch Book
+      url: https://snowch.github.io/computer-systems/
     - title: Digital Design Course
       url: https://snowch.github.io/digital-design/
     - title: Assembly Lab Course
