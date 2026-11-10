@@ -2,6 +2,12 @@
 
 Learn linear algebra fundamentals through interactive exercises and visualizations. This comprehensive guide uses SageMath to provide hands-on experience with essential linear algebra concepts for machine learning and data science.
 
+## Interactive Course (V2)
+
+**[Open Linear Algebra V2 →](https://snowch.github.io/learn_linear_algebra/interactive/)**
+
+Explore 21 lessons with visual experiments, guided practice and optional Python running in the browser. The interactive course requires no SageMath installation or notebook server. The original SageMath book remains linked below.
+
 ## Topics Covered
 
 - Vectors and vector spaces
