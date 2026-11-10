@@ -12,6 +12,14 @@ Learn by building, measuring and experimenting. Each lab or course follows a seq
 | [Systems Lab](https://snowch.github.io/computer-systems/) — *Systems From Scratch* | Explore machine code, memory, operating systems and CPU performance through RISC-V/xv6 experiments and measurements on real hardware |
 | [GPU Lab](https://snowch.github.io/gpu-lab/) | Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples |
 
+## Programming
+
+| Lab or course | What you'll do |
+|---------------|----------------|
+| [C Foundry](https://snowch.github.io/c-foundry/#/course) | Learn C, memory management, algorithms and database internals through editable browser examples and native investigations |
+| [C++ Foundry](https://snowch.github.io/cpp-foundry/#/course) | Explore modern C++20, ownership, resource management, algorithms and database components with runnable examples |
+| [Rust Foundry](https://snowch.github.io/rust-foundry/) | Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects |
+
 ## Data Engineering & AI
 
 Parquet Lab builds the reader used by Query Engine Lab, so they work well in that order.
@@ -20,10 +28,17 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 |---------------|----------------|
 | [Parquet Lab](https://snowch.github.io/parquet-book/) — *Parquet, byte by byte* | Build a Parquet reader in Python and Rust using real file bytes, interactive examples and browser exercises |
 | [Query Engine Lab](https://snowch.github.io/query-engine-book/) — *Queries, operator by operator* | Build a Python query engine on Apache Arrow and compare operator costs with DuckDB. **In progress.** |
+| [PostgreSQL Lab](https://snowch.github.io/postgresql-lab/) | Investigate query plans, indexes, transactions, migrations and recovery with editable SQL running in the browser and optional PostgreSQL server extensions |
 | [Sizing & TCO Lab](sizing.md) | Adjust capacity and cost models, explore uncertainty and sensitivity, and trace inputs to their sources |
 | [Benchmarking Lab](https://snowch.github.io/benchmarking-lab/chapters/start-here.html) | Design fair technology comparisons, run browser experiments and downloadable service harnesses, analyse evidence and build a recommendation |
 | [Observability & Anomaly Detection](anomaly-detection.md) | Work through notebooks and examples for embeddings, anomaly detection and deployment with observability data |
 | [ML-101](https://github.com/snowch/ml-101/blob/main/00-README-FIRST.ipynb) | Practise machine learning fundamentals with scikit-learn |
+
+## Mathematics
+
+| Lab or course | What you'll do |
+|---------------|----------------|
+| [Linear Algebra V2](https://snowch.github.io/learn_linear_algebra/interactive/) | Explore vectors, transformations, linear systems, decompositions and PCA through visual experiments, guided practice and optional Python running in the browser |
 
 ## Media
 
