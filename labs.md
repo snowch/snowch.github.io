@@ -12,6 +12,14 @@ Learn by building, measuring and experimenting. Each lab or course follows a seq
 | [Systems Lab](https://snowch.github.io/computer-systems/) — *Systems From Scratch* | Explore machine code, memory, operating systems and CPU performance through RISC-V/xv6 experiments and measurements on real hardware |
 | [GPU Lab](https://snowch.github.io/gpu-lab/) | Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples |
 
+## Programming
+
+| Lab or course | What you'll do |
+|---------------|----------------|
+| [C Foundry](https://snowch.github.io/c-foundry/#/course) | Learn C, memory management, algorithms and database internals through editable browser examples and native investigations |
+| [C++ Foundry](https://snowch.github.io/cpp-foundry/#/course) | Explore modern C++20, ownership, resource management, algorithms and database components with runnable examples |
+| [Rust Foundry](https://snowch.github.io/rust-foundry/) | Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects |
+
 ## Data Engineering & AI
 
 Parquet Lab builds the reader used by Query Engine Lab, so they work well in that order.
