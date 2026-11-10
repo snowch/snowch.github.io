@@ -49,6 +49,12 @@ project:
           url: https://snowch.github.io/computer-systems/
         - title: GPU Lab
           url: https://snowch.github.io/gpu-lab/
+        - title: C Foundry
+          url: https://snowch.github.io/c-foundry/#/course
+        - title: C++ Foundry
+          url: https://snowch.github.io/cpp-foundry/#/course
+        - title: Rust Foundry
+          url: https://snowch.github.io/rust-foundry/
         - title: Parquet Lab
           url: https://snowch.github.io/parquet-book/
         - title: Query Engine Lab
