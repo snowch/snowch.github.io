@@ -5,6 +5,7 @@ Books for working through a subject at your own pace, with examples and exercise
 | Book | What you'll learn |
 |------|-------------------|
 | [Embeddings at Scale](embeddings.md) | Vector representations, similarity search and deploying embedding systems at scale |
+| [Metadata Systems](https://snowch.github.io/metadata-book/) | Understand metadata collection, lineage, quality, governance and controlled reuse through worked examples and a visual metadata map |
 | [Probability](probability/probability.md) | Probability rules, conditional probability, distributions and Python examples |
 | [Linear Algebra](linear-algebra.md) | Vectors, matrices, eigenvalues and singular value decomposition, with SageMath exercises |
 | [Matrix Calculus](matrix-calculus.md) | Matrix derivatives, gradients, Jacobians and Hessians for machine learning |

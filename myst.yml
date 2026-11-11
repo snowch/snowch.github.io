@@ -29,6 +29,8 @@ project:
       children:
         - file: embeddings.md
           title: Embeddings at Scale
+        - title: Metadata Systems
+          url: https://snowch.github.io/metadata-book/
         - file: probability/probability.md
           title: Probability
         - file: linear-algebra.md
