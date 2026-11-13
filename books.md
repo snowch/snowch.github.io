@@ -10,6 +10,7 @@ Books for working through a subject at your own pace, with examples and exercise
 | [Linear Algebra](linear-algebra.md) | Vectors, matrices, eigenvalues and singular value decomposition, with SageMath exercises |
 | [Matrix Calculus](matrix-calculus.md) | Matrix derivatives, gradients, Jacobians and Hessians for machine learning |
 | [Social Psychology](https://snowch.github.io/common-ground-social-psychology/) | Explore social psychology through ten illustrated stories, narrated chapters, decisions and recall practice |
+| [Everyday CBT](https://snowch.github.io/everyday-cbt/) | Learn introductory CBT skills through twelve illustrated stories, recorded narration, decisions and practical labs. **Draft course; practitioner review pending.** |
 | [Understanding People](https://snowch.github.io/understanding-people/) | Understand what drives people through psychology, sociology and decision science, with practical habits and an expanded reference library |
 
 ## Other Guides
