@@ -41,6 +41,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | Lab or course | What you'll do |
 |---------------|----------------|
 | [Linear Algebra V2](https://snowch.github.io/learn_linear_algebra/interactive/) | Explore vectors, transformations, linear systems, decompositions and PCA through visual experiments, guided practice and optional Python running in the browser |
+| [Monte Carlo Lab](https://snowch.github.io/monte-carlo-lab/) | Model uncertainty, compare scenarios and make decisions through 60 core and 16 advanced Python investigations running in your browser |
 
 ## Media
 
