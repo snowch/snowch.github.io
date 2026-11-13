@@ -67,6 +67,8 @@ project:
           url: https://snowch.github.io/query-engine-book/
         - title: PostgreSQL Lab
           url: https://snowch.github.io/postgresql-lab/
+        - title: Transactions Lab
+          url: https://snowch.github.io/transactions-lab/
         - title: Event Streaming Lab
           url: https://snowch.github.io/event-streaming-lab/
         # Preserve the local slug; sizing-and-tco belongs to the project site.

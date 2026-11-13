@@ -29,6 +29,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | [Parquet Lab](https://snowch.github.io/parquet-book/) — *Parquet, byte by byte* | Build a Parquet reader in Python and Rust using real file bytes, interactive examples and browser exercises |
 | [Query Engine Lab](https://snowch.github.io/query-engine-book/) — *Queries, operator by operator* | Build a Python query engine on Apache Arrow and compare operator costs with DuckDB. **In progress.** |
 | [PostgreSQL Lab](https://snowch.github.io/postgresql-lab/) | Investigate query plans, indexes, transactions, migrations and recovery with editable SQL running in the browser and optional PostgreSQL server extensions |
+| [Transactions Lab](https://snowch.github.io/transactions-lab/) | Design, break and repair transactions across databases, file systems and distributed workflows through editable SQL, controlled failure experiments and real-system extensions |
 | [Event Streaming Lab](https://snowch.github.io/event-streaming-lab/) | Explore events, state, windows, replay and recovery through editable Python experiments running in the browser with RxPY |
 | [Sizing & TCO Lab](sizing.md) | Adjust capacity and cost models, explore uncertainty and sensitivity, and trace inputs to their sources |
 | [Benchmarking Lab](https://snowch.github.io/benchmarking-lab/chapters/start-here.html) | Design fair technology comparisons, run browser experiments and downloadable service harnesses, analyse evidence and build a recommendation |
