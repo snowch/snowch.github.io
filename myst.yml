@@ -87,6 +87,8 @@ project:
           url: https://snowch.github.io/learn_linear_algebra/interactive/
         - title: Monte Carlo Lab
           url: https://snowch.github.io/monte-carlo-lab/
+        - title: SymPy Lab
+          url: https://snowch.github.io/sympy-lab/
 
     - file: apps.md
       title: Apps
