@@ -80,6 +80,8 @@ project:
           url: https://snowch.github.io/benchmarking-lab/chapters/start-here.html
         - title: Scientific Method Lab
           url: https://snowch.github.io/scientific-method-lab/
+        - title: Causal Inference Lab
+          url: https://snowch.github.io/causal-inference-lab/
         # Preserve the local slug; observability-anomaly-detection belongs to the project site.
         - file: anomaly-detection.md
           title: Observability & Anomaly Detection

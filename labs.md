@@ -34,6 +34,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | [Sizing & TCO Lab](sizing.md) | Adjust capacity and cost models, explore uncertainty and sensitivity, and trace inputs to their sources |
 | [Benchmarking Lab](https://snowch.github.io/benchmarking-lab/chapters/start-here.html) | Design fair technology comparisons, run browser experiments and downloadable service harnesses, analyse evidence and build a recommendation |
 | [Scientific Method Lab](https://snowch.github.io/scientific-method-lab/) | Design fair experiments, analyse uncertainty and test hypotheses through 30 short Python investigations running in your browser |
+| [Causal Inference Lab](https://snowch.github.io/causal-inference-lab/) | Infer causal effects from observational data through 18 browser Python investigations covering causal diagrams, fair comparisons and the assumptions behind each estimate |
 | [Observability & Anomaly Detection](anomaly-detection.md) | Work through notebooks and examples for embeddings, anomaly detection and deployment with observability data |
 | [ML-101](https://github.com/snowch/ml-101/blob/main/00-README-FIRST.ipynb) | Practise machine learning fundamentals with scikit-learn |
 
