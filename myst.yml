@@ -94,6 +94,9 @@ project:
         - title: SymPy Lab
           url: https://snowch.github.io/sympy-lab/
 
+        - title: Cravings Lab
+          url: https://snowch.github.io/cravings-lab/
+
     - file: apps.md
       title: Apps
 

@@ -52,3 +52,9 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | [Video Lab](https://snowch.github.io/video-lab/) | Run editable FFmpeg and ffprobe commands in the browser to practise cutting, joining, framing, sound, subtitles and export |
 
 Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
+
+## Wellbeing & self-reflection
+
+| Lab | What you’ll explore |
+|-----|---------------------|
+| [Cravings Lab](https://snowch.github.io/cravings-lab/) | Learn about cravings, hunger and habits through six short lessons, then explore optional check-ins, guided practices and small experiments. Tab-only by default, with optional device saving. Self-reflection for adults, not diagnosis or treatment. |

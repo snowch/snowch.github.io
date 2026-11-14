@@ -19,7 +19,7 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 ## Explore
 
 - [Books](books.md) — reading paths through embeddings, probability, linear algebra and matrix calculus.
-- [Labs & Courses](labs.md) — learn by building, measuring and experimenting with computers, data and video.
+- [Labs & Courses](labs.md) — learn by building, measuring and experimenting with computers, data, video and self-reflection.
 - [Apps](apps.md) — tools for calculation and guided relaxation.
 - [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
 - [Open Source](opensource.md) — projects and integrations.
