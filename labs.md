@@ -9,6 +9,7 @@ Learn by building, measuring and experimenting. Each lab or course follows a seq
 | [Digital Design](https://snowch.github.io/digital-design/) | Build from bits and logic gates towards a working computer |
 | [Bit Lab](https://snowch.github.io/bit-lab/) | Explore binary and hexadecimal, fixed-width arithmetic, CPU flags, masks, shifts and byte order through interactive experiments and checked questions. **Draft course.** |
 | [Assembly Lab](https://snowch.github.io/assembly-lab/) | Explore processor instructions one at a time, with the corresponding C alongside them |
+| [RISC-V Assembly Lab](https://snowch.github.io/riscv-assembly-lab/) | Start with Hello World: edit, assemble and run RISC-V assembly in a real xv6 guest, all in your browser. An early prototype |
 | [Systems Lab](https://snowch.github.io/computer-systems/) — *Systems From Scratch* | Explore machine code, memory, operating systems and CPU performance through RISC-V/xv6 experiments and measurements on real hardware |
 | [xv6 Lab](https://snowch.github.io/xv6-lab/) | Learn how an operating system works through 25 browser experiments with a real xv6 kernel, including processes, virtual memory, scheduling and filesystems, with live kernel inspectors |
 | [GPU Lab](https://snowch.github.io/gpu-lab/) | Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples |
