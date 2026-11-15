@@ -55,6 +55,8 @@ project:
           url: https://snowch.github.io/assembly-lab/
         - title: Systems Lab
           url: https://snowch.github.io/computer-systems/
+        - title: xv6 Lab
+          url: https://snowch.github.io/xv6-lab/
         - title: GPU Lab
           url: https://snowch.github.io/gpu-lab/
         - title: C Foundry
