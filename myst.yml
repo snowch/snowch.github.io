@@ -79,6 +79,8 @@ project:
           url: https://snowch.github.io/transactions-lab/
         - title: Event Streaming Lab
           url: https://snowch.github.io/event-streaming-lab/
+        - title: Messaging Patterns Lab
+          url: https://snowch.github.io/messaging-patterns-lab/
         # Preserve the local slug; sizing-and-tco belongs to the project site.
         - file: sizing.md
           title: Sizing & TCO Lab

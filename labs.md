@@ -33,7 +33,8 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 | [Iceberg Lab](https://snowch.github.io/iceberg-lab/) | Explore table metadata, snapshots, schema evolution, pruning, maintenance and governance through 42 focused browser lessons with real Iceberg experiments running in WebAssembly |
 | [PostgreSQL Lab](https://snowch.github.io/postgresql-lab/) | Investigate query plans, indexes, transactions, migrations and recovery with editable SQL running in the browser and optional PostgreSQL server extensions |
 | [Transactions Lab](https://snowch.github.io/transactions-lab/) | Design, break and repair transactions across databases, file systems and distributed workflows through editable SQL, controlled failure experiments and real-system extensions |
-| [Event Streaming Lab](https://snowch.github.io/event-streaming-lab/) | Explore events, state, windows, replay and recovery through editable Python experiments running in the browser with RxPY |
+| [Event Streaming Lab](https://snowch.github.io/event-streaming-lab/) | Explore events, state, windows, replay and recovery through real Bytewax and Kafka protocol experiments running inside browser Linux |
+| [Messaging Patterns Lab](https://snowch.github.io/messaging-patterns-lab/) | Explore messaging patterns, routing, queues, retries and acknowledgements through 20 real ZeroMQ investigations and 10 deeper readings in your browser |
 | [Sizing & TCO Lab](sizing.md) | Adjust capacity and cost models, explore uncertainty and sensitivity, and trace inputs to their sources |
 | [Benchmarking Lab](https://snowch.github.io/benchmarking-lab/chapters/start-here.html) | Design fair technology comparisons, run browser experiments and downloadable service harnesses, analyse evidence and build a recommendation |
 | [Observability & Anomaly Detection](anomaly-detection.md) | Work through notebooks and examples for embeddings, anomaly detection and deployment with observability data |
