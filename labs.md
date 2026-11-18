@@ -46,7 +46,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 |---------------|----------------|
 | [Scientific Method Lab](https://snowch.github.io/scientific-method-lab/) | Design fair experiments, analyse uncertainty and test hypotheses through 30 short Python investigations running in your browser |
 | [Causal Inference Lab](https://snowch.github.io/causal-inference-lab/) | Infer causal effects from observational data through 18 browser Python investigations covering causal diagrams, fair comparisons and the assumptions behind each estimate |
-| [Sensitivity Analysis Lab](https://snowch.github.io/sensitivity-analysis-lab/) | Find what drives pipeline latency using simulations and synthetic logs in three short browser lessons |
+| [Sensitivity Analysis Lab](https://snowch.github.io/sensitivity-analysis-lab/) | Use simulations and logs to find what drives an outcome, then apply the methods to a household electricity budget |
 
 ## Mathematics
 
