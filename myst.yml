@@ -90,6 +90,8 @@ project:
           url: https://snowch.github.io/scientific-method-lab/
         - title: Causal Inference Lab
           url: https://snowch.github.io/causal-inference-lab/
+        - title: Sensitivity Analysis Lab
+          url: https://snowch.github.io/sensitivity-analysis-lab/
         # Preserve the local slug; observability-anomaly-detection belongs to the project site.
         - file: anomaly-detection.md
           title: Observability & Anomaly Detection
