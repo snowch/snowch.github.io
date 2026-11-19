@@ -20,7 +20,7 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 
 - [Guides](books.md) — field guides and reference material.
 - [Books, Labs & Courses](labs.md) — books and hands-on courses on computing, data, mathematics, media and psychology.
-- Common Ground psychology — [courses and previews](labs.md#psychology): three narrated courses and six PDF previews, with further recorded editions in production.
+- Common Ground psychology — [nine narrated courses](labs.md#psychology), with interactive practice, optional research and offline access.
 - [Apps](apps.md) — tools for calculation and guided relaxation.
 - [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
 - [Open Source](opensource.md) — projects and integrations.
