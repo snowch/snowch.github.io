@@ -128,24 +128,27 @@ project:
               url: https://snowch.github.io/cravings-lab/
         - title: Psychology
           children:
-            - title: Social Psychology
-              url: https://snowch.github.io/common-ground-social-psychology/
-            - title: Cognitive Psychology
-              url: https://snowch.github.io/common-ground-cognitive-psychology/
-            - title: Personality Psychology
-              url: https://snowch.github.io/common-ground-personality-psychology/
-            - title: Developmental Psychology
-              url: https://snowch.github.io/common-ground-developmental-psychology/
-            - title: Biological Psychology
-              url: https://snowch.github.io/common-ground-biological-psychology/
-            - title: Learning and Behaviour
-              url: https://snowch.github.io/common-ground-behavioral-psychology/
-            - title: Motivation and Emotion
-              url: https://snowch.github.io/common-ground-motivation-and-emotion/
-            - title: Clinical Psychology
-              url: https://snowch.github.io/common-ground-clinical-psychology/
-            - title: Evolutionary Psychology
-              url: https://snowch.github.io/common-ground-evolutionary-psychology/
+            - file: common-ground.md
+              title: Common Ground series
+              children:
+                - title: Social Psychology
+                  url: https://snowch.github.io/common-ground-social-psychology/
+                - title: Cognitive Psychology
+                  url: https://snowch.github.io/common-ground-cognitive-psychology/
+                - title: Personality Psychology
+                  url: https://snowch.github.io/common-ground-personality-psychology/
+                - title: Developmental Psychology
+                  url: https://snowch.github.io/common-ground-developmental-psychology/
+                - title: Biological Psychology
+                  url: https://snowch.github.io/common-ground-biological-psychology/
+                - title: Learning and Behaviour
+                  url: https://snowch.github.io/common-ground-behavioral-psychology/
+                - title: Motivation and Emotion
+                  url: https://snowch.github.io/common-ground-motivation-and-emotion/
+                - title: Clinical Psychology
+                  url: https://snowch.github.io/common-ground-clinical-psychology/
+                - title: Evolutionary Psychology
+                  url: https://snowch.github.io/common-ground-evolutionary-psychology/
             - title: Everyday CBT
               url: https://snowch.github.io/everyday-cbt/
             - title: Understanding People
