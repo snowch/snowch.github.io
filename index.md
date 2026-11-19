@@ -74,7 +74,7 @@ BEng (Hons), MBA (Tech Mgmt), CISSP · Gloucestershire, UK
   Conference presentations and recordings.
 ```
 
-Common Ground psychology offers [nine narrated courses](labs.md#psychology) with interactive practice, optional research and offline access.
+The [Common Ground series](common-ground.md) offers nine narrated psychology courses with interactive practice, optional research and offline access.
 
 (about)=
 ## About
