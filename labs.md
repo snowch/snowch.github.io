@@ -64,6 +64,16 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 
 Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
 
+## Psychology
+
+Three Common Ground courses use fictional repair-café stories to explore how people think, behave and differ. Each includes narration, decisions, written practice, optional research, glossaries and browser offline access.
+
+| Course | What you’ll explore |
+|--------|---------------------|
+| [Social Psychology](https://snowch.github.io/common-ground-social-psychology/) | Situations, judgments, social influence, relationships and cooperation |
+| [Cognitive Psychology](https://snowch.github.io/common-ground-cognitive-psychology/) | Attention, perception, memory, language, reasoning and uncertainty |
+| [Personality Psychology](https://snowch.github.io/common-ground-personality-psychology/) | Traits, assessment, development, biology, motives, identity and culture |
+
 ## Wellbeing & self-reflection
 
 | Lab | What you’ll explore |
