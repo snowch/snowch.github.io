@@ -42,6 +42,12 @@ project:
           url: https://snowch.github.io/computer-systems/
         - title: xv6 Lab
           url: https://snowch.github.io/xv6-lab/
+        - title: C Network Programming Lab
+          url: https://snowch.github.io/c-network-programming-lab/
+        - title: C Linux Systems Lab
+          url: https://snowch.github.io/c-linux-systems-lab/
+        - title: C Linux Device Driver Lab
+          url: https://snowch.github.io/c-linux-device-driver-lab/
         - title: GPU Lab
           url: https://snowch.github.io/gpu-lab/
         - title: C Foundry

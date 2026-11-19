@@ -12,7 +12,12 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 | [RISC-V Assembly Lab](https://snowch.github.io/riscv-assembly-lab/) | Learn RISC-V through focused lessons: edit, compile, debug and run real assembly and C in an xv6 guest, all in your browser |
 | [Systems Lab](https://snowch.github.io/computer-systems/) — *Systems From Scratch* | Explore machine code, memory, operating systems and CPU performance through RISC-V/xv6 experiments and measurements on real hardware |
 | [xv6 Lab](https://snowch.github.io/xv6-lab/) | Learn how an operating system works through 25 browser experiments with a real xv6 kernel, including processes, virtual memory, scheduling and filesystems, with live kernel inspectors |
+| [C Network Programming Lab](https://snowch.github.io/c-network-programming-lab/) | Trace TCP streams, UDP datagrams, message framing and socket readiness, then verify a framed echo service |
+| [C Linux Systems Lab](https://snowch.github.io/c-linux-systems-lab/) | Work with file descriptors, processes, signals, memory and threads, then supervise a worker with a deadline |
+| [C Linux Device Driver Lab](https://snowch.github.io/c-linux-device-driver-lab/) | Load and test Linux kernel modules for character devices, wait queues, ioctl, memory mapping and platform binding |
 | [GPU Lab](https://snowch.github.io/gpu-lab/) | Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples |
+
+The three C labs run Linux in your browser using WebAssembly. Choose **Download for offline use** in each lab before disconnecting.
 
 ## Programming
 
