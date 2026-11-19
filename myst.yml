@@ -40,7 +40,7 @@ project:
               url: https://snowch.github.io/digital-design/
             - title: Bit Lab
               url: https://snowch.github.io/bit-lab/
-            - title: Assembly Lab
+            - title: Arm Assembly Lab
               url: https://snowch.github.io/assembly-lab/
             - title: RISC-V Assembly Lab
               url: https://snowch.github.io/riscv-assembly-lab/
