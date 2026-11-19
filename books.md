@@ -1,8 +1,6 @@
-# Books
+# Guides
 
-Browse [Labs & Courses](labs.md) for books, courses and hands-on projects.
-
-## Other Guides
+Browse [Books, Labs & Courses](labs.md) for books, courses and hands-on projects.
 
 | Guide | What you'll learn |
 |-------|-------------------|

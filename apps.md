@@ -2,7 +2,7 @@
 
 Apps I've built. Each is an installable web app (PWA) that runs in the browser and works offline.
 
-For interactive learning, browse [Labs & Courses](labs.md).
+For interactive learning, browse [Books, Labs & Courses](labs.md).
 
 | Date | App | Core Tech | Description |
 |------|-----|-----------|-------------|

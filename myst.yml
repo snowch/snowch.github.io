@@ -25,10 +25,10 @@ project:
     - file: index.md
 
     - file: books.md
-      title: Books
+      title: Guides
 
     - file: labs.md
-      title: Labs & Courses
+      title: Books, Labs & Courses
       children:
         - title: Digital Design
           url: https://snowch.github.io/digital-design/

@@ -18,8 +18,8 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 
 ## Explore
 
-- [Books](books.md) — field guides and reference material.
-- [Labs & Courses](labs.md) — books and hands-on courses on computing, data, mathematics, media and psychology.
+- [Guides](books.md) — field guides and reference material.
+- [Books, Labs & Courses](labs.md) — books and hands-on courses on computing, data, mathematics, media and psychology.
 - [Apps](apps.md) — tools for calculation and guided relaxation.
 - [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
 - [Open Source](opensource.md) — projects and integrations.

@@ -1,4 +1,4 @@
-# Labs & Courses
+# Books, Labs & Courses
 
 Explore books, courses and hands-on labs with worked examples, exercises and experiments.
 
