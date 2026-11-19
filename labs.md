@@ -17,7 +17,7 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 ## Computer Systems
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Digital Design](https://snowch.github.io/digital-design/)
 
@@ -69,7 +69,7 @@ The three C labs run Linux in your browser using WebAssembly. Choose **Download 
 ## Programming
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [C Foundry](https://snowch.github.io/c-foundry/#/course)
 
@@ -89,7 +89,7 @@ The three C labs run Linux in your browser using WebAssembly. Choose **Download 
 Parquet Lab builds the reader used by Query Engine Lab, so they work well in that order.
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Parquet Lab](https://snowch.github.io/parquet-book/) — *Parquet, byte by byte*
 
@@ -147,7 +147,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 ## Research & Evidence
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Scientific Method Lab](https://snowch.github.io/scientific-method-lab/)
 
@@ -165,7 +165,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 ## Mathematics
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Linear Algebra V2](https://snowch.github.io/learn_linear_algebra/interactive/)
 
@@ -195,7 +195,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 ## Media
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Video Lab](https://snowch.github.io/video-lab/)
 
@@ -207,7 +207,7 @@ Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each l
 ## Wellbeing & self-reflection
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Cravings Lab](https://snowch.github.io/cravings-lab/)
 
@@ -219,7 +219,7 @@ Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each l
 Common Ground uses fictional repair-café stories, decisions, written practice, optional research and glossaries. All nine courses include recorded narration, interactive practice and an option to save the course for offline use. Research links are available when you want to explore further.
 
 ```{div}
-:class: labs-entries
+:class: resource-list labs-entries
 
 - [Social Psychology](https://snowch.github.io/common-ground-social-psychology/)
 
