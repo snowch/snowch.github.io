@@ -14,6 +14,7 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 | [xv6 Lab](https://snowch.github.io/xv6-lab/) | Learn how an operating system works through 25 browser experiments with a real xv6 kernel, including processes, virtual memory, scheduling and filesystems, with live kernel inspectors |
 | [C Network Programming Lab](https://snowch.github.io/c-network-programming-lab/) | Start with Linux socket APIs in C, then work through TCP, UDP, DNS, TLS, Unix-domain sockets and loopback diagnostics |
 | [C Linux Systems Lab](https://snowch.github.io/c-linux-systems-lab/) | Start with Linux API return values, errno and file I/O, then explore processes, concurrency, event loops, tracing and supervision |
+| [Linux Troubleshooting Lab](https://snowch.github.io/linux-troubleshooting-lab/) | Use strace to diagnose file, permission, process, pipe and loopback network failures in an offline Linux guest |
 | [Introduction to Linux Device Drivers in C](https://snowch.github.io/c-linux-device-driver-lab/) | Start with module load, unload and parameters before testing character devices, wait queues, memory mapping and synthetic platform binding |
 | [GPU Lab](https://snowch.github.io/gpu-lab/) | Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples |
 
