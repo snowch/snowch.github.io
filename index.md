@@ -1,51 +1,125 @@
+---
+site:
+  hide_title_block: true
+  hide_outline: true
+  hide_footer_links: true
+---
+
+``````{div}
+:class: home-content
+
+`````{div}
+:class: home-hero
+
+````{div}
+:class: home-intro
+:label: skip-to-frontmatter
+
+Data & AI Engineering
+
 # Chris Snow
 
-**BEng (Hons), MBA (Tech Mgmt), CISSP**
+I help enterprise and public sector teams design and deliver production-ready data and AI systems.
 
-*Data & AI · Strategy · Architecture · Scale*
+```{div}
+:class: home-actions
 
-Gloucestershire, UK
+[Browse books, labs & courses](labs.md)
 
----
+[About me](#about)
+```
 
-## About
+```{div}
+:class: home-details
 
-I help enterprise and public sector teams turn ambitious data and AI goals into scalable, production-ready outcomes—leveraging open source, agentic AI, and deep domain expertise.
+BEng (Hons), MBA (Tech Mgmt), CISSP · Gloucestershire, UK
+```
 
-With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java development/architecture, Linux administration, and security, over 10 years in presales, and the most recent 11+ years in data engineering, data science, and AI—I bridge strategy and execution: shaping architectures, guiding technical direction, and delivering solutions aligned with business value.
+````
 
----
+````{div}
+:class: home-art
+
+![Close-up of a processor die on a circuit board](assets/processor.webp)
+````
+`````
 
 ## Explore
 
-- [Guides](books.md) — field guides and reference material.
-- [Books, Labs & Courses](labs.md) — books and hands-on courses on computing, data, mathematics, media and psychology.
-- Common Ground psychology — [nine narrated courses](labs.md#psychology), with interactive practice, optional research and offline access.
-- [Apps](apps.md) — tools for calculation and guided relaxation.
-- [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
-- [Open Source](opensource.md) — projects and integrations.
-- [Talks](talks.md) — presentations and recordings.
+```{div}
+:class: resource-list home-directory
 
----
+- [Books, Labs & Courses](labs.md)
+
+  Hands-on learning in computing, data, mathematics, media and psychology.
+
+- [Guides](books.md)
+
+  Field guides and reference material for data platforms and hardware security.
+
+- [Articles & Notes](articles.md)
+
+  Tutorials, technical notes and published articles.
+
+- [Apps](apps.md)
+
+  Installable tools for calculation and guided relaxation.
+
+- [Open Source](opensource.md)
+
+  Projects and integrations I’ve built and maintain.
+
+- [Talks](talks.md)
+
+  Conference presentations and recordings.
+```
+
+Common Ground psychology offers [nine narrated courses](labs.md#psychology) with interactive practice, optional research and offline access.
+
+(about)=
+## About
+
+My work spans strategy, architecture and delivery. In 25+ years in IT, I’ve spent 14 years in BI, data warehousing, NoSQL, Java development and architecture, Linux administration and security, and over 10 years in presales. The most recent 11+ years have focused on data engineering, data science and AI, including open source and agentic AI.
+
+````{div}
+:class: home-profile
+
+```{div}
 
 ## Select Highlights
 
-- **Built $xx million EMEA presales team from scratch** · Grew technical presales organization from zero to 12 staff (2 managers, 10 ICs) at HPE, managing regional AI/Big Data portfolio
-- **Published Author** · Books on embeddings at scale, probability, matrix calculus, linear algebra
-- **Open Source Projects** · Hardware security guides (158 stars), ML recommender systems (99 stars), and educational resources
-- **Community Contributions** · Stack Overflow 24.9k reputation, 5.2M people reached, 14 years active member
-- **Apache Committer** · Open source contributor since 2013
-- **Technical Leadership** · 11+ years in data engineering, AI/ML; 10+ years in presales; enterprise + public sector
+- **Built an EMEA presales team at HPE** from zero to 12 staff, including two managers and ten individual contributors, and managed the regional AI and Big Data portfolio.
+- **Published books** on embeddings at scale, probability, matrix calculus and linear algebra.
+- **Created open source projects** including hardware security guides (158 stars), ML recommender systems (99 stars) and educational resources.
+- **Contributed to Stack Overflow** for 14 years, reaching 5.2M people and earning 24.9k reputation.
+- **Apache Committer** and open source contributor since 2013.
+- **Technical leadership** across enterprise and public sector work, with 11+ years in data engineering and AI/ML and 10+ years in presales.
+```
 
----
+```{div}
+:class: home-experience
 
 ## Experience
 
-Recent roles and affiliations:
+- **VAST Data**
 
-- **VAST Data** · Data and AI Specialist · 2024–Present
-- **Databricks** · Data, ML, AI Technical Leader · 2022–2024
-- **Hewlett Packard Enterprise** · AI / Big Data Technical Leader · 2019–2022
-- **IBM** · Chief AI / Big Data Architect, Europe · 2014–2019
-- **Fiserv (Monitise/Visa JV)** · Solution Architect Lead · 2010–2014
-- **Apache Software Foundation** · Committer · 2013–Present
+  Data and AI Specialist · 2024–Present
+- **Databricks**
+
+  Data, ML, AI Technical Leader · 2022–2024
+- **Hewlett Packard Enterprise**
+
+  AI / Big Data Technical Leader · 2019–2022
+- **IBM**
+
+  Chief AI / Big Data Architect, Europe · 2014–2019
+- **Fiserv (Monitise/Visa JV)**
+
+  Solution Architect Lead · 2010–2014
+- **Apache Software Foundation**
+
+  Committer · 2013–Present
+```
+
+````
+``````
