@@ -1,21 +1,6 @@
-# Books
+# Guides
 
-Books for working through a subject at your own pace, with examples and exercises along the way. For projects centred on building and measuring, browse [Labs & Courses](labs.md).
-
-| Book | What you'll learn |
-|------|-------------------|
-| [Embeddings at Scale](embeddings.md) | Vector representations, similarity search and deploying embedding systems at scale |
-| [Metadata Systems](https://snowch.github.io/metadata-book/) | Understand metadata collection, lineage, quality, governance and controlled reuse through worked examples and a visual metadata map |
-| [Probability](probability/probability.md) | Probability rules, conditional probability, distributions and Python examples |
-| [Linear Algebra](linear-algebra.md) | Vectors, matrices, eigenvalues and singular value decomposition, with SageMath exercises |
-| [Matrix Calculus](matrix-calculus.md) | Matrix derivatives, gradients, Jacobians and Hessians for machine learning |
-| [Social Psychology](https://snowch.github.io/common-ground-social-psychology/) | Explore social psychology through ten illustrated stories, narrated chapters, decisions and recall practice |
-| [Cognitive Psychology](https://snowch.github.io/common-ground-cognitive-psychology/) | Explore attention, perception, memory, language and reasoning through ten narrated café stories, evidence checks and practice |
-| [Personality Psychology](https://snowch.github.io/common-ground-personality-psychology/) | Understand traits, measurement, development, motives and identity through ten narrated stories and evidence-based interpretation |
-| [Everyday CBT](https://snowch.github.io/everyday-cbt/) | Learn introductory CBT skills through twelve illustrated stories, recorded narration, decisions and practical labs. **Draft course; practitioner review pending.** |
-| [Understanding People](https://snowch.github.io/understanding-people/) | Understand what drives people through psychology, sociology and decision science, with practical habits and an expanded reference library |
-
-## Other Guides
+Browse [Books, Labs & Courses](labs.md) for books, courses and hands-on projects.
 
 | Guide | What you'll learn |
 |-------|-------------------|
