@@ -77,8 +77,12 @@ Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each l
 
 ## Psychology
 
+The three Common Ground courses share fictional repair-café stories, narration, decisions, written practice, optional research, glossaries and browser offline access.
+
 | Book or course | What you'll learn |
 |----------------|-------------------|
 | [Social Psychology](https://snowch.github.io/common-ground-social-psychology/) | Explore social psychology through ten illustrated stories, narrated chapters, decisions and recall practice |
+| [Cognitive Psychology](https://snowch.github.io/common-ground-cognitive-psychology/) | Explore attention, perception, memory, language and reasoning through ten narrated café stories, evidence checks and practice |
+| [Personality Psychology](https://snowch.github.io/common-ground-personality-psychology/) | Understand traits, assessment, development, motives, identity and culture through ten narrated stories and evidence-based interpretation |
 | [Everyday CBT](https://snowch.github.io/everyday-cbt/) | Learn introductory CBT skills through twelve illustrated stories, recorded narration, decisions and practical labs. **Draft course; practitioner review pending.** |
 | [Understanding People](https://snowch.github.io/understanding-people/) | Understand what drives people through psychology, sociology and decision science, with practical habits and an expanded reference library |

@@ -20,6 +20,7 @@ With 25+ years in IT—including 14 years in BI, data warehousing, NoSQL, Java d
 
 - [Guides](books.md) — field guides and reference material.
 - [Books, Labs & Courses](labs.md) — books and hands-on courses on computing, data, mathematics, media and psychology.
+- Common Ground psychology — [Social psychology](https://snowch.github.io/common-ground-social-psychology/), [Cognitive psychology](https://snowch.github.io/common-ground-cognitive-psychology/) and [Personality psychology](https://snowch.github.io/common-ground-personality-psychology/) courses with narration, practice and offline access.
 - [Apps](apps.md) — tools for calculation and guided relaxation.
 - [Articles & Notes](articles.md) — tutorials, technical notes and published articles.
 - [Open Source](opensource.md) — projects and integrations.
