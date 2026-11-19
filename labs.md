@@ -27,9 +27,9 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 
   Explore binary and hexadecimal, fixed-width arithmetic, CPU flags, masks, shifts and byte order through interactive experiments and checked questions. **Draft course.**
 
-- [Assembly Lab](https://snowch.github.io/assembly-lab/)
+- [Arm Assembly Lab](https://snowch.github.io/assembly-lab/)
 
-  Explore processor instructions one at a time, with the corresponding C alongside them
+  Step through 64-bit Arm instructions with the corresponding C alongside them
 
 - [RISC-V Assembly Lab](https://snowch.github.io/riscv-assembly-lab/)
 
@@ -202,7 +202,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
   Run editable FFmpeg and ffprobe commands in the browser to practise cutting, joining, framing, sound, subtitles and export
 ```
 
-Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
+Arm Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
 
 ## Wellbeing & self-reflection
 
