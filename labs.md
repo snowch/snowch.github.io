@@ -175,6 +175,10 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 
   Model uncertainty, compare scenarios and make decisions through 60 core and 16 advanced Python investigations running in your browser
 
+- [Probability Distributions Lab](https://snowch.github.io/probability-distributions-lab/)
+
+  Learn to read, choose and test probability distributions through 48 interactive browser lessons, with optional Python investigations
+
 - [SymPy Lab](https://snowch.github.io/sympy-lab/)
 
   Learn symbolic algebra, equations, calculus and matrices through 48 Python investigations running in your browser, with optional maths refresher panels

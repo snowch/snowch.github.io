@@ -110,6 +110,8 @@ project:
               url: https://snowch.github.io/learn_linear_algebra/interactive/
             - title: Monte Carlo Lab
               url: https://snowch.github.io/monte-carlo-lab/
+            - title: Probability Distributions Lab
+              url: https://snowch.github.io/probability-distributions-lab/
             - title: SymPy Lab
               url: https://snowch.github.io/sympy-lab/
             - file: probability/probability.md
