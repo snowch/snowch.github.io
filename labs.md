@@ -228,7 +228,7 @@ Arm Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow ea
 
 ## Psychology
 
-The [Common Ground series](common-ground.md) offers nine introductory psychology courses with recorded narration, interactive practice and offline access.
+The [Common Ground series](common-ground.md) offers nine introductory psychology courses and an applied behavioural science capstone, with recorded narration, interactive practice and offline access.
 
 ````{div}
 :class: resource-list labs-entries
