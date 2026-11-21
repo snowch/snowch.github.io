@@ -139,6 +139,10 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
 
   Practise machine learning fundamentals with scikit-learn
 
+- [PyTorch Lab](https://snowch.github.io/pytorch-lab/)
+
+  Edit and run real PyTorch on the CPU in your browser, from tensors and autograd to training image classifiers and a tiny causal decoder
+
 - [Embeddings at Scale](embeddings.md)
 
   Vector representations, similarity search and deploying embedding systems at scale
