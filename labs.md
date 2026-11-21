@@ -62,6 +62,10 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 - [GPU Lab](https://snowch.github.io/gpu-lab/)
 
   Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples
+
+- [CUDA Python Lab](https://snowch.github.io/cuda-python-lab/)
+
+  Write and trace CUDA kernels in Python across twelve browser labs, then export notebooks to verify and profile them on an NVIDIA GPU
 ```
 
 The three C labs run Linux in your browser using WebAssembly. Choose **Download for offline use** in each lab before disconnecting.
