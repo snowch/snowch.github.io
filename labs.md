@@ -59,7 +59,7 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 
   Start with module load, unload and parameters before testing character devices, wait queues, memory mapping and synthetic platform binding
 
-- [GPU Lab](https://snowch.github.io/gpu-lab/)
+- [CUDA C++ Lab](https://snowch.github.io/cuda-cpp-lab/)
 
   Investigate tensor layouts, memory access and GPU execution through browser simulations and downloadable CUDA/PyTorch examples
 
@@ -214,7 +214,7 @@ Parquet Lab builds the reader used by Query Engine Lab, so they work well in tha
   Run editable FFmpeg and ffprobe commands in the browser to practise cutting, joining, framing, sound, subtitles and export
 ```
 
-Arm Assembly Lab, GPU Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
+Arm Assembly Lab, CUDA C++ Lab and Video Lab also support offline learning. Follow each lab's instructions to prepare its offline content.
 
 ## Wellbeing & self-reflection
 

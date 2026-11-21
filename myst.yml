@@ -56,8 +56,8 @@ project:
               url: https://snowch.github.io/linux-troubleshooting-lab/
             - title: Introduction to Linux Device Drivers in C
               url: https://snowch.github.io/c-linux-device-driver-lab/
-            - title: GPU Lab
-              url: https://snowch.github.io/gpu-lab/
+            - title: CUDA C++ Lab
+              url: https://snowch.github.io/cuda-cpp-lab/
         - title: Programming
           children:
             - title: C Foundry
