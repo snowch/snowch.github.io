@@ -33,3 +33,7 @@
 - [Evolutionary Psychology](https://snowch.github.io/common-ground-evolutionary-psychology/)
 
   Evaluate selection, adaptation, cooperation, cultural evolution and human variation using testable hypotheses and explicit limits
+
+- [Behavioural Science: Decisions and Change](https://snowch.github.io/common-ground-behavioral-science/)
+
+  An optional applied capstone: investigate barriers, design responsible interventions, and evaluate change using meaningful outcomes, field experiments and ethics. Short recaps also support taking it independently.
