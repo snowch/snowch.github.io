@@ -126,8 +126,24 @@ project:
               url: https://snowch.github.io/video-lab/
         - title: Wellbeing & self-reflection
           children:
-            - title: Cravings Lab
-              url: https://snowch.github.io/cravings-lab/
+            - title: Wellbeing Lab collection
+              url: https://snowch.github.io/wellbeing-lab/
+            - title: Cravings
+              url: https://snowch.github.io/wellbeing-lab/cravings/
+            - title: Starting and Returning
+              url: https://snowch.github.io/wellbeing-lab/starting-and-returning/
+            - title: Focus and Attention
+              url: https://snowch.github.io/wellbeing-lab/focus/
+            - title: Learning and Practice
+              url: https://snowch.github.io/wellbeing-lab/learning/
+            - title: Decisions and Commitments
+              url: https://snowch.github.io/wellbeing-lab/decisions/
+            - title: Emotional Responses
+              url: https://snowch.github.io/wellbeing-lab/emotions/
+            - title: Communication and Relationships
+              url: https://snowch.github.io/wellbeing-lab/relationships/
+            - title: Rest, Enjoyment and Balance
+              url: https://snowch.github.io/wellbeing-lab/rest-and-balance/
         - title: Psychology
           children:
             - file: common-ground.md

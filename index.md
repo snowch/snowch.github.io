@@ -76,6 +76,17 @@ BEng (Hons), MBA (Tech Mgmt), CISSP · Gloucestershire, UK
 
 The [Common Ground series](common-ground.md) offers nine narrated psychology courses and an [applied behavioural science capstone](https://snowch.github.io/common-ground-behavioral-science/), with interactive practice, optional research and offline access.
 
+## Wellbeing labs
+
+[Wellbeing Lab](https://snowch.github.io/wellbeing-lab/) offers small practices for everyday life, with short lessons, optional research and private plans and observations. Choose the lab that fits what you want to work on.
+
+````{div}
+:class: resource-list home-directory wellbeing-directory
+
+```{include} includes/wellbeing-labs.md
+```
+````
+
 (about)=
 ## About
 

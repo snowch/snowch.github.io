@@ -218,13 +218,14 @@ Arm Assembly Lab, CUDA C++ Lab and Video Lab also support offline learning. Foll
 
 ## Wellbeing & self-reflection
 
-```{div}
+[Wellbeing Lab](https://snowch.github.io/wellbeing-lab/) brings together eight practical labs. Choose a direction, explore the evidence and try a personally useful change. Records stay in the current tab unless you choose device saving within a lab.
+
+````{div}
 :class: resource-list labs-entries
 
-- [Cravings Lab](https://snowch.github.io/cravings-lab/)
-
-  Learn about cravings, hunger and habits through six short lessons, then explore optional check-ins, guided practices and small experiments. Tab-only by default, with optional device saving. Self-reflection for adults, not diagnosis or treatment.
+```{include} includes/wellbeing-labs.md
 ```
+````
 
 ## Psychology
 

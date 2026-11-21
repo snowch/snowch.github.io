@@ -79,6 +79,11 @@ jobs:
       - name: Copy Google verification file
         run: cp googlea64efe48103f11c2.html _build/html/
 
+      - name: Preserve renamed Cravings Lab links
+        run: |
+          mkdir -p _build/html/cravings-lab
+          cp redirects/cravings-lab/index.html _build/html/cravings-lab/index.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
