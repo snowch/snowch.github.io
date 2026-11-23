@@ -90,16 +90,24 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 - [Rust Foundry](https://snowch.github.io/rust-foundry/)
 
   Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects
+```
 
-- [Go Foundry — First programs](https://snowch.github.io/go-foundry/first-programs/)
+## Go Foundry
+
+Three introductory Go labs, in learning order. Each lab has its own homepage, lessons and progress.
+
+```{div}
+:class: resource-list labs-entries go-foundry-series
+
+- [1. First programs](https://snowch.github.io/go-foundry/first-programs/)
 
   Print messages, follow statement order and fix compiler errors in three editable browser lessons. No Go experience required
 
-- [Go Foundry — Values and types](https://snowch.github.io/go-foundry/values-and-types/)
+- [2. Values and types](https://snowch.github.io/go-foundry/values-and-types/)
 
   Name values, choose types and divide whole numbers in three editable browser lessons. Builds on First programs
 
-- [Go Foundry — Conditions and loops](https://snowch.github.io/go-foundry/conditions-and-loops/)
+- [3. Conditions and loops](https://snowch.github.io/go-foundry/conditions-and-loops/)
 
   Choose a path, repeat work and build a running total in three editable browser lessons. Builds on Values and types
 ```

@@ -68,11 +68,13 @@ project:
               url: https://snowch.github.io/cpp-foundry/#/course
             - title: Rust Foundry
               url: https://snowch.github.io/rust-foundry/
-            - title: Go Foundry — First programs
+        - title: Go Foundry
+          children:
+            - title: 1. First programs
               url: https://snowch.github.io/go-foundry/first-programs/
-            - title: Go Foundry — Values and types
+            - title: 2. Values and types
               url: https://snowch.github.io/go-foundry/values-and-types/
-            - title: Go Foundry — Conditions and loops
+            - title: 3. Conditions and loops
               url: https://snowch.github.io/go-foundry/conditions-and-loops/
         - title: Data Engineering & AI
           children:
