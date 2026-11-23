@@ -63,9 +63,9 @@ project:
             - title: Python Foundry
               url: https://snowch.github.io/python-foundry/
             - title: C Foundry
-              url: https://snowch.github.io/c-foundry/#/course
+              url: https://snowch.github.io/c-foundry/
             - title: C++ Foundry
-              url: https://snowch.github.io/cpp-foundry/#/course
+              url: https://snowch.github.io/cpp-foundry/
             - title: Rust Foundry
               url: https://snowch.github.io/rust-foundry/
             - title: Go Foundry
