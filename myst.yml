@@ -60,6 +60,8 @@ project:
               url: https://snowch.github.io/cuda-cpp-lab/
         - title: Programming
           children:
+            - title: Python Foundry
+              url: https://snowch.github.io/python-foundry/
             - title: C Foundry
               url: https://snowch.github.io/c-foundry/#/course
             - title: C++ Foundry
