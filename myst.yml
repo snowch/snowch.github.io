@@ -68,32 +68,8 @@ project:
               url: https://snowch.github.io/cpp-foundry/#/course
             - title: Rust Foundry
               url: https://snowch.github.io/rust-foundry/
-        - title: Go Foundry
-          children:
-            - title: 1. First programs
-              url: https://snowch.github.io/go-foundry/first-programs/
-            - title: 2. Values and types
-              url: https://snowch.github.io/go-foundry/values-and-types/
-            - title: 3. Conditions and loops
-              url: https://snowch.github.io/go-foundry/conditions-and-loops/
-            - title: 4. Functions and pointers
-              url: https://snowch.github.io/go-foundry/functions-and-pointers/
-            - title: 5. Collections and text
-              url: https://snowch.github.io/go-foundry/collections-and-text/
-            - title: 6. Types and interfaces
-              url: https://snowch.github.io/go-foundry/types-and-interfaces/
-            - title: 7. Errors and testing
-              url: https://snowch.github.io/go-foundry/errors-and-testing/
-            - title: 8. Files and HTTP
-              url: https://snowch.github.io/go-foundry/files-and-http/
-            - title: 9. Concurrency
-              url: https://snowch.github.io/go-foundry/concurrency/
-            - title: 10. Data structures
-              url: https://snowch.github.io/go-foundry/data-structures/
-            - title: 11. Algorithms
-              url: https://snowch.github.io/go-foundry/algorithms/
-            - title: 12. Build a TinyDB
-              url: https://snowch.github.io/go-foundry/tinydb/
+            - title: Go Foundry
+              url: https://snowch.github.io/go-foundry/
         - title: Data Engineering & AI
           children:
             - title: Parquet Lab
