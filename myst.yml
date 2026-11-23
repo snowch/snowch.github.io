@@ -68,6 +68,8 @@ project:
               url: https://snowch.github.io/cpp-foundry/#/course
             - title: Rust Foundry
               url: https://snowch.github.io/rust-foundry/
+            - title: Go Foundry
+              url: https://snowch.github.io/go-foundry/
         - title: Data Engineering & AI
           children:
             - title: Parquet Lab

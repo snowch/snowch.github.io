@@ -90,6 +90,10 @@ The three C labs run Linux in your browser using WebAssembly. Choose **Download 
 - [Rust Foundry](https://snowch.github.io/rust-foundry/)
 
   Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects
+
+- [Go Foundry](https://snowch.github.io/go-foundry/)
+
+  **Runtime prototype.** Compile Go programs, run tests, use goroutines and save and reopen a small database in browser Linux
 ```
 
 ## Data Engineering & AI
