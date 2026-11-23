@@ -91,9 +91,17 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 
   Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects
 
-- [Go Foundry](https://snowch.github.io/go-foundry/)
+- [Go Foundry — First programs](https://snowch.github.io/go-foundry/first-programs/)
 
-  **Runtime prototype.** Compile Go programs, run tests, use goroutines and save and reopen a small database in browser Linux
+  Print messages, follow statement order and fix compiler errors in three editable browser lessons. No Go experience required
+
+- [Go Foundry — Values and types](https://snowch.github.io/go-foundry/values-and-types/)
+
+  Name values, choose types and divide whole numbers in three editable browser lessons. Builds on First programs
+
+- [Go Foundry — Conditions and loops](https://snowch.github.io/go-foundry/conditions-and-loops/)
+
+  Choose a path, repeat work and build a running total in three editable browser lessons. Builds on Values and types
 ```
 
 ## Data Engineering & AI
