@@ -519,8 +519,7 @@ body {
 }
 
 @container (min-width: 57rem) {
-  .home-directory > ul,
-  .go-foundry-series > ul {
+  .home-directory > ul {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

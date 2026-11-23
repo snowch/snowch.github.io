@@ -90,62 +90,10 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 - [Rust Foundry](https://snowch.github.io/rust-foundry/)
 
   Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects
-```
 
-## Go Foundry
+- <span id="go-foundry"></span>[Go Foundry](https://snowch.github.io/go-foundry/)
 
-Twelve focused Go labs, in learning order, with 113 editable browser lessons. Each lab has its own homepage, prerequisites and saved progress. Start with First programs if you are new to Go.
-
-```{div}
-:class: resource-list labs-entries go-foundry-series
-
-- [1. First programs](https://snowch.github.io/go-foundry/first-programs/)
-
-  Print messages, follow statement order and repair compiler errors in 6 editable browser lessons. No Go experience required
-
-- [2. Values and types](https://snowch.github.io/go-foundry/values-and-types/)
-
-  Name values, choose types and control numeric conversions in 8 editable browser lessons. Builds on First programs
-
-- [3. Conditions and loops](https://snowch.github.io/go-foundry/conditions-and-loops/)
-
-  Choose paths, repeat work and build running totals in 9 editable browser lessons. Builds on Values and types
-
-- [4. Functions and pointers](https://snowch.github.io/go-foundry/functions-and-pointers/)
-
-  Separate work into functions and decide when a function changes shared data in 9 editable browser lessons. Builds on Conditions and loops
-
-- [5. Collections and text](https://snowch.github.io/go-foundry/collections-and-text/)
-
-  Work with arrays, slices, maps and Unicode text in 11 editable browser lessons. Builds on Functions and pointers
-
-- [6. Types and interfaces](https://snowch.github.io/go-foundry/types-and-interfaces/)
-
-  Model records and behavior with structs, methods, interfaces and generics in 12 editable browser lessons. Builds on Collections and text
-
-- [7. Errors and testing](https://snowch.github.io/go-foundry/errors-and-testing/)
-
-  Return useful errors and verify behavior with real Go tests in 11 editable browser lessons. Builds on Types and interfaces
-
-- [8. Files and HTTP](https://snowch.github.io/go-foundry/files-and-http/)
-
-  Read and write structured data and handle local HTTP requests in 9 editable browser lessons. Builds on Errors and testing
-
-- [9. Concurrency](https://snowch.github.io/go-foundry/concurrency/)
-
-  Coordinate goroutines, cancellation and shared state in 9 editable browser lessons. Builds on Files and HTTP
-
-- [10. Data structures](https://snowch.github.io/go-foundry/data-structures/)
-
-  Build and inspect stacks, queues, trees, heaps and graphs in 8 editable browser lessons. Builds on Concurrency
-
-- [11. Algorithms](https://snowch.github.io/go-foundry/algorithms/)
-
-  Search, sort and traverse data while counting work in 9 editable browser lessons. Builds on Data structures
-
-- [12. Build a TinyDB](https://snowch.github.io/go-foundry/tinydb/)
-
-  Build a persistent record store with validation, indexes and checked snapshots in 12 editable browser lessons. Builds on Algorithms
+  Learn Go from first programs to concurrency, data structures, algorithms and a persistent database. **12 focused labs · 113 runnable lessons**
 
 ```
 
