@@ -77,7 +77,7 @@ The three C labs run Linux in your browser using WebAssembly. Choose **Download 
 
 - [Python Foundry](https://snowch.github.io/python-foundry/)
 
-  Learn Python from your first program to tested, multi-file applications through 92 browser lessons, independent practice and six projects
+  Learn Python from your first program to tested, multi-file applications through 122 browser lessons, independent practice, data structures and algorithms, and a TinyDB database project
 
 - [C Foundry](https://snowch.github.io/c-foundry/#/course)
 
