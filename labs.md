@@ -8,6 +8,8 @@ site:
 
 Explore books, courses and hands-on labs with worked examples, exercises and experiments.
 
+Offline support varies by lab. If a lab offers an offline copy in **App status**, save it and wait for confirmation before disconnecting. Externally hosted Linux runners and external documentation still need internet access.
+
 ```{contents} Browse by topic
 :context: page
 :depth: 1
@@ -65,10 +67,8 @@ Explore books, courses and hands-on labs with worked examples, exercises and exp
 
 - [CUDA Python Lab](https://snowch.github.io/cuda-python-lab/)
 
-  Write and trace CUDA kernels in Python across twelve browser labs, then export notebooks to verify and profile them on an NVIDIA GPU
+  Write and trace CUDA kernels in Python through browser experiments, then export notebooks to verify and profile them on an NVIDIA GPU
 ```
-
-The three C labs run Linux in your browser using WebAssembly. Choose **Download for offline use** in each lab before disconnecting.
 
 ## Programming
 
