@@ -77,7 +77,7 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 
 - [Python Foundry](https://snowch.github.io/python-foundry/)
 
-  Learn Python from your first program to tested, multi-file applications through 122 browser lessons, independent practice, data structures and algorithms, and a TinyDB database project. **20 focused labs · 122 lessons**
+  Learn Python from your first program to tested, multi-file applications through editable browser examples, independent practice, data structures and algorithms, and a TinyDB database project. **20 focused labs · 122 lessons**
 
 - [C Foundry](https://snowch.github.io/c-foundry/)
 
