@@ -77,19 +77,19 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 
 - [Python Foundry](https://snowch.github.io/python-foundry/)
 
-  Learn Python from your first program to tested, multi-file applications through 122 browser lessons, independent practice, data structures and algorithms, and a TinyDB database project
+  Learn Python from your first program to tested, multi-file applications through 122 browser lessons, independent practice, data structures and algorithms, and a TinyDB database project. **20 focused labs · 122 lessons**
 
-- [C Foundry](https://snowch.github.io/c-foundry/#/course)
+- [C Foundry](https://snowch.github.io/c-foundry/)
 
-  Learn C, memory management, algorithms and database internals through editable browser examples and native investigations
+  Learn C, memory management, algorithms and database internals through editable browser examples and native investigations. **9 focused labs · 227 lessons**
 
-- [C++ Foundry](https://snowch.github.io/cpp-foundry/#/course)
+- [C++ Foundry](https://snowch.github.io/cpp-foundry/)
 
-  Explore modern C++20, ownership, resource management, algorithms and database components with runnable examples
+  Explore modern C++20, ownership, resource management, algorithms and database components with runnable examples. **10 focused labs · 270 lessons**
 
 - [Rust Foundry](https://snowch.github.io/rust-foundry/)
 
-  Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects
+  Learn Rust, ownership and borrowing through browser-compiled examples and exercises, then build a database through optional TinyDB projects. **14 focused labs · 85 lessons**
 
 - <span id="go-foundry"></span>[Go Foundry](https://snowch.github.io/go-foundry/)
 
