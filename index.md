@@ -74,7 +74,7 @@ BEng (Hons), MBA (Tech Mgmt), CISSP · Gloucestershire, UK
   Conference presentations and recordings.
 ```
 
-The [Common Ground series](common-ground.md) offers nine narrated psychology courses and an [applied behavioural science capstone](https://snowch.github.io/common-ground-behavioral-science/), with interactive practice, optional research and offline access.
+The [Common Ground series](common-ground.md) offers introductory psychology courses, a short [neuroscience companion](https://snowch.github.io/common-ground-neuroscience/) and an [applied behavioural science capstone](https://snowch.github.io/common-ground-behavioral-science/), with narrated stories, interactive practice, optional research and offline access.
 
 ## Wellbeing labs
 

@@ -238,7 +238,7 @@ Arm Assembly Lab, CUDA C++ Lab and Video Lab also support offline learning. Foll
 
 ## Psychology
 
-The [Common Ground series](common-ground.md) offers nine introductory psychology courses and an applied behavioural science capstone, with recorded narration, interactive practice and offline access.
+The [Common Ground series](common-ground.md) offers introductory psychology courses, a short neuroscience companion and an applied behavioural science capstone, with recorded narration, interactive practice and offline access.
 
 ````{div}
 :class: resource-list labs-entries
