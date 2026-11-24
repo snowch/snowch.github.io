@@ -43,7 +43,7 @@ Offline support varies by lab. If a lab offers an offline copy in **App status**
 
 - [xv6 Lab](https://snowch.github.io/xv6-lab/)
 
-  Learn how an operating system works through 25 browser experiments with a real xv6 kernel, including processes, virtual memory, scheduling and filesystems, with live kernel inspectors
+  Learn how an operating system works through 99 source-led lessons and 25 kernel-explorer experiments with a real xv6 kernel, covering processes, virtual memory, scheduling and filesystems
 
 - [C Network Programming Lab](https://snowch.github.io/c-network-programming-lab/)
 
